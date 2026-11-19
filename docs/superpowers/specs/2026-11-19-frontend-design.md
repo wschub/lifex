@@ -139,14 +139,46 @@ eventos para detectar huecos. Los eventos actualizan la caché con `queryClient.
 
 ## 8.1 Pendientes urgentes (se resuelven al terminar la v1 del frontend)
 
-- **Tarifas:** el prototipo tiene cinco tarifas con multiplicadores de precio de ejemplo (Light, Classic, Flex,
-  Business Classic, Business Flex) y precios de asiento por zona. Hay que alinearlas con lo que cobra realmente el
-  backend (tipos de equipaje y precios de asiento) y decidir qué se muestra. En la v1 se muestran los valores del
-  backend tal como vienen.
-- **Orden de pasos y reserva:** el titular de la reserva se completa antes de elegir asiento (así lo hace el
-  prototipo), por lo que crear la reserva al final de `/passengers` no cambia nada para el usuario ni para el
-  backend. Si al implementarlo se descubre un choque con el backend, se anota aquí como urgente y se resuelve junto
-  con las tarifas.
+Hallazgos de la Fase C (web pública conectada al backend real), de más a menos grave:
+
+**Bloquean el uso real (backend, fuera del alcance del agente frontend)**
+- **CORS no admite `Idempotency-Key`.** El preflight de `POST /bookings/:id/payments` responde
+  `Access-Control-Allow-Headers: Authorization,Content-Type,Accept-Language,X-CSRF-Protection,X-Request-Id`, así que el
+  navegador bloquea el pago desde otro origen. Hay que añadir `Idempotency-Key` a `allowedHeaders` en
+  `backend/src/app.ts`. Mientras tanto, en desarrollo se usa el proxy de Vite (`VITE_API_URL=http://localhost:5173/api`).
+- **El QR (`/tickets/:code/qr.png`) sale con `Cross-Origin-Resource-Policy: same-origin`.** Un `<img>` de otro origen (la
+  web en otro dominio, o un cliente de correo web) no lo carga. La ruta del QR debería responder `cross-origin`.
+
+**Tarifas y precios (el tema de tarifas que se resuelve junto)**
+- Las tarifas de la web son los tipos de equipaje del catálogo (rank 1-5 → Light, Classic, Flex, y Business "Elite" y
+  "Royal" con los nombres del prototipo; el backend las llama Business Classic y Business Flex, y los correos usan esos).
+- El precio por pasajero antes de elegir asiento es una **estimación**: precio medio de la cabina × (1 + recargo del tipo
+  de equipaje) × (1 + impuestos). El asiento define el precio real en el backend; hoy los precios son uniformes por cabina,
+  así que la estimación coincide con el total cobrado (comprobado en el recorrido completo).
+- "Elegir asiento" ya no suma un extra: el asiento es el precio. La tarjeta muestra "Gratis" cuando el asiento cuesta lo
+  mismo que el precio base de la cabina.
+- Equipaje adicional y equipaje deportivo no existen en el backend: las dos tarjetas se ven pero con el botón desactivado
+  ("Próximamente"). Igual PSE y Apple Pay (solo hay tarjeta).
+
+**Datos que el backend exige y el prototipo no pedía**
+- Tipo y número de documento de cada pasajero: se añadió una fila al formulario con las clases existentes.
+- Género: el backend solo admite masculino y femenino; se quitó "Sin especificar".
+- Nacionalidad: la lista sale de `GET /catalog/countries` (sin "Otra").
+- El asiento es obligatorio para pagar (el backend exige `seatId`): se quitó "Elegir asiento después" y el botón
+  "Ir a pagar" espera a que cada pasajero tenga asiento.
+
+**Diferencias visibles que vienen de los datos reales**
+- Sin zonas Plus ni salida de emergencia: el backend solo distingue Economy y Business.
+- Sin número de vuelo (el backend no lo tiene): se quitó "· LF926" y la celda "Vuelo" del pase de abordar.
+- Las horas se muestran en hora de Colombia, también la de llegada.
+- La semilla genera pocas rutas (un vuelo por ruta y día): la tira de fechas y las ofertas muestran "—" o no muestran
+  precio donde no hay vuelos. Para ofertas reales hace falta un endpoint que liste destinos con su precio mínimo.
+- Un pago rechazado cancela la reserva y libera los asientos: se vuelve a `/passengers` conservando los datos escritos.
+
+**Orden de pasos y reserva**
+- El titular de la reserva se completa antes de elegir asiento (así lo hace el prototipo), por lo que crear la reserva
+  al final de `/passengers` no cambia nada para el usuario ni para el backend: confirmado en el recorrido completo.
+  Si el correo o el teléfono cambian después, se abre otra reserva (el contacto no se puede editar) y se sueltan los asientos.
 
 ## 9. Lo que queda a criterio de quien lo construye
 

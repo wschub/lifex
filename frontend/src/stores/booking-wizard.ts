@@ -77,6 +77,8 @@ export interface WizardState {
   paymentKey: string | null;
   /** Reserva ya pagada: la confirmación la lee de aquí. */
   confirmedBookingId: string | null;
+  /** Venció un bloqueo de asiento: la pantalla de asientos lo explica al volver. */
+  holdExpired: boolean;
 
   setSearch(search: SearchParams): void;
   setSearchDate(date: string): void;
@@ -88,6 +90,9 @@ export interface WizardState {
   attachBooking(booking: BookingSession): void;
   setSeats(seats: (HeldSeat | null)[]): void;
   setPaymentKey(key: string | null): void;
+  /** Quita los bloqueos vencidos y deja constancia para avisar al usuario. */
+  expireHolds(seats: (HeldSeat | null)[]): void;
+  dismissHoldExpired(): void;
   confirm(bookingId: string): void;
   /** Descarta la reserva y los asientos (por ejemplo tras un pago rechazado) y conserva los datos escritos. */
   dropBooking(): void;
@@ -113,6 +118,7 @@ const initialData = () => ({
   seats: [] as (HeldSeat | null)[],
   paymentKey: null,
   confirmedBookingId: null,
+  holdExpired: false,
 });
 
 export const WIZARD_STORAGE_KEY = "lx-wizard";
@@ -140,7 +146,10 @@ export const useWizard = create<WizardState>()(
       setPassengers: (passengers) => set({ passengers }),
       setHolder: (holder) => set({ holder }),
       attachBooking: (booking) => set({ booking }),
-      setSeats: (seats) => set({ seats }),
+      setSeats: (seats) =>
+        set((s) => ({ seats, holdExpired: seats.some(Boolean) ? false : s.holdExpired })),
+      expireHolds: (seats) => set({ seats, holdExpired: true }),
+      dismissHoldExpired: () => set({ holdExpired: false }),
       setPaymentKey: (paymentKey) => set({ paymentKey }),
       confirm: (confirmedBookingId) => set({ confirmedBookingId }),
       dropBooking: () => set({ booking: null, seats: [], paymentKey: null }),

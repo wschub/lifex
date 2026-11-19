@@ -29,6 +29,15 @@ export const extra: Bundle = {
     "seat.taken": "Ese asiento acaba de ser tomado por otra persona. Elige otro.",
     "soon.short": "Próximamente",
     "seat.limit": "Puedes bloquear hasta {n} asientos a la vez.",
+    "pay.processing": "Procesando tu pago…",
+    "pay.rejected.h": "No pudimos aprobar el pago",
+    "pay.rejected.p":
+      "Tu banco rechazó el cobro y liberamos tus asientos. Revisa los datos de la tarjeta o usa otra y elige tus asientos de nuevo.",
+    "pay.expired.h": "Tu reserva venció",
+    "pay.expired.p":
+      "El tiempo para pagar terminó y liberamos tus asientos. Empieza de nuevo para continuar.",
+    "pay.restart": "Elegir asientos de nuevo",
+    "conf.pending": "Estamos generando tus boletos…",
     "offers.date": "Precios por persona, impuestos incluidos, para el {date}.",
   },
   en: {
@@ -55,6 +64,14 @@ export const extra: Bundle = {
     "seat.taken": "Someone else just took that seat. Please pick another.",
     "soon.short": "Coming soon",
     "seat.limit": "You can hold up to {n} seats at a time.",
+    "pay.processing": "Processing your payment…",
+    "pay.rejected.h": "We couldn't approve the payment",
+    "pay.rejected.p":
+      "Your bank declined the charge and we released your seats. Check the card details or use another card and pick your seats again.",
+    "pay.expired.h": "Your booking expired",
+    "pay.expired.p": "The time to pay ran out and we released your seats. Start again to continue.",
+    "pay.restart": "Pick seats again",
+    "conf.pending": "We are generating your tickets…",
     "offers.date": "Prices per person, taxes included, for {date}.",
   },
 };
