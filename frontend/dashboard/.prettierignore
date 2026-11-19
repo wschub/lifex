@@ -1,0 +1,5 @@
+dist
+coverage
+# Copiado sin cambios del prototipo: el diseño no se toca.
+src/app/public/styles/lifex.css
+public/img/credits.json
