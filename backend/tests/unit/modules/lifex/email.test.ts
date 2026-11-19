@@ -205,12 +205,16 @@ describe("BrevoNotificationAdapter", () => {
       apiKey: "k",
       senderEmail: "a@b.co",
       senderName: "L",
-      fetchImpl: (async () => new Response("no", { status: 401 })) as typeof fetch,
+      fetchImpl: (async () =>
+        new Response('{"code":"unauthorized","message":"unrecognised IP address 1.2.3.4"}', {
+          status: 401,
+        })) as typeof fetch,
       ...OPTIONS,
     });
 
+    // El motivo que devuelve Brevo viaja en el error (queda en outbox_events.lastError).
     await expect(failing.sendTicketConfirmation(confirmation, ticket)).rejects.toThrow(
-      "Brevo responded with 401",
+      'Brevo responded with 401: {"code":"unauthorized","message":"unrecognised IP address 1.2.3.4"}',
     );
   });
 });

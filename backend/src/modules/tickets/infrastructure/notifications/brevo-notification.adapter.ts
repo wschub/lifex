@@ -81,6 +81,11 @@ export class BrevoNotificationAdapter implements NotificationPort {
       }),
       signal: AbortSignal.timeout(this.options.timeoutMs ?? 10_000),
     });
-    if (!response.ok) throw new Error(`Brevo responded with ${response.status}`);
+    if (!response.ok) {
+      // Brevo explica el motivo en el cuerpo (remitente no verificado, IP no autorizada, clave inválida…):
+      // se guarda en outbox_events.lastError para poder diagnosticar sin acceso a Brevo.
+      const detail = (await response.text().catch(() => "")).slice(0, 300);
+      throw new Error(`Brevo responded with ${response.status}${detail ? `: ${detail}` : ""}`);
+    }
   }
 }
