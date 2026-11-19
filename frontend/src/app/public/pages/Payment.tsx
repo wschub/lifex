@@ -351,13 +351,14 @@ function PaymentContent() {
                     [
                       ["o.tickets", order?.flightPriceUsd ?? 0],
                       ["o.taxes", order?.taxesUsd ?? 0],
-                      ["o.services", 0],
+                      ["o.services", null],
                     ] as const
                   ).map(([key, usd]) => (
                     <div key={key}>
                       <dt>{t(key)}</dt>
                       <dd className="num" style={{ margin: 0 }}>
-                        {money(usd)}
+                        {/* El backend suma el equipaje al precio de tiquetes y no lo devuelve aparte. */}
+                        {usd === null ? t("o.services.incl") : money(usd)}
                       </dd>
                     </div>
                   ))}

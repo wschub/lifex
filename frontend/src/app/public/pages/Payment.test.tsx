@@ -182,6 +182,15 @@ describe("Payment", () => {
     // 130.9 USD × 3300 = 431.970 COP
     expect(await screen.findAllByText("COP 431.970")).not.toHaveLength(0);
     expect(screen.getByText("COP 363.000")).toBeInTheDocument(); // 110 × 3300 (precio de tiquetes)
+    expect(screen.getByText("COP 68.970")).toBeInTheDocument(); // 20,9 × 3300 (impuestos)
+  });
+
+  it("el equipaje va dentro del precio de tiquetes: no se inventa un valor de servicios", async () => {
+    setup();
+    await screen.findAllByText("COP 431.970");
+    const services = screen.getByText("Precio de servicios").closest("div") as HTMLElement;
+    expect(services).toHaveTextContent("Incluido en tiquetes");
+    expect(services).not.toHaveTextContent("COP");
   });
 
   it("doble clic en Pagar envía una sola petición y no guarda la tarjeta en el navegador", async () => {

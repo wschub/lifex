@@ -1,5 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
+import type { OfferFlight } from "@lifex/shared";
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
+import { luggageTypesQuery, offersQuery } from "@/api/queries.ts";
 import { formatDate } from "@/lib/dates.ts";
 import { formatMoney } from "@/lib/money.ts";
 import { todayBogota } from "@/lib/search-date.ts";
@@ -10,13 +13,14 @@ import { useLowestPrice } from "../hooks/useLowestPrice.ts";
 import { usePublicConfig } from "../hooks/usePublicConfig.ts";
 import { Icon } from "../shell/Icon.tsx";
 import { Shell } from "../shell/Shell.tsx";
-import { MILES_PER_USD } from "../fares.ts";
+import { fareOptions, farePriceUsd, MILES_PER_USD, type FareOption } from "../fares.ts";
+import { bogotaDay } from "../flight-view.ts";
+import { pickDisplayOffers } from "../offers.ts";
 import { cityImageSrc, SKY_IMAGE } from "../city-image.ts";
 
 const SKY = SKY_IMAGE;
 /** Orden de preferencia de los destinos destacados (los del prototipo). */
 const DEST_ORDER = ["LHR", "MAD", "MIA", "CTG", "MDE", "SAI"];
-const OFFER_ORDER = ["CTG", "MIA", "MAD", "LHR", "SAI"];
 const POS: Record<string, string> = {
   LHR: "50% 45%",
   MAD: "55% 50%",
@@ -42,24 +46,37 @@ function ordered(
 }
 
 function OfferCard({
-  entry,
-  date,
+  offer,
+  light,
   onPick,
 }: {
-  entry: AirportEntry;
-  date: string;
-  onPick: (iata: string) => void;
+  offer: OfferFlight;
+  light: FareOption | undefined;
+  onPick: (offer: OfferFlight) => void;
 }) {
   const { lang, t } = useLang("home");
   const config = usePublicConfig();
-  const { priceUsd } = useLowestPrice(ORIGIN, entry.iata, date);
+  const city = lang === "es" ? offer.to.cityEs : offer.to.city;
+  const origin = lang === "es" ? offer.from.cityEs : offer.from.city;
+  const priceUsd = light ? farePriceUsd(light, offer, config.taxPercentage) : null;
   return (
-    <a className="offer" href="#buscar" onClick={() => onPick(entry.iata)}>
-      <img src={cityImageSrc(entry.imageName)} alt="" loading="lazy" />
+    <a
+      className="offer"
+      href="#buscar"
+      onClick={(e) => {
+        e.preventDefault();
+        onPick(offer);
+      }}
+    >
+      <img src={cityImageSrc(offer.to.cityImageName)} alt="" loading="lazy" />
       <div className="offer-body">
         <div>
-          <h3>{lang === "es" ? entry.nameEs : entry.name}</h3>
-          <small>{t("oneway")}</small>
+          <h3>{city}</h3>
+          <small>
+            {t("offer.from", { city: origin })} · {t("oneway")} ·{" "}
+            {formatDate(offer.departureDate, lang, { day: "numeric", month: "short" })}
+          </small>
+          <small>{t("offer.tag", { n: offer.offer.discountPercentage })}</small>
         </div>
         {priceUsd !== null ? (
           <div className="price">
@@ -99,7 +116,14 @@ export function Home() {
   const origins = useMemo(() => entries.filter((e) => e.countryIsoCode === "CO"), [entries]);
   const destinations = useMemo(() => entries.filter((e) => e.iata !== from), [entries, from]);
   const chips = useMemo(() => ordered(entries, DEST_ORDER, from, 6), [entries, from]);
-  const offers = useMemo(() => ordered(entries, OFFER_ORDER, ORIGIN, 5), [entries]);
+  const offersQ = useQuery(offersQuery());
+  const types = useQuery(luggageTypesQuery());
+  const light = useMemo(
+    () => fareOptions(types.data?.luggageTypes ?? []).find((f) => f.id === "light"),
+    [types.data],
+  );
+  const offers = useMemo(() => pickDisplayOffers(offersQ.data?.offers ?? [], 5), [offersQ.data]);
+  const chooseFlight = useWizard((s) => s.chooseFlight);
   const today = todayBogota();
 
   const windowTo = (src: string, pos?: string) =>
@@ -281,34 +305,37 @@ export function Home() {
           </div>
         </section>
 
-        <section className="section" id="ofertas" aria-labelledby="h-offers">
-          <div className="wrap">
-            <div className="section-head">
-              <div>
-                <h2 id="h-offers">{t("offers.h")}</h2>
-                <p>
-                  {t("offers.date", {
-                    date: formatDate(`${date}T12:00:00Z`, lang, { day: "numeric", month: "long" }),
-                  })}
-                </p>
+        {offers.length > 0 ? (
+          <section className="section" id="ofertas" aria-labelledby="h-offers">
+            <div className="wrap">
+              <div className="section-head">
+                <div>
+                  <h2 id="h-offers">{t("offers.title")}</h2>
+                  <p>{t("offers.prices")}</p>
+                </div>
               </div>
-              <span className="sample-note">{t("sample")}</span>
+              <div className="offers" id="offers">
+                {offers.map((o) => (
+                  <OfferCard
+                    key={o.id}
+                    offer={o}
+                    light={light}
+                    onPick={(offer) => {
+                      setSearch({
+                        from: offer.from.iataCode,
+                        to: offer.to.iataCode,
+                        date: bogotaDay(offer.departureDate),
+                        pax,
+                      });
+                      chooseFlight(offer.id);
+                      navigate("/fares");
+                    }}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="offers" id="offers">
-              {offers.map((o) => (
-                <OfferCard
-                  key={o.iata}
-                  entry={o}
-                  date={date}
-                  onPick={(iata) => {
-                    setFrom(ORIGIN);
-                    pick(iata);
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        ) : null}
 
         <section className="section promise" aria-labelledby="h-promise">
           <div className="wrap promise-grid">

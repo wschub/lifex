@@ -3,6 +3,7 @@ import type { FlightSearchQuery } from "@lifex/shared";
 /** Claves de TanStack Query. Una por recurso; las de eventos WS escriben sobre `seatMap`. */
 export const keys = {
   flights: (params: FlightSearchQuery) => ["flights", params] as const,
+  offers: ["offers"] as const,
   flight: (id: string) => ["flight", id] as const,
   seatMap: (flightId: string) => ["seatMap", flightId] as const,
   booking: (id: string) => ["booking", id] as const,

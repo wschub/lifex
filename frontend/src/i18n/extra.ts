@@ -40,6 +40,10 @@ export const extra: Bundle = {
     "conf.pending": "Estamos generando tus boletos…",
     "offers.date": "Precios por persona, impuestos incluidos, para el {date}.",
     "offer.tag": "Oferta −{n} %",
+    "o.services.incl": "Incluido en tiquetes",
+    "offers.title": "Ofertas",
+    "offers.prices": "Precios por persona, impuestos incluidos y con el descuento ya aplicado.",
+    "offer.from": "Desde {city}",
   },
   en: {
     "error.title": "We couldn't complete that",
@@ -75,5 +79,9 @@ export const extra: Bundle = {
     "conf.pending": "We are generating your tickets…",
     "offers.date": "Prices per person, taxes included, for {date}.",
     "offer.tag": "Offer −{n}%",
+    "o.services.incl": "Included in tickets",
+    "offers.title": "Offers",
+    "offers.prices": "Prices per person, taxes included, with the discount already applied.",
+    "offer.from": "From {city}",
   },
 };

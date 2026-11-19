@@ -1,7 +1,8 @@
 import type { PublicFlight } from "@lifex/shared";
 import { DISPLAY_TIME_ZONE, formatTime } from "@/lib/dates.ts";
 
-const dayKey = (iso: string) =>
+/** Fecha (AAAA-MM-DD) de un instante en hora de Colombia. */
+export const bogotaDay = (iso: string) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: DISPLAY_TIME_ZONE }).format(new Date(iso));
 
 export interface FlightTimes {
@@ -18,7 +19,7 @@ export function flightTimes(
   return {
     dep: formatTime(flight.departureDate),
     arr: formatTime(flight.arrivalDate),
-    nextDay: dayKey(flight.arrivalDate) !== dayKey(flight.departureDate),
+    nextDay: bogotaDay(flight.arrivalDate) !== bogotaDay(flight.departureDate),
     durationMinutes: Math.round(
       (new Date(flight.arrivalDate).getTime() - new Date(flight.departureDate).getTime()) / 60_000,
     ),

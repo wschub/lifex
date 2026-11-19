@@ -9,6 +9,7 @@ import {
   flightSearchResponseSchema,
   luggageTypesResponseSchema,
   meResponseSchema,
+  offersResponseSchema,
   orderTicketsSchema,
   seatMapSchema,
   type FlightSearchQuery,
@@ -43,6 +44,14 @@ export const flightsQuery = (params: FlightSearchQuery) =>
   queryOptions({
     queryKey: keys.flights(params),
     queryFn: () => apiFetch("/flights", flightSearchResponseSchema, { query: params }),
+  });
+
+/** Ofertas de la portada: salen de 8 a 30 días, ya con el descuento aplicado. */
+export const offersQuery = () =>
+  queryOptions({
+    queryKey: keys.offers,
+    queryFn: () => apiFetch("/flights/offers", offersResponseSchema),
+    staleTime: 60_000,
   });
 
 export const flightQuery = (id: string) =>
