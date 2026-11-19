@@ -1,6 +1,7 @@
 import { AppError } from "../../../../shared/errors/app-error.ts";
 import type { ScheduledFlightRepository } from "../../domain/repositories/scheduled-flight.repository.ts";
-import { type PublicFlight, toPublicFlight } from "../flight-view.ts";
+import { type PricingContext, type PublicFlight, toPublicFlight } from "../flight-view.ts";
+import type { PricingConfig } from "../../domain/services/dynamic-price.ts";
 
 export interface SearchFlightsInput {
   from: string;
@@ -16,9 +17,17 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export class SearchFlights {
   private readonly flights: ScheduledFlightRepository;
+  private readonly pricing: PricingConfig;
+  private readonly now: () => Date;
 
-  constructor(deps: { flights: ScheduledFlightRepository }) {
+  constructor(deps: {
+    flights: ScheduledFlightRepository;
+    pricing: PricingConfig;
+    now?: () => Date;
+  }) {
     this.flights = deps.flights;
+    this.pricing = deps.pricing;
+    this.now = deps.now ?? (() => new Date());
   }
 
   async execute(input: SearchFlightsInput): Promise<PublicFlight[]> {
@@ -39,6 +48,7 @@ export class SearchFlights {
       dayStart,
       dayEnd: new Date(dayStart.getTime() + DAY_MS),
     });
-    return listings.map(toPublicFlight);
+    const context: PricingContext = { now: this.now(), config: this.pricing };
+    return listings.map((listing) => toPublicFlight(listing, context));
   }
 }

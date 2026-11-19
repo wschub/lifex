@@ -8,8 +8,8 @@ describe("búsqueda de vuelos y dashboard (Postgres real)", () => {
   beforeAll(async () => {
     world = await createWorld();
     // Mismo día/ruta: uno FINALIZED (no debe aparecer) y otro agotado (debe aparecer marcado).
-    await world.createFlight(new Date("2026-12-01T20:00:00Z"), "FINALIZED");
-    const soldOut = await world.createFlight(new Date("2026-12-01T22:00:00Z"));
+    await world.createFlight(new Date(`${world.flightDate}T20:00:00Z`), "FINALIZED");
+    const soldOut = await world.createFlight(new Date(`${world.flightDate}T22:00:00Z`));
     await world.prisma.scheduledFlight.update({
       where: { id: soldOut.id },
       data: { status: "SOLD_OUT", numAvailableSeats: 0 },
@@ -20,7 +20,7 @@ describe("búsqueda de vuelos y dashboard (Postgres real)", () => {
   });
 
   it("1.1 / 1.2 / 1.5 devuelve solo vuelos buscables, con tarifa, horario, clases y agotados marcados", async () => {
-    const res = await request(world.app).get("/flights?from=MDE&to=BOG&date=2026-12-01");
+    const res = await request(world.app).get(`/flights?from=MDE&to=BOG&date=${world.flightDate}`);
 
     expect(res.status).toBe(200);
     expect(res.body.flights).toHaveLength(2);
@@ -34,7 +34,7 @@ describe("búsqueda de vuelos y dashboard (Postgres real)", () => {
       averagePriceBusinessUsd: 300,
       numAvailableSeats: 12,
       availableByClass: { economy: 8, business: 4 },
-      departureDate: "2026-12-01T15:00:00.000Z",
+      departureDate: `${world.flightDate}T15:00:00.000Z`,
       soldOut: false,
     });
     expect(soldOut.soldOut).toBe(true);
@@ -104,9 +104,9 @@ describe("búsqueda de vuelos y dashboard (Postgres real)", () => {
   });
 
   it("lista los vuelos para elegir cuál monitorear (con permiso)", async () => {
-    const denied = await request(world.app).get("/dashboard/flights?date=2026-12-01");
+    const denied = await request(world.app).get(`/dashboard/flights?date=${world.flightDate}`);
     const ok = await request(world.app)
-      .get("/dashboard/flights?date=2026-12-01")
+      .get(`/dashboard/flights?date=${world.flightDate}`)
       .set("Authorization", world.staff.viewer as string);
 
     expect(denied.status).toBe(401);

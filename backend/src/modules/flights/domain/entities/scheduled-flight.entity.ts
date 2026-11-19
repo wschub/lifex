@@ -67,6 +67,7 @@ export function isFlightStatus(value: string): value is FlightStatus {
 /** Lectura de un vuelo para la búsqueda y el detalle: incluye ruta, precios y disponibilidad. */
 export interface FlightListing {
   id: string;
+  flightRouteId: number;
   routeType: "DOMESTIC" | "INTERNATIONAL";
   from: AirportInfo;
   to: AirportInfo;
@@ -75,6 +76,8 @@ export interface FlightListing {
   status: FlightStatus;
   numMaxSeats: number;
   numAvailableSeats: number;
+  /** 0-100. */
+  occupancyRate: number;
   basePriceDefault: number;
   averagePriceEconomy: number;
   averagePriceBusiness: number;

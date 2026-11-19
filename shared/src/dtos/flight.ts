@@ -23,6 +23,11 @@ export const publicFlightSchema = z.object({
   basePriceUsd: z.number(),
   averagePriceEconomyUsd: z.number(),
   averagePriceBusinessUsd: z.number(),
+  /** Precio vigente por clase (USD), calculado al consultar: precio dinámico u oferta. */
+  priceEconomyUsd: z.number(),
+  priceBusinessUsd: z.number(),
+  /** Presente si el vuelo es una oferta: el descuento reemplaza al precio dinámico. */
+  offer: z.object({ discountPercentage: z.number() }).nullable(),
   numAvailableSeats: z.number().int(),
   availableByClass: z.object({ economy: z.number().int(), business: z.number().int() }),
   /** Un vuelo sin asientos se marca como agotado en vez de ocultarse. */

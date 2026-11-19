@@ -1,4 +1,5 @@
 import type { FlightStatus } from "../../../flights/domain/entities/scheduled-flight.entity.ts";
+import type { FlightPricingInput } from "../../../flights/domain/services/dynamic-price.ts";
 import type { Seat } from "../entities/seat.entity.ts";
 
 export interface HoldRequest {
@@ -7,12 +8,16 @@ export interface HoldRequest {
   sessionId: string;
   now: Date;
   expiresAt: Date;
+  /** Precio vigente de la clase en este instante: se congela en el asiento al bloquearlo. */
+  priceUsd: number;
 }
 
 export interface SeatMap {
   /** Versión del último evento del vuelo: el cliente la compara con la de los eventos que le llegan. */
   version: number;
   flightStatus: FlightStatus;
+  /** Datos del vuelo con los que se calcula el precio vigente de los asientos libres. */
+  pricing: FlightPricingInput;
   seats: Seat[];
 }
 
@@ -21,10 +26,10 @@ export interface SeatRepository {
   findSeat(
     flightId: string,
     seatId: string,
-  ): Promise<{ seat: Seat; flightStatus: FlightStatus } | null>;
+  ): Promise<{ seat: Seat; flightStatus: FlightStatus; pricing: FlightPricingInput } | null>;
   /**
-   * Bloqueo atómico: un solo UPDATE condicional (FREE, o BLOCKED ya vencido). Devuelve null, sin
-   * lanzar, si no hubo fila afectada. Escribe el evento SeatHeld en la misma transacción.
+   * Bloqueo atómico: un solo UPDATE condicional (FREE, o BLOCKED ya vencido) que también guarda el
+   * precio vigente (`priceUsd`). Devuelve null, sin lanzar, si no hubo fila afectada. Escribe el evento SeatHeld en la misma transacción.
    */
   tryHold(request: HoldRequest): Promise<Seat | null>;
   /** El dueño libera su propio bloqueo vigente. Devuelve false si no era suyo. Escribe SeatReleased. */

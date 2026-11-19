@@ -216,17 +216,30 @@ export class PrismaPaymentRepository implements PaymentRepository {
         });
       }
 
+      // Cifras del vuelo tras una compra exitosa, recalculadas desde los asientos RESERVED:
+      // disponibles, ocupación y precio promedio pagado por clase (alimentan el precio dinámico).
+      const sold = await tx.flightSeat.groupBy({
+        by: ["seatClass"],
+        where: { scheduledFlightId: flightId, seatStatus: "RESERVED" },
+        _avg: { seatPrice: true },
+        _count: { _all: true },
+      });
+      const current = await tx.scheduledFlight.findUniqueOrThrow({ where: { id: flightId } });
+      const totalSold = sold.reduce((sum, group) => sum + group._count._all, 0);
+      const averageOf = (seatClass: "ECONOMY" | "BUSINESS"): Prisma.Decimal =>
+        (
+          sold.find((group) => group.seatClass === seatClass)?._avg.seatPrice ??
+          new Prisma.Decimal(0)
+        ).toDecimalPlaces(2);
+      const available = current.numMaxSeats - totalSold;
+      const soldOut = available <= 0 && current.status !== "SOLD_OUT";
       const flight = await tx.scheduledFlight.update({
         where: { id: flightId },
-        data: { numAvailableSeats: { decrement: seatIds.length } },
-      });
-      const occupancy =
-        ((flight.numMaxSeats - flight.numAvailableSeats) / flight.numMaxSeats) * 100;
-      const soldOut = flight.numAvailableSeats <= 0 && flight.status !== "SOLD_OUT";
-      await tx.scheduledFlight.update({
-        where: { id: flightId },
         data: {
-          occupancyRate: new Prisma.Decimal(occupancy.toFixed(2)),
+          numAvailableSeats: available,
+          occupancyRate: new Prisma.Decimal(((totalSold / current.numMaxSeats) * 100).toFixed(2)),
+          averagePriceEconomy: averageOf("ECONOMY"),
+          averagePriceBusiness: averageOf("BUSINESS"),
           ...(soldOut ? { status: "SOLD_OUT" as const } : {}),
         },
       });
@@ -253,7 +266,7 @@ export class PrismaPaymentRepository implements PaymentRepository {
         await enqueueFlightEvent(tx, {
           flightId,
           eventType: FLIGHT_EVENT.flightStatusChanged,
-          data: { status: "SOLD_OUT", previousStatus: flight.status },
+          data: { status: "SOLD_OUT", previousStatus: current.status },
         });
       }
       // Un correo por ticket, cada uno en su propio evento: si el proveedor falla se reintenta solo,

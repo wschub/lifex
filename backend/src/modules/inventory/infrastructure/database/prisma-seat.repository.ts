@@ -1,5 +1,6 @@
-import type { Prisma, PrismaClient } from "../../../../generated/prisma/client.ts";
+import { Prisma, type PrismaClient } from "../../../../generated/prisma/client.ts";
 import { enqueueFlightEvent, FLIGHT_EVENT } from "../../../../shared/outbox/flight-events.ts";
+import type { FlightPricingInput } from "../../../flights/domain/services/dynamic-price.ts";
 import type { FlightStatus } from "../../../flights/domain/entities/scheduled-flight.entity.ts";
 import { Seat } from "../../domain/entities/seat.entity.ts";
 import type {
@@ -25,6 +26,32 @@ function toSeat(row: SeatRow): Seat {
   });
 }
 
+const PRICING_SELECT = {
+  status: true,
+  departureDate: true,
+  basePriceDefault: true,
+  averagePriceEconomy: true,
+  averagePriceBusiness: true,
+  occupancyRate: true,
+  numAvailableSeats: true,
+  flightRoute: { select: { routeType: true } },
+} satisfies Prisma.ScheduledFlightSelect;
+
+type PricingRow = Prisma.ScheduledFlightGetPayload<{ select: typeof PRICING_SELECT }>;
+
+function toPricingInput(row: PricingRow): FlightPricingInput {
+  return {
+    routeType: row.flightRoute.routeType,
+    status: row.status,
+    departureDate: row.departureDate,
+    basePriceDefault: Number(row.basePriceDefault),
+    averagePriceEconomy: Number(row.averagePriceEconomy),
+    averagePriceBusiness: Number(row.averagePriceBusiness),
+    occupancyRate: Number(row.occupancyRate),
+    numAvailableSeats: row.numAvailableSeats,
+  };
+}
+
 export class PrismaSeatRepository implements SeatRepository {
   private readonly prisma: PrismaClient;
 
@@ -35,12 +62,18 @@ export class PrismaSeatRepository implements SeatRepository {
   async findSeat(
     flightId: string,
     seatId: string,
-  ): Promise<{ seat: Seat; flightStatus: FlightStatus } | null> {
+  ): Promise<{ seat: Seat; flightStatus: FlightStatus; pricing: FlightPricingInput } | null> {
     const row = await this.prisma.flightSeat.findFirst({
       where: { id: seatId, scheduledFlightId: flightId },
-      include: { scheduledFlight: { select: { status: true } } },
+      include: { scheduledFlight: { select: PRICING_SELECT } },
     });
-    return row ? { seat: toSeat(row), flightStatus: row.scheduledFlight.status } : null;
+    return row
+      ? {
+          seat: toSeat(row),
+          flightStatus: row.scheduledFlight.status,
+          pricing: toPricingInput(row.scheduledFlight),
+        }
+      : null;
   }
 
   async tryHold(request: HoldRequest): Promise<Seat | null> {
@@ -58,6 +91,7 @@ export class PrismaSeatRepository implements SeatRepository {
         },
         data: {
           seatStatus: "BLOCKED",
+          seatPrice: new Prisma.Decimal(request.priceUsd),
           heldBySession: request.sessionId,
           holdExpiresAt: request.expiresAt,
           version: { increment: 1 },
@@ -148,13 +182,18 @@ export class PrismaSeatRepository implements SeatRepository {
   async seatMap(flightId: string): Promise<SeatMap | null> {
     const flight = await this.prisma.scheduledFlight.findUnique({
       where: { id: flightId },
-      select: { eventVersion: true, status: true },
+      select: { eventVersion: true, ...PRICING_SELECT },
     });
     if (!flight) return null;
     const rows = await this.prisma.flightSeat.findMany({
       where: { scheduledFlightId: flightId },
       orderBy: [{ seatRow: "asc" }, { seatColumn: "asc" }],
     });
-    return { version: flight.eventVersion, flightStatus: flight.status, seats: rows.map(toSeat) };
+    return {
+      version: flight.eventVersion,
+      flightStatus: flight.status,
+      pricing: toPricingInput(flight),
+      seats: rows.map(toSeat),
+    };
   }
 }

@@ -259,8 +259,15 @@ export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
           logger.warn(fields, message);
         }));
 
+  /** Reglas del precio dinámico y de las ofertas (leídas del entorno solo aquí). */
+  const pricing = {
+    businessBaseMultiplier: env.BUSINESS_BASE_MULTIPLIER,
+    offerDiscountPercentage: env.OFFER_DISCOUNT_PERCENTAGE,
+  };
+
   const holdSeat = new HoldSeat({
     seats,
+    pricing,
     lockMinutes: env.MAX_SEAT_LOCK_TIME,
     maxHeldPerSession: env.MAX_HELD_SEATS_PER_SESSION,
     now: clock,
@@ -283,15 +290,15 @@ export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
   const flightsRouter = createFlightsRouter({
     authenticate,
     authorize,
-    searchFlights: new SearchFlights({ flights }),
-    getFlight: new GetFlight({ flights }),
+    searchFlights: new SearchFlights({ flights, pricing, now: clock }),
+    getFlight: new GetFlight({ flights, pricing, now: clock }),
     changeFlightStatus: new ChangeFlightStatus({ flights }),
   });
   const seatsRouter = createSeatsRouter({
     authenticateGuest,
     holdSeat,
     releaseSeat: new ReleaseSeat({ seats }),
-    getSeatMap: new GetSeatMap({ seats, now: clock }),
+    getSeatMap: new GetSeatMap({ seats, pricing, now: clock }),
   });
   const bookingsRouter = createBookingsRouter({
     authenticateBooking,

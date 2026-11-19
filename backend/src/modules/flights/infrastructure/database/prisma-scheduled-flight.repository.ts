@@ -130,6 +130,7 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
 
     return rows.map((row) => ({
       id: row.id,
+      flightRouteId: row.flightRouteId,
       routeType: row.flightRoute.routeType,
       from: toAirportInfo(row.flightRoute.fromAirport),
       to: toAirportInfo(row.flightRoute.destinationAirport),
@@ -138,6 +139,7 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
       status: row.status,
       numMaxSeats: row.numMaxSeats,
       numAvailableSeats: row.numAvailableSeats,
+      occupancyRate: Number(row.occupancyRate),
       basePriceDefault: Number(row.basePriceDefault),
       averagePriceEconomy: Number(row.averagePriceEconomy),
       averagePriceBusiness: Number(row.averagePriceBusiness),

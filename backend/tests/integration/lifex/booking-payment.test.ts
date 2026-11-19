@@ -28,9 +28,10 @@ describe("reserva y pago (Postgres real)", () => {
   it("calcula el precio: asiento + recargo de equipaje + impuestos", async () => {
     const { priced } = await readyBooking("02A", { luggageTypeId: 1 });
 
-    // 100 USD + 10% de equipaje = 110; impuestos 19% = 20.90; total 130.90
+    // Asiento Economy a precio vigente 105 USD (promedio 100 +5 %) + 10% de equipaje (costo adicional,
+    // sobre el precio del asiento) = 115.50; impuestos 19% = 21.95; total 137.45
     expect([priced.flightPriceUsd, priced.taxesUsd, priced.totalPriceUsd]).toEqual([
-      110, 20.9, 130.9,
+      115.5, 21.95, 137.45,
     ]);
   });
 

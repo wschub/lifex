@@ -143,7 +143,17 @@ export async function createWorld(options: WorldOptions = {}) {
     data: { routeType: "DOMESTIC", fromAirportId: mde!.id, destinationAirportId: bog!.id },
   });
 
-  const createFlight = async (departure: Date, status: "ACTIVE" | "FINALIZED" = "ACTIVE") => {
+  const createFlight = async (
+    departure: Date,
+    status: "ACTIVE" | "FINALIZED" = "ACTIVE",
+    overrides: {
+      averagePriceEconomy?: number;
+      averagePriceBusiness?: number;
+      numAvailableSeats?: number;
+      occupancyRate?: number;
+      basePriceDefault?: number;
+    } = {},
+  ) => {
     const flight = await prisma.scheduledFlight.create({
       data: {
         flightRouteId: route.id,
@@ -151,10 +161,11 @@ export async function createWorld(options: WorldOptions = {}) {
         departureDate: departure,
         arrivalDate: new Date(departure.getTime() + 3_600_000),
         numMaxSeats: 12,
-        numAvailableSeats: 12,
-        basePriceDefault: new Prisma.Decimal(100),
-        averagePriceEconomy: new Prisma.Decimal(100),
-        averagePriceBusiness: new Prisma.Decimal(300),
+        numAvailableSeats: overrides.numAvailableSeats ?? 12,
+        occupancyRate: new Prisma.Decimal(overrides.occupancyRate ?? 0),
+        basePriceDefault: new Prisma.Decimal(overrides.basePriceDefault ?? 100),
+        averagePriceEconomy: new Prisma.Decimal(overrides.averagePriceEconomy ?? 100),
+        averagePriceBusiness: new Prisma.Decimal(overrides.averagePriceBusiness ?? 300),
         status,
       },
     });
@@ -184,8 +195,14 @@ export async function createWorld(options: WorldOptions = {}) {
     await prisma.flightSeat.createMany({ data: seats });
     return flight;
   };
-  // 2026-12-01 10:00 hora de Colombia
-  const flight = await createFlight(new Date("2026-12-01T15:00:00Z"));
+  // 90 días adelante a las 10:00 de Colombia: fuera de la ventana de ofertas (8-30 días) y de las
+  // últimas 72 h, así el precio dinámico de las pruebas no depende de la fecha real de hoy.
+  const today = new Date();
+  const flightDeparture = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 90, 15),
+  );
+  const flightDate = flightDeparture.toISOString().slice(0, 10);
+  const flight = await createFlight(flightDeparture);
 
   // ── Staff ──
   const hasher = new Argon2PasswordHasher();
@@ -302,6 +319,8 @@ export async function createWorld(options: WorldOptions = {}) {
     clock,
     notifier,
     flight,
+    /** AAAA-MM-DD del vuelo base en hora de Colombia (el mismo día en UTC: sale a las 15:00Z). */
+    flightDate,
     country,
     staff,
     port,

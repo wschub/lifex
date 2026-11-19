@@ -50,7 +50,9 @@ describe("contratos de shared/ contra la API real", () => {
     const countries = await request(world.app).get("/catalog/countries");
     const cities = await request(world.app).get("/catalog/cities?country=CO");
     const luggage = await request(world.app).get("/catalog/luggage-types");
-    const search = await request(world.app).get("/flights?from=MDE&to=BOG&date=2026-12-01");
+    const search = await request(world.app).get(
+      `/flights?from=MDE&to=BOG&date=${world.flightDate}`,
+    );
     const detail = await request(world.app).get(`/flights/${world.flight.id}`);
 
     expect(() => countriesResponseSchema.parse(countries.body)).not.toThrow();
@@ -68,7 +70,9 @@ describe("contratos de shared/ contra la API real", () => {
     expect(byName.get("Medellín")?.imageUrl).toBe("/img/destinations/medellin.jpg");
     expect(byName.get("Bogotá")?.imageUrl).toBeNull();
 
-    const search = await request(world.app).get("/flights?from=MDE&to=BOG&date=2026-12-01");
+    const search = await request(world.app).get(
+      `/flights?from=MDE&to=BOG&date=${world.flightDate}`,
+    );
     const flights = flightSearchResponseSchema.parse(search.body).flights;
     expect(flights.length).toBeGreaterThan(0);
     expect(flights[0]?.from.cityImageUrl).toBe("/img/destinations/medellin.jpg");
@@ -177,7 +181,7 @@ describe("contratos de shared/ contra la API real", () => {
       .get(`/dashboard/flights/${world.flight.id}`)
       .set("Authorization", admin);
     const list = await request(world.app)
-      .get("/dashboard/flights?date=2026-12-01")
+      .get(`/dashboard/flights?date=${world.flightDate}`)
       .set("Authorization", admin);
     expect(flightMetricsResponseSchema.parse(metrics.body).metrics.numMaxSeats).toBe(12);
     expect(dashboardFlightsResponseSchema.parse(list.body).flights.length).toBeGreaterThan(0);

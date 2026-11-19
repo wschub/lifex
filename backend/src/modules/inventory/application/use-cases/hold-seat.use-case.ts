@@ -1,5 +1,9 @@
 import { AppError } from "../../../../shared/errors/app-error.ts";
 import { BOOKABLE_STATUSES } from "../../../flights/domain/entities/scheduled-flight.entity.ts";
+import {
+  type PricingConfig,
+  priceForClass,
+} from "../../../flights/domain/services/dynamic-price.ts";
 import type { SeatRepository } from "../../domain/repositories/seat.repository.ts";
 import { type PublicSeat, toPublicSeat } from "../seat-view.ts";
 
@@ -9,6 +13,8 @@ export interface HoldSeatDeps {
   lockMinutes: number;
   /** Máximo de asientos bloqueados a la vez por sesión (anti-acaparamiento). */
   maxHeldPerSession: number;
+  /** Reglas del precio dinámico: el precio vigente se congela al bloquear. */
+  pricing: PricingConfig;
   now?: () => Date;
 }
 
@@ -38,7 +44,8 @@ export class HoldSeat {
     }
 
     const expiresAt = new Date(now.getTime() + this.deps.lockMinutes * 60_000);
-    const seat = await this.deps.seats.tryHold({ ...input, now, expiresAt });
+    const { priceUsd } = priceForClass(found.pricing, found.seat.seatClass, now, this.deps.pricing);
+    const seat = await this.deps.seats.tryHold({ ...input, now, expiresAt, priceUsd });
     if (!seat) throw new AppError("conflict", { code: "SEAT_UNAVAILABLE" });
     return { seat: toPublicSeat(seat), holdExpiresAt: expiresAt.toISOString() };
   }
