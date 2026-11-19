@@ -1,0 +1,440 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id             Int        @id @default(autoincrement())
+  publicId       String     @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email          String     @unique
+  passwordHash   String
+  firstName      String
+  lastName       String
+  countryDefault String?    @db.Char(2)
+  mobilePhone    String?
+  locale         String     @default("es")
+  status         UserStatus @default(ACTIVE)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  refreshTokens  RefreshToken[]
+  passwordResets PasswordReset[]
+  roles          UserRole[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  tokenHash String    @unique
+  familyId  String    @db.Uuid
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([familyId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+enum PasswordResetMethod {
+  LINK
+  CODE
+}
+
+model PasswordReset {
+  id         Int                 @id @default(autoincrement())
+  publicId   String              @unique @db.Uuid
+  method     PasswordResetMethod
+  secretHash String
+  userId     Int
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attempts   Int                 @default(0)
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime            @default(now())
+
+  @@index([secretHash])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_resets")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  publicId    String   @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  /// Nombre normalizado (minúsculas, sin espacios ni guiones) para garantizar que es único.
+  nameKey     String   @unique
+  description String?
+  /// Los roles de sistema (SUPER_ADMIN) nacen en una migración y no se editan ni se borran.
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions RolePermission[]
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+/// La clave del permiso ("users:read") viene del catálogo que declara cada módulo en el código.
+model RolePermission {
+  roleId     Int
+  role       Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission String
+
+  @@id([roleId, permission])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+// ───────────────────────────── Catálogo ─────────────────────────────
+
+enum AircraftRange {
+  DOMESTIC
+  INTERNATIONAL
+}
+
+enum AircraftStatus {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+model Country {
+  id      Int    @id @default(autoincrement())
+  isoCode String @unique @db.Char(2)
+  name    String
+  nameEs  String
+
+  cities City[]
+
+  @@map("countries")
+}
+
+model City {
+  id        Int     @id @default(autoincrement())
+  countryId Int
+  country   Country @relation(fields: [countryId], references: [id])
+  name      String
+  nameEs    String
+  /// Ruta relativa a la foto de la ciudad; el frontend la resuelve contra su propio origen.
+  imageUrl  String?
+
+  airports Airport[]
+
+  @@unique([countryId, name])
+  @@map("cities")
+}
+
+model Airport {
+  id       Int    @id @default(autoincrement())
+  cityId   Int
+  city     City   @relation(fields: [cityId], references: [id])
+  iataCode String @unique @db.Char(3)
+
+  departures FlightRoute[] @relation("RouteOrigin")
+  arrivals   FlightRoute[] @relation("RouteDestination")
+
+  @@map("airports")
+}
+
+model Aircraft {
+  id                 Int            @id @default(autoincrement())
+  internalIdentifier String         @unique
+  reference          String
+  typeRange          AircraftRange
+  rangeMiles         Int
+  maxNumberSeats     Int
+  businessSeats      Int
+  seatColumns        String         @default("ABCDEF")
+  status             AircraftStatus @default(AVAILABLE)
+
+  flights ScheduledFlight[]
+
+  @@map("aircraft")
+}
+
+model LuggageType {
+  id            Int     @id @default(autoincrement())
+  name          String  @unique
+  nameEs        String
+  rank          Int
+  feePercentage Decimal @db.Decimal(5, 2)
+  /// Solo se puede elegir si el asiento del ticket es BUSINESS.
+  businessOnly  Boolean @default(false)
+
+  ticketLuggage TicketLuggage[]
+
+  @@map("luggage_type")
+}
+
+// ───────────────────────────── Vuelos e inventario ─────────────────────────────
+
+enum RouteType {
+  DOMESTIC
+  INTERNATIONAL
+}
+
+enum FlightStatus {
+  ACTIVE
+  CANCELLED
+  DELAYED
+  SOLD_OUT
+  FINALIZED
+}
+
+enum SeatClass {
+  ECONOMY
+  BUSINESS
+}
+
+enum SeatStatus {
+  FREE
+  BLOCKED
+  PAYMENT_PENDING
+  RESERVED
+}
+
+model FlightRoute {
+  id                   Int       @id @default(autoincrement())
+  routeType            RouteType
+  fromAirportId        Int
+  fromAirport          Airport   @relation("RouteOrigin", fields: [fromAirportId], references: [id])
+  destinationAirportId Int
+  destinationAirport   Airport   @relation("RouteDestination", fields: [destinationAirportId], references: [id])
+
+  flights ScheduledFlight[]
+
+  @@unique([fromAirportId, destinationAirportId])
+  @@map("flight_routes")
+}
+
+model ScheduledFlight {
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  flightRouteId        Int
+  flightRoute          FlightRoute  @relation(fields: [flightRouteId], references: [id])
+  aircraftId           Int
+  aircraft             Aircraft     @relation(fields: [aircraftId], references: [id])
+  departureDate        DateTime
+  arrivalDate          DateTime
+  numMaxSeats          Int
+  numAvailableSeats    Int
+  occupancyRate        Decimal      @default(0) @db.Decimal(5, 2)
+  basePriceDefault     Decimal      @db.Decimal(10, 2)
+  averagePriceEconomy  Decimal      @db.Decimal(10, 2)
+  averagePriceBusiness Decimal      @db.Decimal(10, 2)
+  status               FlightStatus @default(ACTIVE)
+  /// Versión secuencial de los eventos del vuelo, para resincronizar clientes WebSocket.
+  eventVersion         Int          @default(0)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  seats  FlightSeat[]
+  orders Order[]
+
+  @@index([flightRouteId, departureDate])
+  @@index([departureDate])
+  @@map("scheduled_flights")
+}
+
+model FlightSeat {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  scheduledFlightId String          @db.Uuid
+  scheduledFlight   ScheduledFlight @relation(fields: [scheduledFlightId], references: [id], onDelete: Cascade)
+  seatIdentifier    String
+  seatRow           Int
+  seatColumn        String          @db.Char(1)
+  seatClass         SeatClass
+  seatPrice         Decimal         @db.Decimal(10, 2)
+  seatStatus        SeatStatus      @default(FREE)
+  heldBySession     String?
+  holdExpiresAt     DateTime?
+  version           Int             @default(0)
+
+  ticket Ticket?
+
+  @@unique([scheduledFlightId, seatIdentifier])
+  @@index([scheduledFlightId, seatStatus])
+  @@index([seatStatus, holdExpiresAt])
+  @@map("flights_seat_availability")
+}
+
+// ───────────────────────────── Reservas, tickets y pagos ─────────────────────────────
+
+enum OrderStatus {
+  DRAFT
+  PAYMENT_PENDING
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PassengerType {
+  ADULT
+  CHILD
+}
+
+enum Gender {
+  MASCULINO
+  FEMENINO
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+model Order {
+  id                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderNumber       String          @unique
+  reservationNumber String          @unique
+  scheduledFlightId String          @db.Uuid
+  scheduledFlight   ScheduledFlight @relation(fields: [scheduledFlightId], references: [id])
+  contactEmail      String
+  contactPhone      String?
+  /// Idioma del comprador al iniciar la reserva ("es" | "en"): define la moneda que se muestra en el correo.
+  locale            String          @default("es")
+  status            OrderStatus     @default(DRAFT)
+  flightPrice       Decimal         @default(0) @db.Decimal(10, 2)
+  taxes             Decimal         @default(0) @db.Decimal(10, 2)
+  totalPrice        Decimal         @default(0) @db.Decimal(10, 2)
+  idempotencyKey    String?         @unique
+  /// Huella (hash) del cuerpo de la petición de pago con esa clave, para detectar reutilización con otro cuerpo.
+  idempotencyHash   String?
+  expiresAt         DateTime
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  passengers Passenger[]
+  payments   Payment[]
+
+  @@index([scheduledFlightId])
+  @@map("orders")
+}
+
+model Passenger {
+  id                   String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId              String        @db.Uuid
+  order                Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  /// Asiento elegido por el pasajero (se confirma al pagar).
+  seatId               String?       @db.Uuid
+  fullName             String
+  lastName             String
+  documentType         String
+  documentNumber       String
+  gender               Gender
+  dateBirth            DateTime      @db.Date
+  nationalityCountryId Int
+  passengerType        PassengerType @default(ADULT)
+  /// Equipaje elegido (se materializa en ticket_luggage al emitir el ticket).
+  luggageTypeId        Int?
+  /// Orden dentro de la reserva: el primero es el comprador.
+  position             Int           @default(0)
+
+  ticket Ticket?
+
+  @@index([orderId])
+  @@map("passengers")
+}
+
+model Ticket {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  passengerId      String     @unique @db.Uuid
+  passenger        Passenger  @relation(fields: [passengerId], references: [id])
+  seatId           String     @unique @db.Uuid
+  seat             FlightSeat @relation(fields: [seatId], references: [id])
+  ticketCode       String     @unique
+  checkInAvailable Boolean    @default(false)
+  checkIn          Boolean    @default(false)
+  checkInDate      DateTime?
+  createdAt        DateTime   @default(now())
+
+  luggage TicketLuggage[]
+
+  @@map("tickets")
+}
+
+model TicketLuggage {
+  id                   Int         @id @default(autoincrement())
+  ticketId             String      @db.Uuid
+  ticket               Ticket      @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  luggageTypeId        Int
+  luggageType          LuggageType @relation(fields: [luggageTypeId], references: [id])
+  feeAppliedPercentage Decimal     @db.Decimal(5, 2)
+
+  @@map("ticket_luggage")
+}
+
+model Payment {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId          String        @db.Uuid
+  order            Order         @relation(fields: [orderId], references: [id])
+  amount           Decimal       @db.Decimal(10, 2)
+  status           PaymentStatus @default(PENDING)
+  cardBrand        String
+  cardLast4        String        @db.Char(4)
+  gatewayReference String?
+  idempotencyKey   String        @unique
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([orderId])
+  @@map("payments")
+}
+
+model OutboxEvent {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  aggregateType String
+  aggregateId   String
+  eventType     String
+  payload       Json
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  /// No se reintenta antes de esta hora (backoff exponencial).
+  nextAttemptAt DateTime     @default(now())
+  lastError     String?
+  createdAt     DateTime     @default(now())
+  processedAt   DateTime?
+
+  @@index([status, nextAttemptAt])
+  @@map("outbox_events")
+}
+
+// start-stack:models

@@ -1,0 +1,7 @@
+dist
+coverage
+src/generated
+package-lock.json
+
+# Plantillas de correo: HTML con variables {{ params.X }}; se mantienen tal como están
+src/shared/notifications/templates

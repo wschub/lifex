@@ -1,0 +1,315 @@
+<!--
+  Plantilla transaccional: confirmación de reserva + boleto.
+  Sintaxis de variables: formato Brevo (params.NOMBRE entre dobles llaves). El adapter la renderiza
+  localmente con renderTemplate() y envía el resultado como htmlContent/textContent.
+  Ver la tabla de variables al final de este archivo (comentario) para los valores que arma el
+  adapter (infrastructure/notifications/brevo-notification.adapter.ts) en el objeto `params`.
+
+  LOGO_URL            — ${APP_URL}/mail/lifex-concept2-vertical-slogan-color-1200w.png (logo vertical con eslogan).
+  La cabecera es blanca porque ese logo tiene letras oscuras.
+-->
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tu boleto Lifex — {{ params.RESERVATION_NUMBER }}</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f5f7;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background-color: #f4f5f7; padding: 24px 0"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            style="background-color: #ffffff; border-radius: 8px; overflow: hidden"
+          >
+            <!-- Encabezado -->
+            <tr>
+              <td style="background-color: #ffffff; padding: 24px 32px; border-bottom: 1px solid #e2e8f0">
+                <!-- LOGO -->
+                <img src="{{ params.LOGO_URL }}"
+                  width="200"
+                  alt="lifex - The best experience, always."
+                  style="display: block; border: 0; width: 200px; height: auto"
+                />
+              </td>
+            </tr>
+
+            <!-- Saludo -->
+            <tr>
+              <td style="padding: 32px 32px 8px 32px">
+                <h1 style="margin: 0; font-size: 20px; color: #0b1f3a">
+                  ¡Tu reserva está confirmada!
+                </h1>
+                <p style="margin: 12px 0 0 0; font-size: 14px; color: #4a5568; line-height: 1.5">
+                  Hola {{ params.PASSENGER_NAME }}, tu pago fue aprobado y tu boleto ya está listo.
+                  Guarda este correo o preséntalo en el aeropuerto.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Número de reserva -->
+            <tr>
+              <td style="padding: 16px 32px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="background-color: #eef2f7; border-radius: 6px"
+                >
+                  <tr>
+                    <td style="padding: 16px 20px">
+                      <p
+                        style="
+                          margin: 0;
+                          font-size: 12px;
+                          color: #718096;
+                          text-transform: uppercase;
+                          letter-spacing: 0.5px;
+                        "
+                      >
+                        Código de reserva
+                      </p>
+                      <p
+                        style="
+                          margin: 4px 0 0 0;
+                          font-size: 22px;
+                          color: #0b1f3a;
+                          font-weight: bold;
+                          letter-spacing: 2px;
+                        "
+                      >
+                        {{ params.RESERVATION_NUMBER }}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Detalle del vuelo -->
+            <tr>
+              <td style="padding: 8px 32px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="border: 1px solid #e2e8f0; border-radius: 6px"
+                >
+                  <tr>
+                    <td style="padding: 20px">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td style="font-size: 18px; color: #0b1f3a; font-weight: bold">
+                            {{ params.FROM_CITY }} ({{ params.FROM_AIRPORT_CODE }})
+                          </td>
+                          <td style="text-align: center; color: #a0aec0; font-size: 14px">
+                            &#8594;
+                          </td>
+                          <td
+                            style="
+                              font-size: 18px;
+                              color: #0b1f3a;
+                              font-weight: bold;
+                              text-align: right;
+                            "
+                          >
+                            {{ params.TO_CITY }} ({{ params.TO_AIRPORT_CODE }})
+                          </td>
+                        </tr>
+                      </table>
+
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 16px"
+                      >
+                        <tr>
+                          <td style="font-size: 12px; color: #718096; width: 25%">Fecha</td>
+                          <td style="font-size: 12px; color: #718096; width: 25%">Salida</td>
+                          <td style="font-size: 12px; color: #718096; width: 25%">Clase</td>
+                          <td style="font-size: 12px; color: #718096; width: 25%">Asiento</td>
+                        </tr>
+                        <tr>
+                          <td
+                            style="
+                              font-size: 14px;
+                              color: #0b1f3a;
+                              font-weight: bold;
+                              padding-top: 4px;
+                            "
+                          >
+                            {{ params.DEPARTURE_DATE }}
+                          </td>
+                          <td
+                            style="
+                              font-size: 14px;
+                              color: #0b1f3a;
+                              font-weight: bold;
+                              padding-top: 4px;
+                            "
+                          >
+                            {{ params.DEPARTURE_TIME }}
+                          </td>
+                          <td
+                            style="
+                              font-size: 14px;
+                              color: #0b1f3a;
+                              font-weight: bold;
+                              padding-top: 4px;
+                            "
+                          >
+                            {{ params.SEAT_CLASS }}
+                          </td>
+                          <td
+                            style="
+                              font-size: 14px;
+                              color: #0b1f3a;
+                              font-weight: bold;
+                              padding-top: 4px;
+                            "
+                          >
+                            {{ params.SEAT_IDENTIFIER }}
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Pasajero y código de ticket / QR -->
+            <tr>
+              <td style="padding: 16px 32px">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="vertical-align: top; width: 60%">
+                      <p
+                        style="
+                          margin: 0;
+                          font-size: 12px;
+                          color: #718096;
+                          text-transform: uppercase;
+                        "
+                      >
+                        Pasajero
+                      </p>
+                      <p style="margin: 4px 0 0 0; font-size: 14px; color: #0b1f3a">
+                        {{ params.PASSENGER_FULL_NAME }}
+                      </p>
+                      <p
+                        style="
+                          margin: 12px 0 0 0;
+                          font-size: 12px;
+                          color: #718096;
+                          text-transform: uppercase;
+                        "
+                      >
+                        Código de ticket
+                      </p>
+                      <p
+                        style="
+                          margin: 4px 0 0 0;
+                          font-size: 14px;
+                          color: #0b1f3a;
+                          font-family: monospace;
+                        "
+                      >
+                        {{ params.TICKET_CODE }}
+                      </p>
+                    </td>
+                    <td style="vertical-align: top; width: 40%; text-align: right">
+                      <!-- QR_CODE_URL: imagen generada por el backend (ver nota de variables) -->
+                      <img
+                        src="{{ params.QR_CODE_URL }}"
+                        alt="Código QR del ticket"
+                        width="120"
+                        height="120"
+                        style="border: 1px solid #e2e8f0; border-radius: 6px"
+                      />
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Total pagado -->
+            <tr>
+              <td style="padding: 16px 32px 32px 32px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="border-top: 1px solid #e2e8f0; padding-top: 16px"
+                >
+                  <tr>
+                    <td style="font-size: 13px; color: #718096">Total pagado</td>
+                    <td
+                      style="font-size: 16px; color: #0b1f3a; font-weight: bold; text-align: right"
+                    >
+                      {{ params.TOTAL_PRICE_DISPLAY }}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Pie -->
+            <tr>
+              <td style="background-color: #f4f5f7; padding: 20px 32px; text-align: center">
+                <p style="margin: 0; font-size: 11px; color: #a0aec0">
+                  Este es un correo generado automáticamente por Lifex. Si no reconoces esta compra,
+                  contáctanos respondiendo este correo.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+
+<!--
+  Variables (`params`) que el adapter de Brevo debe enviar para este template:
+
+  PASSENGER_NAME          — primer nombre del comprador, para el saludo.
+  PASSENGER_FULL_NAME     — nombre completo del pasajero dueño de este ticket.
+  RESERVATION_NUMBER      — orders.reservation_number.
+  TICKET_CODE             — tickets.ticket_code.
+  QR_CODE_URL             — URL de la imagen QR (generada a partir de ticket_code; puede ser un data:
+                             URI base64 si no hay almacenamiento de imágenes, o una URL firmada).
+  FROM_CITY / FROM_AIRPORT_CODE, TO_CITY / TO_AIRPORT_CODE — de flight_routes vía airports/cities.
+  DEPARTURE_DATE          — scheduled_flights.departure_date, formateada (ej. "19 nov 2026").
+  DEPARTURE_TIME          — hora de salida formateada (ej. "07:30").
+  SEAT_CLASS              — "Economy" | "Business" (ya traducido, no el enum crudo).
+  SEAT_IDENTIFIER         — flights_seat_availability.seat_identifier (ej. "12A").
+  TOTAL_PRICE_DISPLAY     — total_price ya formateado con el símbolo de moneda correspondiente al
+                             idioma del destinatario (USD por defecto; COP si el locale del pasajero
+                             era "es" al momento de la compra).
+
+  Decisión de implementación: un correo por ticket (cada ticket tiene su propio QR y se reintenta de
+  forma independiente si el proveedor falla).
+-->

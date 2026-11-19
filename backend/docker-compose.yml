@@ -1,0 +1,49 @@
+name: lifex
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: lifex
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d lifex"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Los dos servicios siguientes solo arrancan con: docker compose --profile app up --build
+  migrate:
+    profiles: ["app"]
+    build:
+      context: .
+      target: migrate
+    environment:
+      DATABASE_URL: postgresql://app:app@postgres:5432/lifex
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      target: runtime
+    environment:
+      # Con "production" la cookie del refresh exige HTTPS; aquí es solo una demo local.
+      NODE_ENV: development
+      DATABASE_URL: postgresql://app:app@postgres:5432/lifex
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?define JWT_ACCESS_SECRET en el archivo .env}
+    ports:
+      - "127.0.0.1:${API_PORT:-3000}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

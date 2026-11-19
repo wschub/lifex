@@ -1,0 +1,16 @@
+LIFEX — Cambio en tu vuelo
+
+Hola {{ params.PASSENGER_NAME }},
+
+{{ params.STATUS_TITLE }}
+
+{{ params.STATUS_MESSAGE }}
+
+Codigo de reserva: {{ params.RESERVATION_NUMBER }}
+Vuelo: {{ params.FROM_CITY }} ({{ params.FROM_AIRPORT_CODE }}) -> {{ params.TO_CITY }} ({{ params.TO_AIRPORT_CODE }})
+Fecha: {{ params.DEPARTURE_DATE }}
+Salida programada: {{ params.DEPARTURE_TIME }}
+Pasajeros: {{ params.PASSENGERS_SUMMARY }}
+
+Este es un correo generado automaticamente por Lifex. Si tienes dudas sobre tu reserva, contactanos
+respondiendo este correo.

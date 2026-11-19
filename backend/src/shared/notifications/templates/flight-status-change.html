@@ -1,0 +1,163 @@
+<!--
+  Plantilla transaccional: aviso de vuelo cancelado o retrasado por el administrador.
+  Mismo formato de variables que ticket-confirmation.html. Variables (params):
+
+  PASSENGER_NAME      — primer nombre del comprador (primer pasajero de la reserva).
+  STATUS_TITLE        — "Tu vuelo fue cancelado" | "Tu vuelo fue retrasado".
+  STATUS_MESSAGE      — texto explicativo según el estado.
+  STATUS_COLOR        — color de la franja de estado (hex).
+  RESERVATION_NUMBER  — orders.reservation_number.
+  FROM_CITY / FROM_AIRPORT_CODE, TO_CITY / TO_AIRPORT_CODE — de la ruta del vuelo.
+  DEPARTURE_DATE / DEPARTURE_TIME — salida programada originalmente (hora de Colombia).
+  PASSENGERS_SUMMARY  — "Ana Gómez (12A), Luis Pérez (12B)".
+
+  LOGO_URL            — ${APP_URL}/mail/lifex-concept2-vertical-slogan-color-1200w.png (logo vertical con eslogan).
+  La cabecera es blanca porque ese logo tiene letras oscuras.
+-->
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ params.STATUS_TITLE }} — {{ params.RESERVATION_NUMBER }}</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f5f7;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background-color: #f4f5f7; padding: 24px 0"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            style="background-color: #ffffff; border-radius: 8px; overflow: hidden"
+          >
+            <tr>
+              <td style="background-color: #ffffff; padding: 24px 32px; border-bottom: 1px solid #e2e8f0">
+                <!-- LOGO -->
+                <img src="{{ params.LOGO_URL }}"
+                  width="200"
+                  alt="lifex - The best experience, always."
+                  style="display: block; border: 0; width: 200px; height: auto"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td
+                style="background-color:{{ params.STATUS_COLOR }}; padding:12px 32px; color:#ffffff; font-size:14px; font-weight:bold;"
+              >
+                {{ params.STATUS_TITLE }}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 32px 32px 8px 32px">
+                <p style="margin: 0; font-size: 14px; color: #4a5568; line-height: 1.5">
+                  Hola {{ params.PASSENGER_NAME }},
+                </p>
+                <p style="margin: 12px 0 0 0; font-size: 14px; color: #4a5568; line-height: 1.5">
+                  {{ params.STATUS_MESSAGE }}
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 16px 32px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="background-color: #eef2f7; border-radius: 6px"
+                >
+                  <tr>
+                    <td style="padding: 16px 20px">
+                      <p
+                        style="
+                          margin: 0;
+                          font-size: 12px;
+                          color: #718096;
+                          text-transform: uppercase;
+                          letter-spacing: 0.5px;
+                        "
+                      >
+                        Código de reserva
+                      </p>
+                      <p
+                        style="
+                          margin: 4px 0 0 0;
+                          font-size: 22px;
+                          color: #0b1f3a;
+                          font-weight: bold;
+                          letter-spacing: 2px;
+                        "
+                      >
+                        {{ params.RESERVATION_NUMBER }}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 32px 24px 32px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="border: 1px solid #e2e8f0; border-radius: 6px"
+                >
+                  <tr>
+                    <td style="padding: 20px">
+                      <p style="margin: 0; font-size: 18px; color: #0b1f3a; font-weight: bold">
+                        {{ params.FROM_CITY }} ({{ params.FROM_AIRPORT_CODE }}) &#8594; {{
+                        params.TO_CITY }} ({{ params.TO_AIRPORT_CODE }})
+                      </p>
+                      <p style="margin: 12px 0 0 0; font-size: 13px; color: #718096">
+                        Salida programada
+                      </p>
+                      <p
+                        style="
+                          margin: 2px 0 0 0;
+                          font-size: 14px;
+                          color: #0b1f3a;
+                          font-weight: bold;
+                        "
+                      >
+                        {{ params.DEPARTURE_DATE }} · {{ params.DEPARTURE_TIME }}
+                      </p>
+                      <p style="margin: 12px 0 0 0; font-size: 13px; color: #718096">Pasajeros</p>
+                      <p style="margin: 2px 0 0 0; font-size: 14px; color: #0b1f3a">
+                        {{ params.PASSENGERS_SUMMARY }}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color: #f4f5f7; padding: 20px 32px; text-align: center">
+                <p style="margin: 0; font-size: 11px; color: #a0aec0">
+                  Este es un correo generado automáticamente por Lifex. Si tienes dudas sobre tu
+                  reserva, contáctanos respondiendo este correo.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
