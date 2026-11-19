@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { create } from "zustand";
 import { common, pages, type Lang, type PageKey } from "./dictionary.ts";
+import { extra } from "./extra.ts";
 
 export type { Lang } from "./dictionary.ts";
 
@@ -42,7 +43,12 @@ export function createTranslator(lang: Lang, page?: PageKey): TFunction {
   const own = page ? pages[page] : undefined;
   return (key, vars) => {
     let text: string | undefined =
-      own?.[lang][key] ?? common[lang][key] ?? own?.es[key] ?? common.es[key];
+      own?.[lang][key] ??
+      common[lang][key] ??
+      extra[lang][key] ??
+      own?.es[key] ??
+      common.es[key] ??
+      extra.es[key];
     if (text === undefined) return key;
     if (vars) {
       for (const [name, value] of Object.entries(vars)) {
