@@ -100,7 +100,7 @@ npm run dev:dashboard   # http://localhost:5174/dashboard/  (login + panel)
 
 Variables de cada proyecto en su `.env.example` (`VITE_API_URL`; la web usa `VITE_DASHBOARD_URL` para el enlace de
 "Iniciar sesión" y el dashboard usa `VITE_WEB_URL` para "Ver sitio"). El backend debe permitir ambos orígenes en
-`CORS_ORIGINS` (`http://localhost:5173,http://localhost:5174`).
+`CORS_ORIGINS` (`http://localhost:5173,http://localhost:5174`, y `http://localhost:3001` si sirves el build con `npm start`).
 
 Para desplegar ambas URL con un solo servicio:
 
