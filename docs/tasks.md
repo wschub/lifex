@@ -153,14 +153,16 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       `APP_URL` (hoy el ejemplo trae `https://TU-DOMINIO/email/...`).
 - [x] **Modal de sesión** (`frontend/web/src/app/public/session/`), basado en el ejemplo de diseño local
       (`FRONTEND-WEB/Modal-template-mail/modal-sesion.html`; el logo blanco salió de ahí a `frontend/public/logo/lifex-reversed.svg`).
-      Dos motivos, en el idioma actual (es/en) y centrado en pantalla:
-      - **Sesión inactiva:** `idleTimeoutMinutes` (`WEB_IDLE_TIMEOUT_MINUTES`, 2 min) sin actividad (ratón, teclado, scroll,
-        toque) en **cualquier sección** del sitio público.
-      - **Tiempo de compra agotado:** `maxSeatLockMinutes` (`MAX_SEAT_LOCK_TIME`, 15 min) desde que se abre la reserva
-        (`purchaseStartedAt`), o antes si la reserva del servidor vence (`booking.expiresAt`).
-      Al dispararse se descarta la compra (se sueltan los asientos bloqueados y se limpia el asistente) y **Cerrar**,
-      **Continuar** o Escape llevan a la portada para empezar de cero. Se pausa en `/confirmation` y mientras se procesa un
-      pago (`paymentKey`). Si no hay compra en curso, el texto de inactividad no habla de una compra cancelada.
+      Dos motivos que no se pisan, en el idioma actual (es/en) y centrado en pantalla:
+      - **Sesión inactiva** (`idleTimeoutMinutes` = `WEB_IDLE_TIMEOUT_MINUTES`, 2 min sin actividad: ratón, teclado,
+        scroll, toque): en cualquier sección **menos `/seats` y `/payment`**. **Continuar** (o Escape) deja al usuario
+        donde estaba, con la compra intacta; **Cerrar** descarta la compra, suelta los asientos y vuelve a la portada.
+      - **Tiempo de compra agotado** (`maxSeatLockMinutes` = `MAX_SEAT_LOCK_TIME`, 15 min desde que se abre la reserva, o
+        antes si la reserva del servidor vence): **solo en `/seats` y `/payment`** (ahí no corre el de 2 minutos). Al abrirse
+        descarta la compra y suelta los asientos; **Cerrar** y **Continuar** llevan a la portada para empezar de cero.
+        Si el plazo vence mientras el usuario está en otra sección, el aviso sale al llegar a `/seats`.
+      Se pausa en `/confirmation` y mientras se procesa un pago (`paymentKey`). El movimiento del puntero solo cuenta si
+      cambia de posición (el navegador genera movimientos falsos con el cursor quieto cuando el contenido se anima).
       Decisión: se quitó del ejemplo el texto "tu reserva se conserva" y el botón "Solicitar ayuda", porque la compra se
       reinicia; los botones usan los `.btn` del sitio.
 

@@ -38,12 +38,12 @@ export const extra: Bundle = {
       "Por seguridad <strong>liberamos tus asientos y tu reserva venció</strong>. Empieza de nuevo para elegir tu vuelo; las tarifas pueden variar por la alta demanda.",
     "session.timeout.time": "El plazo para completar la compra es de <b>{minutes}</b> minutos.",
     "session.idle.badge": "Sesión inactiva",
-    "session.idle.title": "¿Sigues ahí? Cerramos tu sesión por inactividad",
+    "session.idle.title": "¿Sigues ahí? Tu sesión se cerrará por inactividad",
     "session.idle.text":
-      "Pasaron <strong>{minutes} minutos sin actividad</strong>. Por tu seguridad cancelamos la compra en curso y liberamos tus asientos. Empieza de nuevo cuando quieras.",
+      "Pasaron <strong>{minutes} minutos sin actividad</strong>. Si quieres seguir con tu compra, pulsa Continuar y te dejamos donde estabas. Si cierras, volverás al inicio y la compra empezará de cero.",
     "session.idle.textNoPurchase":
-      "Pasaron <strong>{minutes} minutos sin actividad</strong>. Por tu seguridad cerramos tu sesión; puedes seguir buscando vuelos cuando quieras.",
-    "session.idle.time": "Tu sesión se cierra tras <b>{minutes}</b> minutos sin actividad.",
+      "Pasaron <strong>{minutes} minutos sin actividad</strong>. Pulsa Continuar para seguir donde estabas o Cerrar para volver al inicio.",
+    "session.idle.time": "Cerramos la sesión tras <b>{minutes}</b> minutos sin actividad.",
     "session.code": "Código de reserva",
     "session.pax": "Pasajeros",
     "session.total": "Total",
@@ -104,12 +104,12 @@ export const extra: Bundle = {
       "For your security <strong>we released your seats and your reservation expired</strong>. Start over to choose your flight; fares may change due to high demand.",
     "session.timeout.time": "You have <b>{minutes}</b> minutes to complete your purchase.",
     "session.idle.badge": "Inactive session",
-    "session.idle.title": "Still there? We closed your session due to inactivity",
+    "session.idle.title": "Still there? Your session will close due to inactivity",
     "session.idle.text":
-      "<strong>{minutes} minutes passed without activity</strong>. For your security we cancelled your purchase in progress and released your seats. Start over whenever you like.",
+      "<strong>{minutes} minutes passed without activity</strong>. To keep going with your purchase, press Continue and we will leave you where you were. If you close, you will return to the home page and the purchase will start over.",
     "session.idle.textNoPurchase":
-      "<strong>{minutes} minutes passed without activity</strong>. For your security we closed your session; you can keep searching for flights whenever you like.",
-    "session.idle.time": "Your session closes after <b>{minutes}</b> minutes without activity.",
+      "<strong>{minutes} minutes passed without activity</strong>. Press Continue to stay where you were or Close to go back to the home page.",
+    "session.idle.time": "We close the session after <b>{minutes}</b> minutes without activity.",
     "session.code": "Reservation code",
     "session.pax": "Passengers",
     "session.total": "Total",

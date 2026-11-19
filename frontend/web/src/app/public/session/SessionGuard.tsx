@@ -41,12 +41,17 @@ function summarize(
   };
 }
 
+/** Pasos de la compra donde corre el plazo de 15 minutos (y donde NO corre el aviso de inactividad). */
+const PURCHASE_STEPS = ["/seats", "/payment"];
+
 /**
- * Vigila la sesión en todo el sitio público y abre el modal en dos casos:
- *  - inactividad: `idleTimeoutMinutes` sin actividad en cualquier sección;
- *  - tiempo de compra agotado: pasaron `maxSeatLockMinutes` desde que se abrió la reserva (o ésta venció).
- * Al dispararse, la compra se descarta (se sueltan los asientos y se limpia el asistente); cerrar o continuar
- * lleva a la portada para empezar de cero. Se pausa en la confirmación y mientras se procesa un pago.
+ * Vigila la sesión del sitio público y abre el modal en dos casos que no se pisan:
+ *  - **inactividad** (`idleTimeoutMinutes`, 2 min): en cualquier sección MENOS `/seats` y `/payment`. «Continuar»
+ *    deja al usuario donde estaba; «Cerrar» (o salir) descarta la compra y vuelve a la portada.
+ *  - **tiempo de compra agotado** (`maxSeatLockMinutes`, 15 min desde que se abrió la reserva, o antes si ésta
+ *    vence): SOLO en `/seats` y `/payment`. Descarta la compra al abrirse (se sueltan los asientos) y tanto
+ *    «Cerrar» como «Continuar» llevan a la portada para empezar de cero.
+ * Se pausa en la confirmación y mientras se procesa un pago.
  */
 export function SessionGuard() {
   const { idleTimeoutMinutes, maxSeatLockMinutes } = usePublicConfig();
@@ -61,14 +66,28 @@ export function SessionGuard() {
   /** Evita abrir el aviso dos veces (los efectos pueden dispararse dos veces seguidas antes de repintar). */
   const open = useRef(false);
 
-  // Con una compra en marcha se precarga el catálogo, para nombrar la ruta si hay que descartarla.
+  // Con una compra en marcha se precarga el catálogo, para nombrar la ruta en el aviso.
   const hasFlight = useWizard((s) => s.flightId !== null);
   useEffect(() => {
     if (hasFlight) void queryClient.prefetchQuery(citiesQuery());
   }, [hasFlight, queryClient]);
 
   const finished = pathname === "/confirmation" || confirmed;
+  const onPurchaseStep = PURCHASE_STEPS.includes(pathname);
   const watching = shown === null && !finished && !paying;
+
+  /** Suelta los asientos bloqueados (el backend también los libera al vencer) y limpia el asistente. */
+  const discardPurchase = useCallback(() => {
+    const state = useWizard.getState();
+    if (state.booking && state.flightId) {
+      for (const seat of state.seats) {
+        if (seat) {
+          void releaseSeat(state.flightId, seat.seatId, state.booking.token).catch(() => {});
+        }
+      }
+    }
+    state.reset();
+  }, []);
 
   const trigger = useCallback(
     (reason: SessionReason) => {
@@ -101,22 +120,15 @@ export function SessionGuard() {
         hasPurchase: state.flightId !== null,
         summary: summarize(state, entries, cached?.booking),
       });
-      // Se sueltan los asientos bloqueados (el backend también los libera al vencer) y se empieza de cero.
-      if (state.booking && state.flightId) {
-        for (const seat of state.seats) {
-          if (seat) {
-            void releaseSeat(state.flightId, seat.seatId, state.booking.token).catch(() => {});
-          }
-        }
-      }
-      state.reset();
+      // El tiempo agotado descarta la compra al abrirse; la inactividad espera la decisión del usuario.
+      if (reason === "timeout") discardPurchase();
     },
-    [queryClient],
+    [queryClient, discardPurchase],
   );
 
   useIdleTimer({
     timeoutMs: idleTimeoutMinutes * MINUTE,
-    enabled: watching,
+    enabled: watching && !onPurchaseStep,
     onIdle: () => trigger("idle"),
   });
 
@@ -126,15 +138,27 @@ export function SessionGuard() {
       : null;
   useDeadline({
     deadlineMs: Number.isNaN(deadlineMs) ? null : deadlineMs,
-    enabled: watching,
+    enabled: watching && onPurchaseStep,
     onExpire: () => trigger("timeout"),
   });
 
-  const close = useCallback(() => {
+  /** Vuelve a la portada; con la inactividad, la compra en curso se descarta ahora. */
+  const restart = useCallback(() => {
+    if (shown?.reason === "idle") discardPurchase();
     open.current = false;
     setShown(null);
     void navigate("/", { replace: true });
-  }, [navigate]);
+  }, [shown, discardPurchase, navigate]);
+
+  /** Con la inactividad, deja todo como estaba; con el tiempo agotado, no hay nada que conservar. */
+  const keepGoing = useCallback(() => {
+    if (shown?.reason === "idle") {
+      open.current = false;
+      setShown(null);
+    } else {
+      restart();
+    }
+  }, [shown, restart]);
 
   if (!shown) return null;
   return (
@@ -143,7 +167,9 @@ export function SessionGuard() {
       hasPurchase={shown.hasPurchase}
       minutes={shown.reason === "idle" ? idleTimeoutMinutes : maxSeatLockMinutes}
       summary={shown.summary}
-      onClose={close}
+      onClose={restart}
+      onContinue={keepGoing}
+      onEscape={keepGoing}
     />
   );
 }

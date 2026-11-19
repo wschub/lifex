@@ -22,15 +22,28 @@ interface Props {
   /** Minutos del plazo que venció (compra) o de la inactividad, según el motivo. */
   minutes: number;
   summary: SessionSummary | null;
-  /** Cerrar y continuar hacen lo mismo: empezar la compra desde cero. */
+  /** «Cerrar»: vuelve al inicio (con la compra descartada). */
   onClose: () => void;
+  /** «Continuar»: con la inactividad deja al usuario donde estaba; con el tiempo agotado vuelve al inicio. */
+  onContinue: () => void;
+  /** Escape: lo no destructivo (con la inactividad, continuar; con el tiempo agotado, volver al inicio). */
+  onEscape: () => void;
 }
 
 /**
  * Aviso de sesión inactiva o de tiempo de compra agotado. Centrado en pantalla (horizontal y vertical),
- * en el idioma actual, con foco atrapado y Escape. La compra ya se limpió antes de abrirlo.
+ * en el idioma actual, con foco atrapado y Escape. Con el tiempo de compra agotado la compra ya se descartó
+ * antes de abrirlo; con la inactividad sigue intacta hasta que el usuario elija.
  */
-export function SessionModal({ reason, hasPurchase, minutes, summary, onClose }: Props) {
+export function SessionModal({
+  reason,
+  hasPurchase,
+  minutes,
+  summary,
+  onClose,
+  onContinue,
+  onEscape,
+}: Props) {
   const { lang, t } = useLang();
   const config = usePublicConfig();
   const primary = useRef<HTMLButtonElement>(null);
@@ -43,7 +56,7 @@ export function SessionModal({ reason, hasPurchase, minutes, summary, onClose }:
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
-        onClose();
+        onEscape();
       } else if (event.key === "Tab") {
         // Solo hay dos botones: el foco no sale del modal.
         const first = secondary.current;
@@ -63,7 +76,7 @@ export function SessionModal({ reason, hasPurchase, minutes, summary, onClose }:
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = previous;
     };
-  }, [onClose]);
+  }, [onEscape]);
 
   const key = reason === "idle" && !hasPurchase ? "idle.textNoPurchase" : `${reason}.text`;
   // Si el catálogo aún no estaba cargado, el nombre es el propio código y se muestra una sola vez.
@@ -145,7 +158,7 @@ export function SessionModal({ reason, hasPurchase, minutes, summary, onClose }:
           <button ref={secondary} type="button" className="btn btn-ghost" onClick={onClose}>
             {t("session.close")}
           </button>
-          <button ref={primary} type="button" className="btn btn-primary" onClick={onClose}>
+          <button ref={primary} type="button" className="btn btn-primary" onClick={onContinue}>
             {t("session.continue")}
           </button>
         </div>
