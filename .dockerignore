@@ -1,0 +1,21 @@
+# Contexto de build en la raíz del monorepo (lo usa frontend/Dockerfile).
+# El backend se construye con su propio contexto (backend/) y su propio .dockerignore.
+**/node_modules
+**/dist
+**/coverage
+.git
+.github
+.husky
+.claude
+.qodo
+.vscode
+.DS_Store
+**/.env
+**/.env.*
+!**/.env.example
+notes*.txt
+docs
+backend
+FRONTEND-WEB
+**/*.md
+**/*.test.mjs

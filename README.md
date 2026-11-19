@@ -28,7 +28,7 @@ idempotencia, y el diagrama de cómo se vería esto en producción a escala de m
 Los criterios de aceptación de cada historia de usuario están en
 [`docs/user-stories-acceptance-criteria.md`](docs/user-stories-acceptance-criteria.md); el desglose de
 tareas de implementación, en [`docs/tasks.md`](docs/tasks.md); el plan de datos de prueba (seed), en
-[`docs/seed-plan.md`](docs/seed-plan.md); y el uso de IA durante el desarrollo, en [`docs/ia.md`](docs/ia.md).
+[`docs/seed-plan.md`](docs/seed-plan.md); el despliegue en Railway, en [`docs/deploy-railway.md`](docs/deploy-railway.md); y el uso de IA durante el desarrollo, en [`docs/ia.md`](docs/ia.md).
 
 ## Estructura del repositorio
 
@@ -48,6 +48,7 @@ lifex/
 │   ├── user-stories-acceptance-criteria.md
 │   ├── tasks.md
 │   ├── seed-plan.md
+│   ├── deploy-railway.md
 │   └── ia.md
 └── README.md
 ```
@@ -98,17 +99,22 @@ npm run dev:web         # http://localhost:5173        (web pública)
 npm run dev:dashboard   # http://localhost:5174/dashboard/  (login + panel)
 ```
 
-Variables de cada proyecto en su `.env.example` (`VITE_API_URL`; la web usa `VITE_DASHBOARD_URL` para el enlace de
-"Iniciar sesión" y el dashboard usa `VITE_WEB_URL` para "Ver sitio"). El backend debe permitir ambos orígenes en
-`CORS_ORIGINS` (`http://localhost:5173,http://localhost:5174`, y `http://localhost:3001` si sirves el build con `npm start`).
+En desarrollo la API es `/api` (el proxy de Vite la manda al backend en `http://localhost:3000`), así que no hace falta
+definir `VITE_API_URL` ni habilitar CORS. Solo en desarrollo, como cada proyecto corre en su puerto, la web necesita
+`VITE_DASHBOARD_URL=http://localhost:5174/dashboard` y el dashboard `VITE_WEB_URL=http://localhost:5173` (ver los
+`.env.example`).
 
-Para desplegar ambas URL con un solo servicio:
+Para desplegar ambas URL con un solo servicio (web en `/`, dashboard en `/dashboard` y proxy de `/api` y del
+WebSocket hacia el backend):
 
 ```bash
 cd frontend
-npm run build           # web/dist + dashboard/dist → frontend/dist (web en "/", dashboard en "/dashboard")
-npm start               # node server.mjs (usa PORT)
+npm run build           # web/dist + dashboard/dist → frontend/dist
+BACKEND_INTERNAL_URL=http://localhost:3000 npm start   # node server.mjs (usa PORT)
 ```
+
+El stack completo (Postgres + backend + frontend) se prueba con `docker compose up --build` en la raíz, y el
+despliegue en Railway está en [`docs/deploy-railway.md`](docs/deploy-railway.md).
 
 ### Pruebas
 

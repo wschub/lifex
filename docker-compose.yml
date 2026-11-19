@@ -1,0 +1,57 @@
+# Stack completo para probar el despliegue en local, igual que en Railway:
+#   docker compose up --build        (web en http://localhost:8080, dashboard en /dashboard)
+# Solo el frontend expone puerto; el backend y Postgres quedan en la red interna.
+# Para desarrollo del backend se usa backend/docker-compose.yml.
+name: lifex-stack
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: lifex
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d lifex"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: "8080"
+      DATABASE_URL: postgresql://app:app@postgres:5432/lifex
+      # Solo para pruebas locales: en Railway se define una clave propia.
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-compose-local-secret-change-me-0123456789abcdef}
+      PUBLIC_REGISTRATION: "false"
+      # Mismo origen vía el proxy del frontend.
+      COOKIE_SAME_SITE: lax
+      TRUST_PROXY: "1"
+      CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-8080}
+      APP_URL: http://localhost:${FRONTEND_PORT:-8080}
+      PUBLIC_API_URL: http://localhost:${FRONTEND_PORT:-8080}/api
+    # Igual que preDeployCommand en Railway: migraciones y luego la API.
+    command: ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on:
+      - backend
+    environment:
+      PORT: "8080"
+      BACKEND_INTERNAL_URL: http://backend:8080
+    ports:
+      - "${FRONTEND_PORT:-8080}:8080"
+
+volumes:
+  pgdata:
