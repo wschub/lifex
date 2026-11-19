@@ -264,9 +264,17 @@ const aircraftData = (aircraft: (typeof AIRCRAFT)[number]) => ({
   seatColumns: aircraft.columns,
 });
 
-/** `Panama City` → `panama-city.jpg`, `Washington D.C.` → `washington-dc.jpg`. */
+/** Fotos que no siguen la regla del nombre en inglés (el archivo ya existe con otro nombre). */
+const IMAGE_NAME_OVERRIDES: Record<string, string> = {
+  Lisbon: "lisboa.jpg",
+  "Panama City": "panama.jpg",
+};
+
+/** `Washington D.C.` → `washington-dc.jpg`, `Santa Marta` → `santa-marta.jpg`. */
 function imageNameFor(city: CitySeed): string {
   if (city.imageName) return city.imageName;
+  const override = IMAGE_NAME_OVERRIDES[city.name];
+  if (override) return override;
   const slug = city.name
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")

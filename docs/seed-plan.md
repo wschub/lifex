@@ -67,8 +67,8 @@ La base de datos guarda solo el **nombre del archivo** (`cities.imageName`); las
 `frontend/public/img/destinations/` y la web arma la ruta `/img/destinations/<nombre>`. Si el archivo no existe,
 la web muestra la imagen genérica del cielo. El seed asigna el nombre a **todas** las ciudades (con `upsert`,
 así que `db:migrate` + `db:seed` sin `--reset` también lo dejan puesto en bases ya existentes). Regla del nombre:
-nombre en inglés, minúsculas, sin tildes, sin puntos y con guiones (`Panama City` → `panama-city.jpg`); la única
-excepción es `sanandres.jpg`. Al pasar las fotos a WebP hay que cambiar la extensión (`.jpg` → `.webp`) en el seed.
+nombre en inglés, minúsculas, sin tildes, sin puntos y con guiones (`Santa Marta` → `santa-marta.jpg`); las excepciones
+son `sanandres.jpg`, `lisboa.jpg` y `panama.jpg` (nombres de las fotos ya agregadas). Al pasar las fotos a WebP hay que cambiar la extensión (`.jpg` → `.webp`) en el seed.
 
 | Ciudad (inglés) | Ciudad (español) | País | Archivo | ¿Foto ya en el repo? |
 |---|---|---|---|---|
@@ -78,13 +78,13 @@ excepción es `sanandres.jpg`. Al pasar las fotos a WebP hay que cambiar la exte
 | Santa Marta | Santa Marta | CO | `santa-marta.jpg` | falta |
 | Barranquilla | Barranquilla | CO | `barranquilla.jpg` | falta |
 | San Andrés | San Andrés | CO | `sanandres.jpg` | sí |
-| Cali | Cali | CO | `cali.jpg` | falta |
+| Cali | Cali | CO | `cali.jpg` | sí |
 | Bucaramanga | Bucaramanga | CO | `bucaramanga.jpg` | falta |
 | Pereira | Pereira | CO | `pereira.jpg` | falta |
 | Armenia | Armenia | CO | `armenia.jpg` | falta |
 | Washington D.C. | Washington D.C. | US | `washington-dc.jpg` | falta |
 | Miami | Miami | US | `miami.jpg` | sí |
-| Panama City | Ciudad de Panamá | PA | `panama-city.jpg` | falta |
+| Panama City | Ciudad de Panamá | PA | `panama.jpg` | sí |
 | London | Londres | GB | `london.jpg` | sí |
 | Manchester | Mánchester | GB | `manchester.jpg` | falta |
 | Madrid | Madrid | ES | `madrid.jpg` | sí |
@@ -93,14 +93,14 @@ excepción es `sanandres.jpg`. Al pasar las fotos a WebP hay que cambiar la exte
 | Nice | Niza | FR | `nice.jpg` | falta |
 | Berlin | Berlín | DE | `berlin.jpg` | falta |
 | Munich | Múnich | DE | `munich.jpg` | falta |
-| Lisbon | Lisboa | PT | `lisbon.jpg` | falta |
+| Lisbon | Lisboa | PT | `lisboa.jpg` | sí |
 | Porto | Oporto | PT | `porto.jpg` | falta |
 | Brussels | Bruselas | BE | `brussels.jpg` | falta |
 | Rome | Roma | IT | `rome.jpg` | falta |
-| Milan | Milán | IT | `milan.jpg` | falta |
+| Milan | Milán | IT | `milan.jpg` | sí |
 | Zurich | Zúrich | CH | `zurich.jpg` | falta |
 | Geneva | Ginebra | CH | `geneva.jpg` | falta |
-| Amsterdam | Ámsterdam | NL | `amsterdam.jpg` | falta |
+| Amsterdam | Ámsterdam | NL | `amsterdam.jpg` | sí |
 
 Faltan **22** fotos (las 7 existentes: Bogotá, Cartagena, Londres, Madrid, Medellín, Miami y San Andrés).
 
