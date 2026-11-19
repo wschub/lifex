@@ -67,7 +67,7 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       Colombia, clase traducida, total en COP (español) o USD (inglés).
 - [x] Decisión: **un correo por ticket** (evento `TicketEmailRequested` por ticket).
 - [x] `GET /tickets/:code/qr.png` (imagen QR para el correo) y `GET /bookings/:id/tickets`.
-- [ ] Reemplazar el bloque `LOGO` de las plantillas cuando exista el asset definitivo (se hace con el frontend).
+- [x] Logo definitivo en las plantillas (PNG vertical con eslogan vía `APP_URL`).
 
 ## 7. Aviso de vuelo cancelado o retrasado (HU4.6 y HU4.7)
 - [x] Al pasar un vuelo a `CANCELLED` o `DELAYED`, `updateStatus` escribe un evento interno
@@ -120,17 +120,17 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [x] Reglas documentadas en HU5 (`docs/user-stories-acceptance-criteria.md`).
 
 ## Pendientes
-- [ ] **Cookie de refresh en Railway:** con `COOKIE_SAME_SITE=strict` solo funciona si el frontend y la API
+- [x] **Cookie de refresh en Railway** (resuelto con el proxy de mismo origen: `COOKIE_SAME_SITE=lax`; ver `docs/deploy-railway.md`): con `COOKIE_SAME_SITE=strict` solo funciona si el frontend y la API
       comparten sitio. Si van en dominios distintos hay que usar `COOKIE_SAME_SITE=none` (con cookie `Secure`, que exige HTTPS)
       y **crear la variable en Railway al desplegar** (acordarse de crearla en el servicio de la API).
 - [x] **Imágenes de ciudades:** viven en `frontend/public/img/destinations/` y la BD guarda solo el nombre del
       archivo (`cities.imageName`, ej. `medellin.jpg`); el frontend arma la ruta `/img/destinations/<nombre>`.
 - [ ] **Convertir las imágenes a WebP** (recordárselo al usuario antes del despliegue). Al convertir, cambiar la extensión en `cities.imageName`.
-- [ ] **Web pública:** usar `priceEconomyUsd` / `priceBusinessUsd` / `offer` de `GET /flights` y mostrar las
+- [x] **Web pública:** usar `priceEconomyUsd` / `priceBusinessUsd` / `offer` de `GET /flights` y mostrar las
       ofertas de la portada con `GET /flights/offers` (reemplaza los precios estimados actuales).
 - [ ] **Alineación de tarifas** (Light / Classic / Flex y Business) con el precio dinámico, al terminar la v1
       del frontend. El equipaje y demás servicios son costos adicionales sobre el precio de la tarifa.
-- [ ] Endpoint de ofertas: ya implementado en el backend (`GET /flights/offers`); falta consumirlo en el front.
+- [x] Endpoint de ofertas (`GET /flights/offers`) consumido en la portada.
 - [ ] **Habilitar tickets con ida y vuelta.** Hoy la web y la reserva trabajan con un solo vuelo (solo ida; el
       selector "Ida y vuelta" de la portada no está activo). Implica: búsqueda con fecha de regreso, elegir dos
       vuelos (ida y regreso), asientos de los dos tramos, precio de cada tramo con las reglas de HU5, una sola
@@ -158,6 +158,23 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       `idleTimeoutMinutes`); el modal se dispara por inactividad en **cualquier sección** del sitio (un detector
       global de actividad: mouse, teclado, scroll, toque). Debe aparecer en la web pública (checkout) con el mismo diseño, liberar el asiento y
       llevar de vuelta a la selección; probar los casos de borde de la Tarea 11 (bloqueo vencido en `/payment`).
+
+## 12.2 Despliegue y operación (Railway)
+- [ ] **Subir los commits pendientes** (`git push`) y comprobar la primera ejecución de los workflows en la pestaña Actions
+      (`backend-ci`, `web-ci`, `dashboard-ci`).
+- [ ] **Cargar los datos en Railway** desde la consola del backend (`node dist/cli/seed.js …`; ver `docs/deploy-railway.md`):
+      catálogo, roles, vuelos y los dos usuarios con `SEED_PASSWORD`. Comprobar el tamaño del volumen (~0,93 GB con el rango completo).
+- [ ] **Crear el SUPER_ADMIN** (`node dist/cli/create-admin.js …`) si hace falta.
+- [ ] **Rotar la contraseña de Postgres de Railway:** la URL con la contraseña se pegó en el chat; cambiarla y actualizar las variables.
+- [ ] **Recorrido de punta a punta en producción:** compra con la tarjeta de prueba, correo con logo y QR, login y dashboard en vivo.
+- [ ] **Correos de producción:** remitente en un dominio propio con SPF/DKIM autenticados en Brevo (hoy se prueba con un Gmail);
+      decidir si se mantiene sin restricción de IPs en Brevo (las IPs de salida de Railway cambian).
+- [ ] **Limpieza:** borrar las ramas `backend`, `frontend/web` y `frontend/dashboard` (ya integradas en `main`) y los restos del
+      andamiaje (`backend/README.en.md`, `backend/.scaffold.json`, `backend/docs/`) si ya no se necesitan.
+- [ ] **Escala del seed:** 4,4 millones de filas de asientos; si el volumen crece, evaluar crear los asientos bajo demanda o
+      particionar la tabla. Vigilar `GET /flights/offers` (hoy ~0,15 s).
+- [ ] **Pruebas del servidor del frontend:** corren con `--test-force-exit` porque queda un handle abierto; diagnosticarlo.
+- [ ] **Imágenes de ciudades:** faltan 17 fotos (lista en `docs/seed-plan.md`) y la conversión a WebP.
 
 ## 13. Documentación final
 - [x] `docs/ia.md`, `docs/architecture.md`, `docs/user-stories-acceptance-criteria.md`,
