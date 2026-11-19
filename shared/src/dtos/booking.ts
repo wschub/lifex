@@ -42,6 +42,9 @@ export const publicBookingSchema = z.object({
   contactPhone: z.string().nullable(),
   /** La reserva y su token de invitado caducan juntos. */
   expiresAt: isoDateTime,
+  /** Desglose de la compra: `flightPriceUsd = seatsPriceUsd + luggagePriceUsd` (impuestos aparte). */
+  seatsPriceUsd: z.number(),
+  luggagePriceUsd: z.number(),
   flightPriceUsd: z.number(),
   taxesUsd: z.number(),
   totalPriceUsd: z.number(),
