@@ -79,14 +79,45 @@ docker compose up -d --wait postgres   # PostgreSQL en 127.0.0.1:55432, base "li
 npm install
 npm run db:migrate
 npm run db:generate
-npm run db:seed             # catálogo, roles, usuarios y vuelos; ver docs/seed-plan.md
+SEED_PASSWORD="<clave de 12+ caracteres>" npm run db:seed   # catálogo, roles, usuarios y vuelos (ver "Seed")
 npm run admin:create        # usuario SUPER_ADMIN inicial, si hace falta
 npm run dev                 # API en http://localhost:3000 y WebSocket en ws://localhost:3000/ws
 ```
 
-Usuarios del seed: `admin@lifex.test` y `viewer@lifex.test`, contraseña `Lifex-Demo-2026!`.
+Usuarios del seed: `admin@lifex.test` (rol `ADMIN`) y `viewer@lifex.test` (rol `ADMIN_VIEWER`), con la clave que
+pases en `SEED_PASSWORD` (no hay una por defecto).
 Tarjetas de prueba: `4242 4242 4242 4242` (aprobada), `4000 0000 0000 0002` (rechazada),
 `4000 0000 0000 9995` (timeout de la pasarela).
+
+### Seed
+
+El seed carga el catálogo (países, ciudades, aeropuertos, aeronaves y tipos de equipaje), los roles, los usuarios
+`ADMIN` y `ADMIN_VIEWER` y los vuelos de **hoy a 2027-01-31**: 3 vuelos diarios por cada una de las 90 rutas
+nacionales y 2 por cada una de las 38 internacionales (Medellín y Bogotá a 19 destinos). Son unos 25.500 vuelos y
+4,4 millones de asientos (~0,93 GB, ~2 minutos). Es idempotente: se puede repetir sin duplicar vuelos.
+
+```bash
+# desarrollo (backend/)
+SEED_PASSWORD="<clave>" npm run db:seed                       # todo
+SEED_PASSWORD="<clave>" npm run db:seed -- --reset            # borra vuelos, reservas y pagos y los vuelve a crear
+npm run db:seed -- --no-users --to=2026-12-31                 # sin usuarios y con menos días (≈ 13 MB por día)
+
+# producción (consola del servicio backend en Railway; la imagen trae dist/cli/seed.js)
+node dist/cli/seed.js --no-users                              # catálogo, roles y vuelos, sin usuarios
+SEED_PASSWORD='<clave>' node dist/cli/seed.js --no-flights    # catálogo, roles y los dos usuarios, sin vuelos
+```
+
+| Opción / variable | Efecto |
+|---|---|
+| `--reset` | Borra vuelos, asientos, reservas y pagos antes de crear los vuelos |
+| `--from=AAAA-MM-DD` / `--to=AAAA-MM-DD` | Rango de vuelos (por defecto, hoy → 2027-01-31) |
+| `--no-flights` | Solo catálogo y roles (y usuarios si no usas `--no-users`) |
+| `--no-users` | No crea usuarios |
+| `SEED_PASSWORD` | Clave de los dos usuarios (obligatoria si se crean; mínimo 12 caracteres). Si el usuario ya existe no se toca |
+| `SEED_ADMIN_EMAIL` / `SEED_VIEWER_EMAIL` | Correos de los usuarios (por defecto `admin@lifex.test` y `viewer@lifex.test`) |
+
+Detalle del algoritmo en [`docs/seed-plan.md`](docs/seed-plan.md) y despliegue en
+[`docs/deploy-railway.md`](docs/deploy-railway.md).
 
 ### Frontend
 

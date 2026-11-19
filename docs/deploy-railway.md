@@ -95,10 +95,14 @@ Servicio de plantilla de Railway: no requiere configuración. Usa `${{Postgres.D
    ```
    - El rango completo son 25.540 vuelos y 4,39 millones de asientos (~0,93 GB y ~2 minutos). Comprueba el tamaño del
      volumen de tu plan antes de cargarlo.
-   - **Usuarios:** no uses `--no-users` solo por comodidad: los usuarios de demostración (`admin@lifex.test`) traen una
-     clave que está publicada en el repositorio. En producción crea tu administrador con tu propia clave:
+   - **Usuarios:** la clave no está en el repositorio; la defines tú al crearlos. Un solo comando crea los dos usuarios
+     (`admin@lifex.test` con rol `ADMIN` y `viewer@lifex.test` con rol `ADMIN_VIEWER`) con la **misma** clave:
+     ```bash
+     SEED_PASSWORD='<tu-clave-de-12+-caracteres>' node dist/cli/seed.js --no-flights
+     ```
+     Con correos reales: `SEED_ADMIN_EMAIL=ana@empresa.com SEED_VIEWER_EMAIL=luis@empresa.com SEED_PASSWORD='…' node dist/cli/seed.js --no-flights`.
+     Si el usuario ya existe, el seed no cambia su clave. Para un `SUPER_ADMIN` usa
      `ADMIN_PASSWORD='<clave>' node dist/cli/create-admin.js --email <correo> --first-name <nombre> --last-name <apellido>`.
-     Si de verdad quieres los dos usuarios de ejemplo, ejecuta el seed con otra clave: `SEED_PASSWORD='<clave>' node dist/cli/seed.js`.
 6. **Comprueba:** `https://<dominio>/healthz`, `https://<dominio>/api/health`, `https://<dominio>/api/config`, el login en `https://<dominio>/dashboard/login` y una compra de punta a punta.
 
 Cada servicio se redespliega solo cuando cambia su carpeta (`watchPatterns`): un cambio en `shared/` redespliega el frontend pero no el backend. Que el contrato se mantenga compatible lo comprueba la CI (la prueba de contrato del backend usa `shared/`).

@@ -16,10 +16,11 @@ node dist/cli/seed.js --no-users   # producción (imagen de Docker / consola de 
 | `--from=AAAA-MM-DD` | Primer día de vuelos (por defecto, **hoy** en hora de Colombia; los vuelos de hoy que ya salieron no se crean) |
 | `--to=AAAA-MM-DD` | Último día, inclusive (por defecto 2027-01-31) |
 | `--no-flights` | Solo catálogo (países, ciudades, aeropuertos, aeronaves, tipos de equipaje) y roles |
-| `--no-users` | No crea `admin@lifex.test` ni `viewer@lifex.test` |
+| `--no-users` | No crea los usuarios `ADMIN` y `ADMIN_VIEWER` |
 
-Variable `SEED_PASSWORD`: clave de los usuarios de demostración (por defecto la de ejemplo; **no la uses en producción**,
-está publicada en el repositorio).
+Usuarios: la clave **no está en el código**; se pasa en `SEED_PASSWORD` (obligatoria, mínimo 12 caracteres) o se omiten
+los usuarios con `--no-users`. Los correos son `admin@lifex.test` y `viewer@lifex.test`, o los de `SEED_ADMIN_EMAIL` y
+`SEED_VIEWER_EMAIL`. Si el usuario ya existe, el seed no lo toca (ni cambia su clave).
 
 Es **idempotente**: el catálogo se actualiza con `upsert` y un vuelo que ya existe (misma ruta y misma salida) no se
 duplica; las horas son deterministas (misma ruta, día y franja → misma hora), así que se puede volver a ejecutar para
@@ -30,8 +31,7 @@ internacionales) y **4.391.032 asientos**, en ~2 minutos en local. Ocupa **~0,93
 asientos): ≈ 13 MB por día de vuelos. Los asientos se generan dentro de Postgres (`INSERT … SELECT` con el plano de
 la aeronave), no viajan por la red.
 
-Usuarios de prueba: `admin@lifex.test` (rol `ADMIN`) y `viewer@lifex.test` (rol `ADMIN_VIEWER`), contraseña
-`Lifex-Demo-2026!`.
+Usuarios: `admin@lifex.test` (rol `ADMIN`) y `viewer@lifex.test` (rol `ADMIN_VIEWER`), con la clave de `SEED_PASSWORD`.
 
 ## 1. Roles y permisos
 - Crear roles `ADMIN` (todos los permisos de todos los módulos de negocio: `flights:manage`, `flights:read`,

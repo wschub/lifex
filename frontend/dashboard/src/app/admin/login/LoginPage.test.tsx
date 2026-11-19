@@ -72,7 +72,7 @@ describe("LoginPage", () => {
       .mockResolvedValueOnce(json(me(["dashboard:read"])));
     renderLogin();
     await enterEmail("admin@lifex.test");
-    await userEvent.type(screen.getByLabelText("Contraseña"), "Lifex-Demo-2026!");
+    await userEvent.type(screen.getByLabelText("Contraseña"), "clave-de-prueba-1234");
     await userEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 
     expect(await screen.findByText("panel")).toBeInTheDocument();
@@ -81,7 +81,7 @@ describe("LoginPage", () => {
     expect(init?.method).toBe("POST");
     expect(JSON.parse(String(init?.body))).toEqual({
       email: "admin@lifex.test",
-      password: "Lifex-Demo-2026!",
+      password: "clave-de-prueba-1234",
     });
     expect(useStaffSession.getState().accessToken).toBe("jwt");
   });
@@ -116,7 +116,7 @@ describe("LoginPage", () => {
       .mockResolvedValueOnce(new Response(null, { status: 204 }));
     renderLogin();
     await enterEmail("admin@lifex.test");
-    await userEvent.type(screen.getByLabelText("Contraseña"), "Lifex-Demo-2026!");
+    await userEvent.type(screen.getByLabelText("Contraseña"), "clave-de-prueba-1234");
     await userEvent.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 
     expect(await screen.findByText(/no tiene acceso al panel/i)).toBeInTheDocument();

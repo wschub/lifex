@@ -9,11 +9,13 @@
  *   --from=AAAA-MM-DD    primer día de vuelos (por defecto, hoy en hora de Colombia)
  *   --to=AAAA-MM-DD      último día, inclusive (por defecto, 2027-01-31)
  *   --no-flights         solo catálogo (países, ciudades, aeropuertos, aeronaves, equipaje) y roles
- *   --no-users           no crea los usuarios de demostración (admin@lifex.test y viewer@lifex.test)
+ *   --no-users           no crea los usuarios (ADMIN y ADMIN_VIEWER); sin esta opción hace falta SEED_PASSWORD
  *
  * Es idempotente: el catálogo se actualiza con upsert y los vuelos que ya existen (misma ruta y misma
  * salida) no se duplican, así que se puede ejecutar de nuevo para ampliar el rango de fechas.
- * SEED_PASSWORD cambia la clave de los usuarios de demostración (en producción no uses la de ejemplo).
+ * Usuarios (ADMIN y ADMIN_VIEWER): la clave es obligatoria y viene de SEED_PASSWORD (≥ 12 caracteres); no hay una
+ * por defecto. Los correos son admin@lifex.test y viewer@lifex.test, o SEED_ADMIN_EMAIL / SEED_VIEWER_EMAIL.
+ * Si el usuario ya existe no se toca (ni su clave).
  *
  * Es un script de arranque, no código de la aplicación: puede leer el entorno y usar Prisma directo.
  */
@@ -356,7 +358,20 @@ async function seedCatalog(): Promise<void> {
 
 const ADMIN_PERMISSIONS = ["flights:read", "flights:manage", "dashboard:read"];
 const VIEWER_PERMISSIONS = ["flights:read", "dashboard:read"];
-export const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "Lifex-Demo-2026!";
+const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? "admin@lifex.test";
+const VIEWER_EMAIL = process.env.SEED_VIEWER_EMAIL ?? "viewer@lifex.test";
+
+/** La clave de los usuarios no está en el código: se pasa por SEED_PASSWORD (mínimo 12 caracteres). */
+function seedPassword(): string {
+  const password = process.env.SEED_PASSWORD;
+  if (!password || password.length < 12) {
+    throw new Error(
+      "SEED_PASSWORD (at least 12 characters) is required to create the admin and viewer users; " +
+        "use --no-users to skip them",
+    );
+  }
+  return password;
+}
 
 async function seedRolesAndUsers(withUsers: boolean): Promise<void> {
   const hasher = new Argon2PasswordHasher();
@@ -364,14 +379,14 @@ async function seedRolesAndUsers(withUsers: boolean): Promise<void> {
     {
       name: "ADMIN",
       permissions: ADMIN_PERMISSIONS,
-      email: "admin@lifex.test",
+      email: ADMIN_EMAIL,
       firstName: "Admin",
       lastName: "Lifex",
     },
     {
       name: "ADMIN_VIEWER",
       permissions: VIEWER_PERMISSIONS,
-      email: "viewer@lifex.test",
+      email: VIEWER_EMAIL,
       firstName: "Viewer",
       lastName: "Lifex",
     },
@@ -398,7 +413,7 @@ async function seedRolesAndUsers(withUsers: boolean): Promise<void> {
       (await prisma.user.create({
         data: {
           email: item.email,
-          passwordHash: await hasher.hash(SEED_PASSWORD),
+          passwordHash: await hasher.hash(seedPassword()),
           firstName: item.firstName,
           lastName: item.lastName,
         },
@@ -631,7 +646,7 @@ try {
     await seedFlights(startDay, endDay);
   }
   if (withUsers) {
-    console.log(`Users: admin@lifex.test / viewer@lifex.test  (password: ${SEED_PASSWORD})`);
+    console.log(`Users: ${ADMIN_EMAIL} (ADMIN) / ${VIEWER_EMAIL} (ADMIN_VIEWER)`);
   }
 } finally {
   await prisma.$disconnect();
