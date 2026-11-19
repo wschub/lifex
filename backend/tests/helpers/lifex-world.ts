@@ -152,11 +152,13 @@ export async function createWorld(options: WorldOptions = {}) {
       numAvailableSeats?: number;
       occupancyRate?: number;
       basePriceDefault?: number;
+      /** Ruta del vuelo; por defecto la del mundo (MDE → BOG, nacional). */
+      routeId?: number;
     } = {},
   ) => {
     const flight = await prisma.scheduledFlight.create({
       data: {
-        flightRouteId: route.id,
+        flightRouteId: overrides.routeId ?? route.id,
         aircraftId: aircraft.id,
         departureDate: departure,
         arrivalDate: new Date(departure.getTime() + 3_600_000),
@@ -195,6 +197,31 @@ export async function createWorld(options: WorldOptions = {}) {
     await prisma.flightSeat.createMany({ data: seats });
     return flight;
   };
+  let routeCounter = 0;
+  /** Ruta nueva entre dos aeropuertos nuevos (códigos IATA propios). */
+  const createRoute = async (routeType: "DOMESTIC" | "INTERNATIONAL") => {
+    routeCounter += 1;
+    const letters = (n: number) =>
+      String.fromCharCode(65 + (n % 26)) + String.fromCharCode(65 + Math.floor(n / 26) + 10);
+    const makeAirport = async (suffix: string, n: number) => {
+      const city = await prisma.city.create({
+        data: {
+          countryId: country.id,
+          name: `Ciudad ${suffix}${n}`,
+          nameEs: `Ciudad ${suffix}${n}`,
+        },
+      });
+      return prisma.airport.create({
+        data: { cityId: city.id, iataCode: `Z${letters(n)}`.slice(0, 3) },
+      });
+    };
+    const from = await makeAirport("O", routeCounter * 2);
+    const to = await makeAirport("D", routeCounter * 2 + 1);
+    return prisma.flightRoute.create({
+      data: { routeType, fromAirportId: from.id, destinationAirportId: to.id },
+    });
+  };
+
   // 90 días adelante a las 10:00 de Colombia: fuera de la ventana de ofertas (8-30 días) y de las
   // últimas 72 h, así el precio dinámico de las pruebas no depende de la fecha real de hoy.
   const today = new Date();
@@ -325,6 +352,7 @@ export async function createWorld(options: WorldOptions = {}) {
     staff,
     port,
     createFlight,
+    createRoute,
     seatId,
     startBooking,
     hold,

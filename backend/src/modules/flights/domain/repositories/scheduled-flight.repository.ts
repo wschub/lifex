@@ -16,6 +16,8 @@ export interface ScheduledFlightRepository {
   /** Vuelos ACTIVE, DELAYED o SOLD_OUT de la ruta y el día, ordenados por salida. */
   search(query: FlightSearchQuery): Promise<FlightListing[]>;
   findListing(id: string): Promise<FlightListing | null>;
+  /** Vuelos ACTIVE que salen entre `from` y `to` (ambos incluidos): candidatos a oferta. */
+  findOfferCandidates(from: Date, to: Date): Promise<FlightListing[]>;
   findById(id: string): Promise<ScheduledFlight | null>;
   /**
    * Cambia el estado y escribe el evento FlightStatusChanged en la misma transacción.

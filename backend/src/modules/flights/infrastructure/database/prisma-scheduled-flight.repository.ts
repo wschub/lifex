@@ -64,6 +64,15 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
     return this.withAvailability(rows);
   }
 
+  async findOfferCandidates(from: Date, to: Date): Promise<FlightListing[]> {
+    const rows = await this.prisma.scheduledFlight.findMany({
+      where: { status: "ACTIVE", departureDate: { gte: from, lte: to } },
+      include: LISTING_INCLUDE,
+      orderBy: { departureDate: "asc" },
+    });
+    return this.withAvailability(rows);
+  }
+
   async findListing(id: string): Promise<FlightListing | null> {
     const row = await this.prisma.scheduledFlight.findUnique({
       where: { id },

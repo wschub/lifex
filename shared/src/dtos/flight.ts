@@ -44,6 +44,13 @@ export const flightSearchQuerySchema = z.object({
 export type FlightSearchQuery = z.infer<typeof flightSearchQuerySchema>;
 
 export const flightSearchResponseSchema = z.object({ flights: z.array(publicFlightSchema) });
+/** `GET /flights/offers`: hasta 5 nacionales y 5 internacionales, sin rutas repetidas, ya con descuento. */
+export const offerFlightSchema = publicFlightSchema.extend({
+  offer: z.object({ discountPercentage: z.number() }),
+});
+export type OfferFlight = z.infer<typeof offerFlightSchema>;
+export const offersResponseSchema = z.object({ offers: z.array(offerFlightSchema) });
+
 export const flightDetailResponseSchema = z.object({ flight: publicFlightSchema });
 
 /** `PATCH /flights/:id/status` (permiso `flights:manage`). Los administradores no pueden fijar SOLD_OUT: lo decide el sistema. */

@@ -17,6 +17,7 @@ import {
   luggageTypesResponseSchema,
   publicConfigSchema,
   meResponseSchema,
+  offersResponseSchema,
   orderTicketsSchema,
   paymentAcceptedSchema,
   problemSchema,
@@ -44,6 +45,17 @@ describe("contratos de shared/ contra la API real", () => {
   });
   afterAll(async () => {
     await world?.stop();
+  });
+
+  it("ofertas de la portada", async () => {
+    const route = await world.createRoute("DOMESTIC");
+    const departure = new Date(world.clock.now().getTime() + 12 * 86_400_000);
+    const flight = await world.createFlight(departure, "ACTIVE", { routeId: route.id });
+
+    const res = await request(world.app).get("/flights/offers");
+    const parsed = offersResponseSchema.parse(res.body);
+
+    expect(parsed.offers.map((offer) => offer.id)).toContain(flight.id);
   });
 
   it("catálogo, búsqueda y detalle de vuelos", async () => {

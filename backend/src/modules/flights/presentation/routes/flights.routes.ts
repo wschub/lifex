@@ -15,6 +15,8 @@ export function createFlightsRouter(deps: FlightsRouterDeps): Router {
   const controller = createFlightsController(deps);
 
   router.get("/flights", controller.search);
+  // `/flights/offers` va antes de `/flights/:id`, que lo trataría como un id.
+  router.get("/flights/offers", controller.offers);
   router.get("/flights/:id", controller.detail);
   router.patch(
     "/flights/:id/status",

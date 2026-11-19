@@ -72,6 +72,7 @@ import { createDashboardRouter } from "./modules/dashboard/presentation/routes/d
 import { FLIGHTS_PERMISSIONS } from "./modules/flights/application/permissions.ts";
 import { ChangeFlightStatus } from "./modules/flights/application/use-cases/change-flight-status.use-case.ts";
 import { GetFlight } from "./modules/flights/application/use-cases/get-flight.use-case.ts";
+import { ListOfferFlights } from "./modules/flights/application/use-cases/list-offer-flights.use-case.ts";
 import { SearchFlights } from "./modules/flights/application/use-cases/search-flights.use-case.ts";
 import { PrismaScheduledFlightRepository } from "./modules/flights/infrastructure/database/prisma-scheduled-flight.repository.ts";
 import { createFlightsRouter } from "./modules/flights/presentation/routes/flights.routes.ts";
@@ -121,6 +122,8 @@ export interface CompositionOverrides {
   notifier?: NotificationPort;
   /** Reloj inyectable para las pruebas de expiración. */
   now?: () => Date;
+  /** Aleatoriedad inyectable (0 ≤ n < 1) para elegir las ofertas en las pruebas. */
+  random?: () => number;
 }
 
 export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
@@ -292,6 +295,12 @@ export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
     authorize,
     searchFlights: new SearchFlights({ flights, pricing, now: clock }),
     getFlight: new GetFlight({ flights, pricing, now: clock }),
+    listOfferFlights: new ListOfferFlights({
+      flights,
+      pricing,
+      now: clock,
+      ...(overrides.random ? { random: overrides.random } : {}),
+    }),
     changeFlightStatus: new ChangeFlightStatus({ flights }),
   });
   const seatsRouter = createSeatsRouter({
