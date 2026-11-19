@@ -100,11 +100,11 @@ export async function createWorld(options: WorldOptions = {}) {
   });
   const [medellin, bogota] = await Promise.all(
     [
-      ["Medellín", "/img/destinations/medellin.jpg"],
+      ["Medellín", "medellin.jpg"],
       ["Bogotá", null],
-    ].map(([name, imageUrl]) =>
+    ].map(([name, imageName]) =>
       prisma.city.create({
-        data: { countryId: country.id, name: name!, nameEs: name!, imageUrl },
+        data: { countryId: country.id, name: name!, nameEs: name!, imageName },
       }),
     ),
   );

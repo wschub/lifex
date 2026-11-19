@@ -88,7 +88,7 @@ export interface AirportInfo {
   iataCode: string;
   city: string;
   cityEs: string;
-  cityImageUrl: string | null;
+  cityImageName: string | null;
   country: string;
   countryEs: string;
 }

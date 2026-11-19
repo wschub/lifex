@@ -20,7 +20,7 @@ export interface City extends LocalizedName {
   id: number;
   countryIsoCode: string;
   /** Ruta relativa a la foto de la ciudad, si existe. */
-  imageUrl: string | null;
+  imageName: string | null;
   airports: Airport[];
 }
 

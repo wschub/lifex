@@ -21,7 +21,7 @@ interface CitySeed {
   nameEs: string;
   iata: string;
   /** Foto de la ciudad (ruta relativa que resuelve el frontend). */
-  imageUrl?: string;
+  imageName?: string;
 }
 interface CountrySeed {
   iso: string;
@@ -42,14 +42,14 @@ const COLOMBIA: CountrySeed = {
       name: "Medellín",
       nameEs: "Medellín",
       iata: "MDE",
-      imageUrl: "/img/destinations/medellin.jpg",
+      imageName: "medellin.jpg",
     },
-    { name: "Bogotá", nameEs: "Bogotá", iata: "BOG", imageUrl: "/img/destinations/bogota.jpg" },
+    { name: "Bogotá", nameEs: "Bogotá", iata: "BOG", imageName: "bogota.jpg" },
     {
       name: "Cartagena",
       nameEs: "Cartagena",
       iata: "CTG",
-      imageUrl: "/img/destinations/cartagena.jpg",
+      imageName: "cartagena.jpg",
     },
     { name: "Santa Marta", nameEs: "Santa Marta", iata: "SMR" },
     { name: "Barranquilla", nameEs: "Barranquilla", iata: "BAQ" },
@@ -57,7 +57,7 @@ const COLOMBIA: CountrySeed = {
       name: "San Andrés",
       nameEs: "San Andrés",
       iata: "ADZ",
-      imageUrl: "/img/destinations/sanandres.jpg",
+      imageName: "sanandres.jpg",
     },
     { name: "Cali", nameEs: "Cali", iata: "CLO" },
     { name: "Bucaramanga", nameEs: "Bucaramanga", iata: "BGA" },
@@ -74,7 +74,7 @@ const INTERNATIONAL: CountrySeed[] = [
     flightMinutes: 270,
     cities: [
       { name: "Washington D.C.", nameEs: "Washington D.C.", iata: "IAD" },
-      { name: "Miami", nameEs: "Miami", iata: "MIA", imageUrl: "/img/destinations/miami.jpg" },
+      { name: "Miami", nameEs: "Miami", iata: "MIA", imageName: "miami.jpg" },
     ],
   },
   {
@@ -90,7 +90,7 @@ const INTERNATIONAL: CountrySeed[] = [
     nameEs: "Reino Unido",
     flightMinutes: 600,
     cities: [
-      { name: "London", nameEs: "Londres", iata: "LHR", imageUrl: "/img/destinations/london.jpg" },
+      { name: "London", nameEs: "Londres", iata: "LHR", imageName: "london.jpg" },
       { name: "Manchester", nameEs: "Mánchester", iata: "MAN" },
     ],
   },
@@ -100,7 +100,7 @@ const INTERNATIONAL: CountrySeed[] = [
     nameEs: "España",
     flightMinutes: 570,
     cities: [
-      { name: "Madrid", nameEs: "Madrid", iata: "MAD", imageUrl: "/img/destinations/madrid.jpg" },
+      { name: "Madrid", nameEs: "Madrid", iata: "MAD", imageName: "madrid.jpg" },
       { name: "Barcelona", nameEs: "Barcelona", iata: "BCN" },
     ],
   },
@@ -271,12 +271,12 @@ async function seedCatalog(): Promise<void> {
     for (const city of country.cities) {
       const cityRow = await prisma.city.upsert({
         where: { countryId_name: { countryId: row.id, name: city.name } },
-        update: { nameEs: city.nameEs, imageUrl: city.imageUrl ?? null },
+        update: { nameEs: city.nameEs, imageName: city.imageName ?? null },
         create: {
           countryId: row.id,
           name: city.name,
           nameEs: city.nameEs,
-          imageUrl: city.imageUrl ?? null,
+          imageName: city.imageName ?? null,
         },
       });
       await prisma.airport.upsert({

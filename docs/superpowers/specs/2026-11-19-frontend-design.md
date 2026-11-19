@@ -114,7 +114,7 @@ eventos para detectar huecos. Los eventos actualizan la caché con `queryClient.
 
 ## 7. Cambios necesarios en el backend y `shared/`
 
-1. **Imagen por ciudad:** columna `cities.imageUrl` (texto, nulo) con migración; `Country/City` del catálogo y el DTO
+1. **Imagen por ciudad:** columna `cities.imageName` (texto, nulo) con migración; `Country/City` del catálogo y el DTO
    de `shared/` la incluyen; el seed la llena para las ciudades que tienen foto en el prototipo (Bogotá, Medellín,
    Cartagena, San Andrés, Miami, Madrid, Londres). Guarda una ruta relativa (`/img/destinations/bogota.jpg`) que el
    frontend resuelve contra su propio origen; las imágenes van en `frontend/public/img/destinations/`. Sin imagen,
@@ -134,7 +134,7 @@ eventos para detectar huecos. Los eventos actualizan la caché con `queryClient.
 - Frontend: Vitest + Testing Library para formato de dinero y fechas, i18n, estado del asistente, reductor de
   eventos WS y guard del admin.
 - Contratos: todo lo que se recibe de la API se valida con los esquemas de `shared/`.
-- Backend: pruebas del campo `imageUrl` y de `LOGO_URL` en las plantillas; `npm run verify` debe seguir en verde.
+- Backend: pruebas del campo `imageName` y de `LOGO_URL` en las plantillas; `npm run verify` debe seguir en verde.
 - Verificación visual: abrir la web portada junto al prototipo y comparar pantalla por pantalla.
 
 ## 8.1 Pendientes urgentes (se resuelven al terminar la v1 del frontend)

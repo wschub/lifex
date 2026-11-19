@@ -5,7 +5,7 @@ export const airportInfoSchema = z.object({
   iataCode: z.string().length(3),
   city: z.string(),
   cityEs: z.string(),
-  cityImageUrl: z.string().nullable(),
+  cityImageName: z.string().nullable(),
   country: z.string(),
   countryEs: z.string(),
 });

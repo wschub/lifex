@@ -15,7 +15,7 @@ export const citySchema = z.object({
   nameEs: z.string(),
   countryIsoCode: z.string().length(2),
   /** Ruta relativa (ej. `/img/destinations/medellin.jpg`); el frontend la resuelve contra su origen. */
-  imageUrl: z.string().nullable(),
+  imageName: z.string().nullable(),
   airports: z.array(z.object({ id: z.number().int(), iataCode: z.string().length(3) })),
 });
 export type City = z.infer<typeof citySchema>;

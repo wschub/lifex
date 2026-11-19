@@ -79,16 +79,16 @@ describe("contratos de shared/ contra la API real", () => {
     const byName = new Map(
       citiesResponseSchema.parse(cities.body).cities.map((city) => [city.name, city]),
     );
-    expect(byName.get("Medellín")?.imageUrl).toBe("/img/destinations/medellin.jpg");
-    expect(byName.get("Bogotá")?.imageUrl).toBeNull();
+    expect(byName.get("Medellín")?.imageName).toBe("medellin.jpg");
+    expect(byName.get("Bogotá")?.imageName).toBeNull();
 
     const search = await request(world.app).get(
       `/flights?from=MDE&to=BOG&date=${world.flightDate}`,
     );
     const flights = flightSearchResponseSchema.parse(search.body).flights;
     expect(flights.length).toBeGreaterThan(0);
-    expect(flights[0]?.from.cityImageUrl).toBe("/img/destinations/medellin.jpg");
-    expect(flights[0]?.to.cityImageUrl).toBeNull();
+    expect(flights[0]?.from.cityImageName).toBe("medellin.jpg");
+    expect(flights[0]?.to.cityImageName).toBeNull();
   });
 
   it("GET /config expone la tasa, los impuestos y los límites públicos", async () => {

@@ -30,7 +30,7 @@ export class PrismaCatalogRepository implements CatalogRepository {
       name: row.name,
       nameEs: row.nameEs,
       countryIsoCode: row.country.isoCode,
-      imageUrl: row.imageUrl,
+      imageName: row.imageName,
       airports: row.airports.map((airport) => ({ id: airport.id, iataCode: airport.iataCode })),
     }));
   }

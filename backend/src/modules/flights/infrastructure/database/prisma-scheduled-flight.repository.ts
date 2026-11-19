@@ -35,7 +35,7 @@ function toAirportInfo(airport: AirportRow): AirportInfo {
     iataCode: airport.iataCode,
     city: airport.city.name,
     cityEs: airport.city.nameEs,
-    cityImageUrl: airport.city.imageUrl,
+    cityImageName: airport.city.imageName,
     country: airport.city.country.name,
     countryEs: airport.city.country.nameEs,
   };

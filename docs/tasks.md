@@ -121,9 +121,9 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [ ] **Cookie de refresh en Railway:** con `COOKIE_SAME_SITE=strict` solo funciona si el frontend y la API
       comparten sitio. Si van en dominios distintos hay que usar `COOKIE_SAME_SITE=none` (con cookie `Secure`, que exige HTTPS)
       y **crear la variable en Railway al desplegar** (acordarse de crearla en el servicio de la API).
-- [ ] **Imágenes de ciudades:** guardarlas en `frontend/public` y guardar en la BD solo el nombre del archivo
-      (hoy `cities.imageUrl` guarda la ruta `/img/destinations/x.jpg`).
-- [ ] **Convertir las imágenes a WebP** (recordárselo al usuario antes del despliegue).
+- [x] **Imágenes de ciudades:** viven en `frontend/public/img/destinations/` y la BD guarda solo el nombre del
+      archivo (`cities.imageName`, ej. `medellin.jpg`); el frontend arma la ruta `/img/destinations/<nombre>`.
+- [ ] **Convertir las imágenes a WebP** (recordárselo al usuario antes del despliegue). Al convertir, cambiar la extensión en `cities.imageName`.
 - [ ] **Web pública:** usar `priceEconomyUsd` / `priceBusinessUsd` / `offer` de `GET /flights` y mostrar las
       ofertas de la portada con `GET /flights/offers` (reemplaza los precios estimados actuales).
 - [ ] **Alineación de tarifas** (Light / Classic / Flex y Business) con el precio dinámico, al terminar la v1

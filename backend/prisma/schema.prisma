@@ -148,7 +148,7 @@ model City {
   name      String
   nameEs    String
   /// Ruta relativa a la foto de la ciudad; el frontend la resuelve contra su propio origen.
-  imageUrl  String?
+  imageName  String?
 
   airports Airport[]
 
