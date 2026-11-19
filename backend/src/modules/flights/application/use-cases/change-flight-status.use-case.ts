@@ -13,11 +13,17 @@ export class ChangeFlightStatus {
   async execute(
     flightId: string,
     status: FlightStatus,
-  ): Promise<{ id: string; status: FlightStatus; previous: FlightStatus }> {
+  ): Promise<{
+    id: string;
+    status: FlightStatus;
+    previous: FlightStatus;
+    /** Reservas confirmadas a las que se les encoló el aviso (0 si el vuelo no tiene compras). */
+    notifiedOrders: number;
+  }> {
     const flight = await this.flights.findById(flightId);
     if (!flight) throw new AppError("not_found", { code: "FLIGHT_NOT_FOUND" });
     flight.assertCanChangeStatusTo(status);
-    const { previous } = await this.flights.updateStatus(flightId, status);
-    return { id: flightId, status, previous };
+    const { previous, notifiedOrders } = await this.flights.updateStatus(flightId, status);
+    return { id: flightId, status, previous, notifiedOrders };
   }
 }

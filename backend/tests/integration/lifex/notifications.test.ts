@@ -124,6 +124,38 @@ describe("correos al cliente (Postgres real)", () => {
     expect(world.notifier.disruptions).toHaveLength(0);
   });
 
+  it("4.6 cada cambio de estado avisa: retrasado y luego cancelado envía dos correos, y la respuesta dice a cuántas reservas", async () => {
+    const flight = await world.createFlight(new Date("2026-12-09T15:00:00Z"));
+    const order = await confirmedOrder(flight.id, "secuencia@example.com", ["02C", "02D"]);
+    await confirmedOrder(flight.id, "secuencia-2@example.com", ["03C"]);
+    world.notifier.disruptions.length = 0;
+
+    const delayed = await patchStatus(flight.id, "DELAYED");
+    await world.drainOutbox(2);
+    const afterDelay = world.notifier.disruptions.length;
+    const cancelled = await patchStatus(flight.id, "CANCELLED");
+    await world.drainOutbox(2);
+
+    expect(delayed.body.flight).toMatchObject({ status: "DELAYED", notifiedOrders: 2 });
+    expect(cancelled.body.flight).toMatchObject({
+      status: "CANCELLED",
+      previous: "DELAYED",
+      notifiedOrders: 2,
+    });
+    expect(afterDelay).toBe(2);
+    const mine = world.notifier.disruptions.filter(
+      (item) => item.confirmation.orderId === order.id,
+    );
+    expect(mine.map((item) => item.disruption)).toEqual(["DELAYED", "CANCELLED"]);
+    expect(world.notifier.disruptions).toHaveLength(4);
+  });
+
+  it("un vuelo sin reservas pagadas responde notifiedOrders 0 (no hay a quién avisar)", async () => {
+    const flight = await world.createFlight(new Date("2026-12-10T15:00:00Z"));
+    const res = await patchStatus(flight.id, "CANCELLED");
+    expect(res.body.flight.notifiedOrders).toBe(0);
+  });
+
   it("4.7 si el correo falla, el cambio de estado se mantiene y el aviso se reintenta sin duplicar", async () => {
     const flight = await world.createFlight(new Date("2026-12-08T15:00:00Z"));
     await confirmedOrder(flight.id, "reintento@example.com", ["02D"]);

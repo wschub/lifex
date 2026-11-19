@@ -26,7 +26,10 @@ export interface ScheduledFlightRepository {
   findById(id: string): Promise<ScheduledFlight | null>;
   /**
    * Cambia el estado y escribe el evento FlightStatusChanged en la misma transacción.
-   * Devuelve el estado anterior.
+   * Devuelve el estado anterior y a cuántas reservas confirmadas se les encoló un aviso (cancelación o retraso).
    */
-  updateStatus(id: string, status: FlightStatus): Promise<{ previous: FlightStatus }>;
+  updateStatus(
+    id: string,
+    status: FlightStatus,
+  ): Promise<{ previous: FlightStatus; notifiedOrders: number }>;
 }

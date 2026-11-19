@@ -35,4 +35,6 @@ export interface DashboardFlightRow {
   numMaxSeats: number;
   numAvailableSeats: number;
   occupancyRate: number;
+  /** Reservas confirmadas (pagadas) del vuelo: a ellas llegan los avisos de cancelación o retraso. */
+  reservations: number;
 }

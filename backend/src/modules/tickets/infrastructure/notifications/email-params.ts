@@ -99,14 +99,14 @@ export function ticketConfirmationParams(
 
 const DISRUPTION = {
   CANCELLED: {
-    subject: "Cancelación",
+    subject: "CANCELADO",
     title: "Cancelación de tu vuelo",
     color: "#c53030",
     message:
       "Lamentamos informarte que tu vuelo fue cancelado y sentimos mucho los inconvenientes. Te pedimos estar pendiente de tu correo: por ese medio te informaremos las novedades sobre tu reserva.",
   },
   DELAYED: {
-    subject: "Retraso",
+    subject: "RETRASADO",
     title: "Retraso de tu vuelo",
     color: "#b7791f",
     message:
@@ -118,8 +118,7 @@ export function disruptionSubject(
   confirmation: BookingConfirmation,
   disruption: FlightDisruption,
 ): string {
-  const { fromIata, toIata } = confirmation.flight;
-  return `${DISRUPTION[disruption].subject} de tu vuelo ${fromIata} → ${toIata} — ${confirmation.reservationNumber}`;
+  return `Tu boleto Lifex — ${confirmation.reservationNumber} fue ${DISRUPTION[disruption].subject}`;
 }
 
 export function flightDisruptionParams(

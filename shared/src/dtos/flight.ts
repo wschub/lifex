@@ -58,5 +58,11 @@ export const changeFlightStatusRequestSchema = z.object({ status: flightStatusSc
 export type ChangeFlightStatusRequest = z.infer<typeof changeFlightStatusRequestSchema>;
 
 export const changeFlightStatusResponseSchema = z.object({
-  flight: z.object({ id: uuid, status: flightStatusSchema, previous: flightStatusSchema }),
+  flight: z.object({
+    id: uuid,
+    status: flightStatusSchema,
+    previous: flightStatusSchema,
+    /** Reservas confirmadas a las que se les encoló el aviso por correo (solo al cancelar o retrasar). */
+    notifiedOrders: z.number().int(),
+  }),
 });

@@ -183,7 +183,11 @@ describe("búsqueda de vuelos y dashboard (Postgres real)", () => {
       expect(types).toContain("INTERNATIONAL");
       expect(res.body).toMatchObject({ page: 1, pageSize: 20 });
       expect(res.body.total).toBe(res.body.flights.length);
-      expect(res.body.flights[0]).toMatchObject({ from: "MDE", fromCity: expect.any(String) });
+      expect(res.body.flights[0]).toMatchObject({
+        from: "MDE",
+        fromCity: expect.any(String),
+        reservations: expect.any(Number),
+      });
     });
 
     it("pagina: el total es el de todas las páginas y las páginas no se repiten ni se saltan filas", async () => {

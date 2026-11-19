@@ -195,15 +195,15 @@ describe("BrevoNotificationAdapter", () => {
     expect(body.textContent).toContain("LXABCDEFGH23");
   });
 
-  it("el asunto del aviso dice si fue Cancelación o Retraso", async () => {
+  it("el asunto del aviso dice si el boleto fue CANCELADO o RETRASADO", async () => {
     await adapter.sendFlightDisruption(confirmation, "CANCELLED");
     const cancelled = JSON.parse(String(calls.at(-1)!.init.body));
     await adapter.sendFlightDisruption(confirmation, "DELAYED");
     const delayed = JSON.parse(String(calls.at(-1)!.init.body));
 
-    expect(cancelled.subject).toBe("Cancelación de tu vuelo MDE → BOG — K7M2QX");
+    expect(cancelled.subject).toBe("Tu boleto Lifex — K7M2QX fue CANCELADO");
     expect(cancelled.htmlContent).toContain("Cancelación de tu vuelo");
-    expect(delayed.subject).toBe("Retraso de tu vuelo MDE → BOG — K7M2QX");
+    expect(delayed.subject).toBe("Tu boleto Lifex — K7M2QX fue RETRASADO");
     expect(delayed.htmlContent).toContain("Retraso de tu vuelo");
   });
 

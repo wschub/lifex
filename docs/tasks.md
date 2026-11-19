@@ -172,7 +172,7 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       fecha y paginación; la ven `ADMIN` y `ADMIN_VIEWER`. (La lista anterior se cortaba en los primeros 100 vuelos y por eso
       no aparecían los internacionales; ahora `GET /dashboard/flights` pagina y filtra en el servidor.)
 - [x] **Avisos de cancelación o retraso:** a cada reserva confirmada del vuelo se le envía un correo cuyo asunto dice
-      «Cancelación…» o «Retraso…», con un texto corto y diplomático que pide estar pendiente del correo (HU4.6).
+      «Tu boleto Lifex — CÓDIGO fue CANCELADO/RETRASADO», con un texto corto y diplomático que pide estar pendiente del correo (HU4.6); cada cambio de estado envía su aviso y el panel muestra cuántas reservas pagadas tiene cada vuelo y a cuántas se avisó.
 
 ## 12.2 Despliegue y operación (Railway)
 - [ ] **Subir los commits pendientes** (`git push`) y comprobar la primera ejecución de los workflows en la pestaña Actions

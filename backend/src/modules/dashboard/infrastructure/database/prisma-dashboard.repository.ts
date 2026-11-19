@@ -142,6 +142,7 @@ export class PrismaDashboardRepository implements DashboardRepository {
               destinationAirport: { include: { city: true } },
             },
           },
+          _count: { select: { orders: { where: { status: "CONFIRMED" } } } },
         },
         // El id desempata las salidas a la misma hora: la paginación no repite ni salta filas.
         orderBy: [{ departureDate: "asc" }, { id: "asc" }],
@@ -163,6 +164,7 @@ export class PrismaDashboardRepository implements DashboardRepository {
         numMaxSeats: row.numMaxSeats,
         numAvailableSeats: row.numAvailableSeats,
         occupancyRate: Number(row.occupancyRate),
+        reservations: row._count.orders,
       })),
     };
   }

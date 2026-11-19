@@ -59,6 +59,7 @@ export const flightRow = (id: string, over: Record<string, unknown> = {}) => ({
   numMaxSeats: 180,
   numAvailableSeats: 150,
   occupancyRate: 16.7,
+  reservations: 3,
   ...over,
 });
 

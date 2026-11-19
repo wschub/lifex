@@ -127,7 +127,10 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
     });
   }
 
-  async updateStatus(id: string, status: FlightStatus): Promise<{ previous: FlightStatus }> {
+  async updateStatus(
+    id: string,
+    status: FlightStatus,
+  ): Promise<{ previous: FlightStatus; notifiedOrders: number }> {
     return this.prisma.$transaction(async (tx) => {
       const current = await tx.scheduledFlight.findUniqueOrThrow({
         where: { id },
@@ -141,11 +144,13 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
       });
       // Cancelado o retrasado por el admin: se avisa por correo a cada orden ya pagada de este vuelo.
       // Los eventos se escriben en la misma transacción que el cambio de estado.
+      let notifiedOrders = 0;
       if (status === "CANCELLED" || status === "DELAYED") {
         const orders = await tx.order.findMany({
           where: { scheduledFlightId: id, status: "CONFIRMED" },
           select: { id: true },
         });
+        notifiedOrders = orders.length;
         for (const order of orders) {
           await enqueueInternalEvent(tx, {
             aggregateType: "order",
@@ -155,7 +160,7 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
           });
         }
       }
-      return { previous: current.status };
+      return { previous: current.status, notifiedOrders };
     });
   }
 

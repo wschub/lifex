@@ -43,6 +43,8 @@ export const dashboardFlightRowSchema = z.object({
   numMaxSeats: z.number().int(),
   numAvailableSeats: z.number().int(),
   occupancyRate: z.number(),
+  /** Reservas confirmadas (pagadas) del vuelo. */
+  reservations: z.number().int(),
 });
 export type DashboardFlightRow = z.infer<typeof dashboardFlightRowSchema>;
 /**

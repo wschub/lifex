@@ -29,17 +29,41 @@ describe("FlightStatusDialog", () => {
   it("warns that passengers will be emailed before cancelling", async () => {
     renderDialog();
     await userEvent.click(screen.getByRole("radio", { name: "Cancelado" }));
-    expect(screen.getByText(/se enviará un correo a los pasajeros/i)).toBeInTheDocument();
+    expect(screen.getByText(/se enviará un correo a las 3 reservas pagadas/i)).toBeInTheDocument();
   });
 
-  it("sends the new status and closes on success", async () => {
+  it("avisa cuando el vuelo no tiene reservas pagadas (no hay a quién escribir)", async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <FlightStatusDialog
+          flight={flightRow(FLIGHT_A, { reservations: 0 }) as never}
+          token="jwt"
+          onClose={vi.fn()}
+          onChanged={vi.fn()}
+        />
+      </QueryClientProvider>,
+    );
+    await userEvent.click(screen.getByRole("radio", { name: "Cancelado" }));
+    expect(
+      screen.getByText(/no tiene reservas pagadas: no se enviará ningún correo/i),
+    ).toBeInTheDocument();
+  });
+
+  it("sends the new status and shows how many reservations were notified", async () => {
     fetchMock.mockResolvedValueOnce(
-      jsonResponse({ flight: { id: FLIGHT_A, status: "DELAYED", previous: "ACTIVE" } }),
+      jsonResponse({
+        flight: { id: FLIGHT_A, status: "DELAYED", previous: "ACTIVE", notifiedOrders: 3 },
+      }),
     );
     const { onChanged, onClose } = renderDialog();
     await userEvent.click(screen.getByRole("radio", { name: "Retrasado" }));
     await userEvent.click(screen.getByRole("button", { name: "Confirmar cambio" }));
     await waitFor(() => expect(onChanged).toHaveBeenCalled());
+    expect(
+      await screen.findByText(/se envió el aviso por correo a 3 reservas pagadas/i),
+    ).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Cerrar" }));
     expect(onClose).toHaveBeenCalled();
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(String(url)).toMatch(new RegExp(`/flights/${FLIGHT_A}/status$`));

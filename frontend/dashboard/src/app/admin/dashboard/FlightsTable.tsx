@@ -41,6 +41,10 @@ const columns = helper.columns([
     header: "Ocupación",
     cell: (info) => formatPercent(info.getValue()),
   }),
+  helper.accessor("reservations", {
+    header: "Reservas",
+    cell: (info) => <span className="tabular-nums">{info.getValue()}</span>,
+  }),
 ]);
 
 const NO_ROWS: DashboardFlightRow[] = [];
@@ -79,7 +83,7 @@ export function FlightsTable({
         {rows.length === 0 ? (
           <TableRow>
             <TableCell
-              colSpan={canManage ? 5 : 4}
+              colSpan={canManage ? 6 : 5}
               className="text-muted-foreground h-20 text-center"
             >
               No hay vuelos con estos filtros.
