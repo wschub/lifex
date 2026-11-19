@@ -61,6 +61,49 @@ este documento.
 Cada ciudad lleva su aeropuerto principal con código IATA real (ej. Madrid → MAD, Londres → LHR, Miami →
 MIA). Los países sin "ciudad secundaria" en la nota original del cliente se seedean con una sola ciudad.
 
+### Imágenes de ciudades (ciudad → nombre de archivo)
+
+La base de datos guarda solo el **nombre del archivo** (`cities.imageName`); las fotos viven en
+`frontend/public/img/destinations/` y la web arma la ruta `/img/destinations/<nombre>`. Si el archivo no existe,
+la web muestra la imagen genérica del cielo. El seed asigna el nombre a **todas** las ciudades (con `upsert`,
+así que `db:migrate` + `db:seed` sin `--reset` también lo dejan puesto en bases ya existentes). Regla del nombre:
+nombre en inglés, minúsculas, sin tildes, sin puntos y con guiones (`Panama City` → `panama-city.jpg`); la única
+excepción es `sanandres.jpg`. Al pasar las fotos a WebP hay que cambiar la extensión (`.jpg` → `.webp`) en el seed.
+
+| Ciudad (inglés) | Ciudad (español) | País | Archivo | ¿Foto ya en el repo? |
+|---|---|---|---|---|
+| Medellín | Medellín | CO | `medellin.jpg` | sí |
+| Bogotá | Bogotá | CO | `bogota.jpg` | sí |
+| Cartagena | Cartagena | CO | `cartagena.jpg` | sí |
+| Santa Marta | Santa Marta | CO | `santa-marta.jpg` | falta |
+| Barranquilla | Barranquilla | CO | `barranquilla.jpg` | falta |
+| San Andrés | San Andrés | CO | `sanandres.jpg` | sí |
+| Cali | Cali | CO | `cali.jpg` | falta |
+| Bucaramanga | Bucaramanga | CO | `bucaramanga.jpg` | falta |
+| Pereira | Pereira | CO | `pereira.jpg` | falta |
+| Armenia | Armenia | CO | `armenia.jpg` | falta |
+| Washington D.C. | Washington D.C. | US | `washington-dc.jpg` | falta |
+| Miami | Miami | US | `miami.jpg` | sí |
+| Panama City | Ciudad de Panamá | PA | `panama-city.jpg` | falta |
+| London | Londres | GB | `london.jpg` | sí |
+| Manchester | Mánchester | GB | `manchester.jpg` | falta |
+| Madrid | Madrid | ES | `madrid.jpg` | sí |
+| Barcelona | Barcelona | ES | `barcelona.jpg` | falta |
+| Paris | París | FR | `paris.jpg` | falta |
+| Nice | Niza | FR | `nice.jpg` | falta |
+| Berlin | Berlín | DE | `berlin.jpg` | falta |
+| Munich | Múnich | DE | `munich.jpg` | falta |
+| Lisbon | Lisboa | PT | `lisbon.jpg` | falta |
+| Porto | Oporto | PT | `porto.jpg` | falta |
+| Brussels | Bruselas | BE | `brussels.jpg` | falta |
+| Rome | Roma | IT | `rome.jpg` | falta |
+| Milan | Milán | IT | `milan.jpg` | falta |
+| Zurich | Zúrich | CH | `zurich.jpg` | falta |
+| Geneva | Ginebra | CH | `geneva.jpg` | falta |
+| Amsterdam | Ámsterdam | NL | `amsterdam.jpg` | falta |
+
+Faltan **22** fotos (las 7 existentes: Bogotá, Cartagena, Londres, Madrid, Medellín, Miami y San Andrés).
+
 ## 3. Equipaje (catálogo único, sin cruzar con `flight_class`)
 
 | luggage_type | rank | fee_percentage |

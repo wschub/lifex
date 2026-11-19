@@ -20,7 +20,10 @@ interface CitySeed {
   name: string;
   nameEs: string;
   iata: string;
-  /** Foto de la ciudad (ruta relativa que resuelve el frontend). */
+  /**
+   * Nombre del archivo de la foto en `frontend/public/img/destinations/`. Si se omite, se usa
+   * `<nombre en inglés en minúsculas, sin tildes y con guiones>.jpg` (ver `imageNameFor`).
+   */
   imageName?: string;
 }
 interface CountrySeed {
@@ -261,6 +264,19 @@ const aircraftData = (aircraft: (typeof AIRCRAFT)[number]) => ({
   seatColumns: aircraft.columns,
 });
 
+/** `Panama City` → `panama-city.jpg`, `Washington D.C.` → `washington-dc.jpg`. */
+function imageNameFor(city: CitySeed): string {
+  if (city.imageName) return city.imageName;
+  const slug = city.name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\./g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `${slug}.jpg`;
+}
+
 async function seedCatalog(): Promise<void> {
   for (const country of [COLOMBIA, ...INTERNATIONAL]) {
     const row = await prisma.country.upsert({
@@ -271,12 +287,13 @@ async function seedCatalog(): Promise<void> {
     for (const city of country.cities) {
       const cityRow = await prisma.city.upsert({
         where: { countryId_name: { countryId: row.id, name: city.name } },
-        update: { nameEs: city.nameEs, imageName: city.imageName ?? null },
+        // El upsert deja el nombre de imagen también en bases ya existentes (sin --reset).
+        update: { nameEs: city.nameEs, imageName: imageNameFor(city) },
         create: {
           countryId: row.id,
           name: city.name,
           nameEs: city.nameEs,
-          imageName: city.imageName ?? null,
+          imageName: imageNameFor(city),
         },
       });
       await prisma.airport.upsert({
