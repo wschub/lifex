@@ -2,6 +2,7 @@ import { PERMISSION, type DashboardFlightRow } from "@lifex/shared";
 import { useState } from "react";
 import { useStaffSession, usePermission } from "@/stores/staff-session.ts";
 import { FlightStatusDialog } from "../dashboard/FlightStatusDialog.tsx";
+import { FlightDetailDialog } from "./FlightDetailDialog.tsx";
 import { FlightsPanel } from "./FlightsPanel.tsx";
 
 /**
@@ -13,6 +14,7 @@ export function FlightsPage() {
   const canManage = usePermission(PERMISSION.flightsManage);
   const [date, setDate] = useState("");
   const [editing, setEditing] = useState<DashboardFlightRow | null>(null);
+  const [detail, setDetail] = useState<DashboardFlightRow | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
@@ -27,8 +29,10 @@ export function FlightsPage() {
         date={date}
         onDateChange={setDate}
         canManage={canManage}
+        onSelect={setDetail}
         onChangeStatus={setEditing}
       />
+      <FlightDetailDialog flight={detail} onClose={() => setDetail(null)} />
       <FlightStatusDialog
         flight={editing}
         token={token}

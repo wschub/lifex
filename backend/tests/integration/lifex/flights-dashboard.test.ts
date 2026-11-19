@@ -165,6 +165,145 @@ describe("búsqueda de vuelos y dashboard (Postgres real)", () => {
     });
   });
 
+  describe("pasajeros del vuelo y check-in", () => {
+    const viewer = () => world.staff.viewer as string;
+    const admin = () => world.staff.admin as string;
+
+    /** Una reserva pagada; devuelve la reserva y los ids de sus tickets. */
+    async function paidOrder(flightId: string, email: string, seats: string[], phone?: string) {
+      const start = await request(world.app)
+        .post("/bookings")
+        .send({ flightId, contactEmail: email, ...(phone ? { contactPhone: phone } : {}) });
+      const booking = { id: start.body.booking.id as string, auth: `Bearer ${start.body.token}` };
+      const ids: string[] = [];
+      for (const identifier of seats) {
+        const seat = await world.seatId(identifier, flightId);
+        await world.hold(booking, seat, flightId);
+        ids.push(seat);
+      }
+      const res = await world.setPassengers(
+        booking,
+        ids.map((seat, index) =>
+          world.passenger(seat, {
+            fullName: ["Alfa", "Beta", "Gamma"][index] ?? "Delta",
+            lastName: ["Uno", "Dos", "Tres"][index] ?? "Cuatro",
+            documentNumber: `200${index}${email.length}`,
+            ...(index === 0 ? { luggageTypeId: 1 } : {}),
+          }),
+        ),
+      );
+      expect(res.status).toBe(200);
+      await world.pay(booking, `key-${booking.id}`);
+      await world.drainOutbox(2);
+      return { booking, reservation: res.body.booking.reservationNumber as string };
+    }
+
+    const passengersOf = (flightId: string, auth = viewer()) =>
+      request(world.app)
+        .get(`/dashboard/flights/${flightId}/passengers`)
+        .set("Authorization", auth);
+
+    it("lista a los pasajeros con ticket de las reservas pagadas: nombre, contacto, clase, asiento y reserva", async () => {
+      const flight = await world.createFlight(new Date("2026-12-20T15:00:00Z"));
+      const { reservation } = await paidOrder(
+        flight.id,
+        "ana@example.com",
+        ["01A", "02A"],
+        "+573001112233",
+      );
+      // una reserva sin pagar no aparece
+      const draft = await world.startBooking(flight.id, "borrador@example.com");
+      await world.hold(draft, await world.seatId("03A", flight.id), flight.id);
+
+      const res = await passengersOf(flight.id);
+
+      expect(res.status).toBe(200);
+      expect(res.body.passengers).toHaveLength(2);
+      const [business, economy] = res.body.passengers;
+      expect(business).toMatchObject({
+        fullName: "Alfa",
+        lastName: "Uno",
+        isHolder: true,
+        seatIdentifier: "01A",
+        seatClass: "BUSINESS",
+        reservationNumber: reservation,
+        contactEmail: "ana@example.com",
+        contactPhone: "+573001112233",
+        luggage: "Light",
+        checkedIn: false,
+        checkedInAt: null,
+      });
+      expect(business.ticketCode).toMatch(/^LX/);
+      expect(economy).toMatchObject({ seatClass: "ECONOMY", isHolder: false, luggage: null });
+      expect(
+        res.body.passengers.some(
+          (p: { contactEmail: string }) => p.contactEmail === "borrador@example.com",
+        ),
+      ).toBe(false);
+    });
+
+    it("exige autenticación, y un vuelo inexistente responde 404", async () => {
+      const flight = await world.createFlight(new Date("2026-12-21T15:00:00Z"));
+      const anonymous = await request(world.app).get(`/dashboard/flights/${flight.id}/passengers`);
+      const missing = await passengersOf("11111111-2222-4333-8444-555555555555");
+      expect(anonymous.status).toBe(401);
+      expect(missing.status).toBe(404);
+      expect(missing.body.code).toBe("FLIGHT_NOT_FOUND");
+      expect((await passengersOf(flight.id)).body.passengers).toEqual([]);
+    });
+
+    it("el check-in se registra y se quita; solo lo hace quien gestiona vuelos", async () => {
+      const flight = await world.createFlight(new Date("2026-12-22T15:00:00Z"));
+      await paidOrder(flight.id, "carlos@example.com", ["02B"]);
+      const [passenger] = (await passengersOf(flight.id)).body.passengers;
+      const url = `/dashboard/flights/${flight.id}/passengers/${passenger.ticketId}/check-in`;
+
+      const denied = await request(world.app)
+        .patch(url)
+        .set("Authorization", viewer())
+        .send({ checkedIn: true });
+      const done = await request(world.app)
+        .patch(url)
+        .set("Authorization", admin())
+        .send({ checkedIn: true });
+      const invalid = await request(world.app)
+        .patch(url)
+        .set("Authorization", admin())
+        .send({ checkedIn: "si" });
+
+      expect(denied.status).toBe(403);
+      expect(done.status).toBe(200);
+      expect(done.body.passenger).toMatchObject({
+        checkedIn: true,
+        checkedInAt: expect.any(String),
+      });
+      expect(invalid.status).toBe(400);
+      expect((await passengersOf(flight.id)).body.passengers[0].checkedIn).toBe(true);
+
+      const undone = await request(world.app)
+        .patch(url)
+        .set("Authorization", admin())
+        .send({ checkedIn: false });
+      expect(undone.body.passenger).toMatchObject({ checkedIn: false, checkedInAt: null });
+    });
+
+    it("no permite tocar el ticket de otro vuelo", async () => {
+      const flight = await world.createFlight(new Date("2026-12-23T15:00:00Z"));
+      const other = await world.createFlight(new Date("2026-12-24T15:00:00Z"));
+      await paidOrder(flight.id, "diana@example.com", ["02C"]);
+      const [passenger] = (await passengersOf(flight.id)).body.passengers;
+
+      const res = await request(world.app)
+        .patch(`/dashboard/flights/${other.id}/passengers/${passenger.ticketId}/check-in`)
+        .set("Authorization", admin())
+        .send({ checkedIn: true });
+
+      expect(res.status).toBe(404);
+      expect(res.body.code).toBe("TICKET_NOT_FOUND");
+      expect((await passengersOf(flight.id)).body.passengers[0].checkedIn).toBe(false);
+    });
+  });
+
   describe("lista de vuelos del panel: paginada y con filtros", () => {
     const viewer = () => world.staff.viewer as string;
     const list = (query: string) =>

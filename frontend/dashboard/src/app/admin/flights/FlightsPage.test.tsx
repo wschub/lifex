@@ -7,10 +7,12 @@ import {
   CITIES,
   FLIGHT_A,
   FLIGHT_B,
+  flightMetrics,
   flightRow,
   flightsPage,
   jsonResponse,
   makeMe,
+  passengerRow,
   stubMatchMedia,
 } from "@/test/admin-fixtures.ts";
 import { FlightsPage } from "./FlightsPage.tsx";
@@ -155,6 +157,28 @@ describe("sección Vuelos", () => {
     await screen.findByText(/Mostrando 1–50 de 120/);
     expect(lastListParams().get("pageSize")).toBe("50");
     expect(lastListParams().get("page")).toBe("1");
+  });
+
+  it("al dar clic en un vuelo se abre su ventana de detalle con ocupación y pasajeros", async () => {
+    const original = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation((input, init) => {
+      const url = new URL(String(input));
+      if (url.pathname.endsWith("/passengers"))
+        return Promise.resolve(
+          jsonResponse({ passengers: [passengerRow("aaaaaaaa-0000-4000-8000-000000000001")] }),
+        );
+      if (url.pathname.includes(`/dashboard/flights/${FLIGHT_B}`))
+        return Promise.resolve(jsonResponse({ metrics: flightMetrics(7, FLIGHT_B) }));
+      return original(input, init);
+    });
+    renderPage();
+
+    await userEvent.click(await screen.findByText("Bogotá (BOG) → Madrid (MAD)"));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveAccessibleName(/Bogotá \(BOG\) → Madrid \(MAD\)/);
+    expect(await within(dialog).findByText("Ana Gómez")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Pago pendiente").length).toBeGreaterThan(0);
   });
 
   it("el encargado (solo lectura) ve los vuelos pero no el botón de cambiar estado", async () => {

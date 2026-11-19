@@ -77,6 +77,10 @@ vuelo, **para** monitorear la demanda en vivo.
 | 4.10 | El dashboard muestra tarjetas de indicadores y tres gráficas (vuelos por hora, ocupación y vuelos por estado), y debajo la tabla de vuelos del día con paginación y filtros de origen y destino con **autocompletar** por código IATA o ciudad (los mismos aeropuertos, nacionales e internacionales, que el buscador de la web). | Componente |
 | 4.11 | La sección **Vuelos** lista todos los vuelos con filtros de origen, destino y fecha y paginación; la ven `ADMIN` y `ADMIN_VIEWER` (`dashboard:read`), y solo `ADMIN` (`flights:manage`) ve el botón de cambiar estado. | Componente |
 
+| 4.12 | `GET /dashboard/flights/:id/passengers` (permiso `dashboard:read`) lista a los pasajeros con ticket de las reservas **confirmadas** del vuelo (no las sin pagar): nombre, documento, tipo (adulto/niño), asiento y clase, tarifa de equipaje, código de reserva y de ticket, contacto de la reserva (correo y teléfono) y estado del check-in. Un vuelo inexistente responde `404`. | Integración |
+| 4.13 | `PATCH /dashboard/flights/:id/passengers/:ticketId/check-in` (permiso `flights:manage`) registra o quita el check-in de un ticket de ese vuelo; el visor recibe `403` y el ticket de otro vuelo responde `404`. | Integración |
+| 4.14 | En la sección **Vuelos**, al dar clic en un vuelo se abre una ventana con los mismos conteos en vivo del dashboard (libres, bloqueados, pago pendiente y reservados, por clase) y, debajo, la lista de pasajeros con filtros por texto (nombre, documento, correo, teléfono, reserva, ticket o asiento), clase y check-in. | Componente |
+
 ## HU5 — Precios dinámicos y ofertas
 
 **Como** viajero, **quiero** ver el precio vigente de cada clase y las ofertas del momento, **para** decidir

@@ -3,6 +3,7 @@ import {
   citiesResponseSchema,
   dashboardFlightsResponseSchema,
   dashboardOverviewResponseSchema,
+  dashboardPassengersResponseSchema,
   flightDetailResponseSchema,
   flightMetricsResponseSchema,
   flightSearchResponseSchema,
@@ -106,6 +107,18 @@ export const dashboardFlightQuery = (id: string, staffToken: string) =>
     queryKey: keys.dashboardFlight(id),
     queryFn: () =>
       apiFetch(`/dashboard/flights/${id}`, flightMetricsResponseSchema, { staffToken }),
+  });
+
+/** Pasajeros con ticket (reservas pagadas) de un vuelo, con su contacto y el estado del check-in. */
+export const dashboardPassengersQuery = (flightId: string, staffToken: string) =>
+  queryOptions({
+    queryKey: keys.dashboardPassengers(flightId),
+    queryFn: () =>
+      apiFetch(`/dashboard/flights/${flightId}/passengers`, dashboardPassengersResponseSchema, {
+        staffToken,
+      }),
+    // Llegan compras nuevas mientras la ventana está abierta.
+    refetchInterval: 30_000,
   });
 
 export const meQuery = (staffToken: string) =>

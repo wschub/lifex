@@ -59,7 +59,7 @@ export function FlightsTable({
   flights: DashboardFlightRow[] | undefined;
   selectedId: string | null;
   canManage: boolean;
-  onSelect: (flightId: string) => void;
+  onSelect: (flight: DashboardFlightRow) => void;
   onChangeStatus: (flight: DashboardFlightRow) => void;
 }) {
   const table = useTable({ features, columns, data: flights ?? NO_ROWS });
@@ -95,7 +95,7 @@ export function FlightsTable({
               key={row.id}
               data-state={row.original.flightId === selectedId ? "selected" : undefined}
               className={cn("cursor-pointer")}
-              onClick={() => onSelect(row.original.flightId)}
+              onClick={() => onSelect(row.original)}
             >
               {row.getAllCells().map((cell) => (
                 <TableCell key={cell.id}>

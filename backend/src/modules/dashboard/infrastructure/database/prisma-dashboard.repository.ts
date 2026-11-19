@@ -1,5 +1,6 @@
-import type { PrismaClient } from "../../../../generated/prisma/client.ts";
+import type { Prisma, PrismaClient } from "../../../../generated/prisma/client.ts";
 import type { OverviewRaw } from "../../domain/entities/dashboard-overview.ts";
+import type { DashboardPassenger } from "../../domain/entities/dashboard-passenger.ts";
 import type { FlightMetrics, SeatCounts } from "../../domain/entities/flight-metrics.ts";
 import type {
   DashboardRepository,
@@ -14,6 +15,36 @@ function add(counts: SeatCounts, status: string, amount: number): void {
   else if (status === "BLOCKED") counts.blocked += amount;
   else if (status === "PAYMENT_PENDING") counts.paymentPending += amount;
   else if (status === "RESERVED") counts.reserved += amount;
+}
+
+const TICKET_INCLUDE = {
+  seat: true,
+  luggage: { include: { luggageType: true } },
+  passenger: { include: { order: true } },
+} as const;
+
+type TicketRow = Prisma.TicketGetPayload<{ include: typeof TICKET_INCLUDE }>;
+
+function toPassenger(ticket: TicketRow): DashboardPassenger {
+  const { passenger } = ticket;
+  return {
+    ticketId: ticket.id,
+    ticketCode: ticket.ticketCode,
+    reservationNumber: passenger.order.reservationNumber,
+    fullName: passenger.fullName,
+    lastName: passenger.lastName,
+    documentType: passenger.documentType,
+    documentNumber: passenger.documentNumber,
+    passengerType: passenger.passengerType,
+    isHolder: passenger.position === 0,
+    seatIdentifier: ticket.seat.seatIdentifier,
+    seatClass: ticket.seat.seatClass,
+    luggage: ticket.luggage[0]?.luggageType.nameEs ?? null,
+    contactEmail: passenger.order.contactEmail,
+    contactPhone: passenger.order.contactPhone,
+    checkedIn: ticket.checkIn,
+    checkedInAt: ticket.checkInDate,
+  };
 }
 
 export class PrismaDashboardRepository implements DashboardRepository {
@@ -62,6 +93,43 @@ export class PrismaDashboardRepository implements DashboardRepository {
       seats,
       byClass: { economy, business },
     };
+  }
+
+  async flightPassengers(flightId: string): Promise<DashboardPassenger[] | null> {
+    const flight = await this.prisma.scheduledFlight.findUnique({
+      where: { id: flightId },
+      select: { id: true },
+    });
+    if (!flight) return null;
+    const tickets = await this.prisma.ticket.findMany({
+      where: { passenger: { order: { scheduledFlightId: flightId, status: "CONFIRMED" } } },
+      include: TICKET_INCLUDE,
+      orderBy: [{ seat: { seatRow: "asc" } }, { seat: { seatColumn: "asc" } }],
+    });
+    return tickets.map(toPassenger);
+  }
+
+  async setCheckIn(
+    flightId: string,
+    ticketId: string,
+    checkedIn: boolean,
+    at: Date,
+  ): Promise<DashboardPassenger | null> {
+    // Solo el ticket de una reserva confirmada de ese vuelo (un ticket de otro vuelo no se toca).
+    const ticket = await this.prisma.ticket.findFirst({
+      where: {
+        id: ticketId,
+        passenger: { order: { scheduledFlightId: flightId, status: "CONFIRMED" } },
+      },
+      select: { id: true },
+    });
+    if (!ticket) return null;
+    const updated = await this.prisma.ticket.update({
+      where: { id: ticketId },
+      data: { checkIn: checkedIn, checkInDate: checkedIn ? at : null },
+      include: TICKET_INCLUDE,
+    });
+    return toPassenger(updated);
   }
 
   async overview(range: { from: Date; to: Date }): Promise<OverviewRaw> {

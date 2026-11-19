@@ -75,6 +75,6 @@ describe("FlightsTable", () => {
       />,
     );
     await userEvent.click(screen.getByText("Bogotá (BOG) → Medellín (MDE)"));
-    expect(onSelect).toHaveBeenCalledWith(FLIGHT_A);
+    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ flightId: FLIGHT_A }));
   });
 });

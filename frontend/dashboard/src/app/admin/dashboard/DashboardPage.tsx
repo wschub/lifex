@@ -1,18 +1,15 @@
 import { PERMISSION, type DashboardFlightRow } from "@lifex/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { wsUrl } from "@/api/config.ts";
 import { dashboardFlightQuery } from "@/api/queries.ts";
 import { Input } from "@/components/ui/input.tsx";
 import { usePermission, useStaffSession } from "@/stores/staff-session.ts";
-import { createWsClient, type WsClient } from "@/ws/client.ts";
+import type { WsClient } from "@/ws/client.ts";
 import { FlightsPanel } from "../flights/FlightsPanel.tsx";
 import { OverviewSection } from "../overview/OverviewSection.tsx";
 import { FlightStatusDialog } from "./FlightStatusDialog.tsx";
 import { MetricsCards } from "./MetricsCards.tsx";
-import { useDashboardLive } from "./useDashboardLive.ts";
-
-const defaultClient = (token: string): WsClient => createWsClient(wsUrl(), { token });
+import { defaultDashboardClient, useDashboardLive } from "./useDashboardLive.ts";
 
 /** Hoy en hora de Colombia, como AAAA-MM-DD (así se interpreta la fecha en la API). */
 function todayInBogota(): string {
@@ -20,7 +17,7 @@ function todayInBogota(): string {
 }
 
 export function DashboardPage({
-  createClient = defaultClient,
+  createClient = defaultDashboardClient,
 }: {
   createClient?: (token: string) => WsClient;
 }) {
@@ -73,7 +70,7 @@ export function DashboardPage({
         showDate={false}
         canManage={canManage}
         selectedId={selectedId}
-        onSelect={setSelectedId}
+        onSelect={(flight) => setSelectedId(flight.flightId)}
         onChangeStatus={setEditing}
       />
 

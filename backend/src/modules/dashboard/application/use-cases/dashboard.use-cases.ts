@@ -1,4 +1,5 @@
 import { AppError } from "../../../../shared/errors/app-error.ts";
+import type { DashboardPassenger } from "../../domain/entities/dashboard-passenger.ts";
 import type {
   DashboardOverview,
   OccupancyFigures,
@@ -142,5 +143,39 @@ export class GetDashboardOverview {
     const from = new Date(`${day}T00:00:00-05:00`);
     const raw = await this.dashboard.overview({ from, to: new Date(from.getTime() + DAY_MS) });
     return summarizeOverview(day, raw);
+  }
+}
+
+export class ListFlightPassengers {
+  private readonly dashboard: DashboardRepository;
+
+  constructor(deps: { dashboard: DashboardRepository }) {
+    this.dashboard = deps.dashboard;
+  }
+
+  async execute(flightId: string): Promise<DashboardPassenger[]> {
+    const passengers = await this.dashboard.flightPassengers(flightId);
+    if (!passengers) throw new AppError("not_found", { code: "FLIGHT_NOT_FOUND" });
+    return passengers;
+  }
+}
+
+export class SetPassengerCheckIn {
+  private readonly dashboard: DashboardRepository;
+  private readonly now: () => Date;
+
+  constructor(deps: { dashboard: DashboardRepository; now?: () => Date }) {
+    this.dashboard = deps.dashboard;
+    this.now = deps.now ?? (() => new Date());
+  }
+
+  async execute(
+    flightId: string,
+    ticketId: string,
+    checkedIn: boolean,
+  ): Promise<DashboardPassenger> {
+    const passenger = await this.dashboard.setCheckIn(flightId, ticketId, checkedIn, this.now());
+    if (!passenger) throw new AppError("not_found", { code: "TICKET_NOT_FOUND" });
+    return passenger;
   }
 }

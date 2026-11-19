@@ -18,7 +18,7 @@ interface Props {
   showDate?: boolean;
   canManage: boolean;
   selectedId?: string | null;
-  onSelect?: (flightId: string) => void;
+  onSelect?: (flight: DashboardFlightRow) => void;
   onChangeStatus: (flight: DashboardFlightRow) => void;
 }
 

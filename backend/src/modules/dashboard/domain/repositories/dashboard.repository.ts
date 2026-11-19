@@ -1,4 +1,5 @@
 import type { OverviewRaw } from "../entities/dashboard-overview.ts";
+import type { DashboardPassenger } from "../entities/dashboard-passenger.ts";
 import type { DashboardFlightRow, FlightMetrics } from "../entities/flight-metrics.ts";
 
 /** Filtros y página de la lista de vuelos del panel. */
@@ -24,6 +25,15 @@ export interface DashboardRepository {
   flightMetrics(flightId: string): Promise<FlightMetrics | null>;
   /** Vuelos, asientos y ventas de los vuelos que salen entre `from` (incluida) y `to` (excluida). */
   overview(range: { from: Date; to: Date }): Promise<OverviewRaw>;
+  /** Pasajeros con ticket de las reservas confirmadas del vuelo; `null` si el vuelo no existe. */
+  flightPassengers(flightId: string): Promise<DashboardPassenger[] | null>;
+  /** Registra o quita el check-in de un ticket del vuelo; `null` si ese ticket no es de ese vuelo. */
+  setCheckIn(
+    flightId: string,
+    ticketId: string,
+    checkedIn: boolean,
+    at: Date,
+  ): Promise<DashboardPassenger | null>;
   /** Una página de vuelos (todas las rutas, nacionales e internacionales), ordenados por salida. */
   listFlights(query: FlightListQuery): Promise<FlightListPage>;
 }

@@ -67,6 +67,8 @@ import {
   GetDashboardOverview,
   GetFlightDashboard,
   ListDashboardFlights,
+  ListFlightPassengers,
+  SetPassengerCheckIn,
 } from "./modules/dashboard/application/use-cases/dashboard.use-cases.ts";
 import { PrismaDashboardRepository } from "./modules/dashboard/infrastructure/database/prisma-dashboard.repository.ts";
 import { createDashboardRouter } from "./modules/dashboard/presentation/routes/dashboard.routes.ts";
@@ -350,6 +352,8 @@ export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
     getFlightDashboard: new GetFlightDashboard({ dashboard }),
     listDashboardFlights: new ListDashboardFlights({ dashboard, now: clock }),
     getDashboardOverview: new GetDashboardOverview({ dashboard, now: clock }),
+    listFlightPassengers: new ListFlightPassengers({ dashboard }),
+    setPassengerCheckIn: new SetPassengerCheckIn({ dashboard, now: clock }),
   });
 
   // Tiempo real: el WebSocket se suscribe a temas; los de dashboard exigen el permiso dashboard:read.

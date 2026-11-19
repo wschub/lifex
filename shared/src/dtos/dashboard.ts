@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { isoDateTime, routeTypeSchema, uuid } from "../common.ts";
+import {
+  isoDateTime,
+  passengerTypeSchema,
+  routeTypeSchema,
+  seatClassSchema,
+  uuid,
+} from "../common.ts";
 
 export const seatCountsSchema = z.object({
   free: z.number().int(),
@@ -101,3 +107,38 @@ export const dashboardOverviewSchema = z.object({
 });
 export type DashboardOverview = z.infer<typeof dashboardOverviewSchema>;
 export const dashboardOverviewResponseSchema = z.object({ overview: dashboardOverviewSchema });
+
+/** Un pasajero con ticket emitido en una reserva confirmada del vuelo. */
+export const dashboardPassengerSchema = z.object({
+  ticketId: uuid,
+  ticketCode: z.string(),
+  /** Código de reserva (PNR). */
+  reservationNumber: z.string(),
+  fullName: z.string(),
+  lastName: z.string(),
+  documentType: z.string(),
+  documentNumber: z.string(),
+  passengerType: passengerTypeSchema,
+  /** Es el comprador de la reserva. */
+  isHolder: z.boolean(),
+  seatIdentifier: z.string(),
+  seatClass: seatClassSchema,
+  /** Tarifa de equipaje elegida, si eligió alguna. */
+  luggage: z.string().nullable(),
+  /** Contacto de la reserva (el del comprador). */
+  contactEmail: z.string(),
+  contactPhone: z.string().nullable(),
+  checkedIn: z.boolean(),
+  checkedInAt: isoDateTime.nullable(),
+});
+export type DashboardPassenger = z.infer<typeof dashboardPassengerSchema>;
+
+/** `GET /dashboard/flights/:id/passengers` (permiso `dashboard:read`). */
+export const dashboardPassengersResponseSchema = z.object({
+  passengers: z.array(dashboardPassengerSchema),
+});
+
+/** `PATCH /dashboard/flights/:id/passengers/:ticketId/check-in` (permiso `flights:manage`). */
+export const setCheckInRequestSchema = z.object({ checkedIn: z.boolean() }).strict();
+export type SetCheckInRequest = z.infer<typeof setCheckInRequestSchema>;
+export const setCheckInResponseSchema = z.object({ passenger: dashboardPassengerSchema });

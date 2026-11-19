@@ -1,7 +1,12 @@
 import { TOPIC } from "@lifex/shared";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import type { WsClient } from "@/ws/client.ts";
+import { wsUrl } from "@/api/config.ts";
+import { createWsClient, type WsClient } from "@/ws/client.ts";
+
+/** Cliente WebSocket real del panel (las pruebas inyectan uno falso). */
+export const defaultDashboardClient = (token: string): WsClient =>
+  createWsClient(wsUrl(), { token });
 
 /**
  * Mantiene el dashboard al día por WebSocket: el vuelo seleccionado (`dashboard:{id}`, exige el permiso

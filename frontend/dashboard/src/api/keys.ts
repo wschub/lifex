@@ -13,5 +13,6 @@ export const keys = {
   dashboardFlights: (params: object) => ["dashboardFlights", params] as const,
   dashboardOverview: (date: string) => ["dashboardOverview", date] as const,
   dashboardFlight: (id: string) => ["dashboardFlight", id] as const,
+  dashboardPassengers: (id: string) => ["dashboardPassengers", id] as const,
   me: ["me"] as const,
 };

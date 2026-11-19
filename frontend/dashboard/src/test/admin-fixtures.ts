@@ -147,3 +147,24 @@ export const overviewFixture = {
     disruptions: 6,
   },
 };
+
+/** Un pasajero de `GET /dashboard/flights/:id/passengers`. */
+export const passengerRow = (id: string, over: Record<string, unknown> = {}) => ({
+  ticketId: id,
+  ticketCode: `LX${id.slice(0, 10).toUpperCase().replaceAll("-", "")}`,
+  reservationNumber: "CRBRVR",
+  fullName: "Ana",
+  lastName: "Gómez",
+  documentType: "CC",
+  documentNumber: "1234567",
+  passengerType: "ADULT",
+  isHolder: true,
+  seatIdentifier: "12A",
+  seatClass: "ECONOMY",
+  luggage: "Light",
+  contactEmail: "ana@example.com",
+  contactPhone: "+573001112233",
+  checkedIn: false,
+  checkedInAt: null,
+  ...over,
+});
