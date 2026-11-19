@@ -5,6 +5,7 @@ import { configQuery } from "@/api/queries.ts";
 import { ErrorNotice } from "@/components/ErrorNotice.tsx";
 import { useLang } from "@/i18n/i18n.ts";
 import "./styles/lifex.css";
+import "./styles/overrides.css";
 
 /** Salta a la sección (`/#ofertas`) tras navegar, como hacían las anclas del prototipo. */
 function useScrollToHash() {
