@@ -68,6 +68,86 @@ vuelo, **para** monitorear la demanda en vivo.
 | 4.6 | Cuando el admin cambia un vuelo a `CANCELLED` o `DELAYED`, se envía un correo de notificación (plantilla `flight-status-change`) a **cada orden `CONFIRMED`** de ese vuelo, a su correo de contacto, con los pasajeros listados. No se notifica a órdenes sin pagar ni a las de otros vuelos, y volver a `ACTIVE` o un cambio inválido no envía nada. Un correo por orden, aunque tenga varios pasajeros. | Integración (adapter de notificación con doble en memoria) |
 | 4.7 | Los avisos se encolan en la misma transacción que el cambio de estado; si el proveedor de correo falla, el cambio de estado se mantiene y el aviso se reintenta sin duplicarse. | Integración |
 
+## HU5 — Precios dinámicos y ofertas
+
+**Como** viajero, **quiero** ver el precio vigente de cada clase y las ofertas del momento, **para** decidir
+qué comprar con el precio que realmente voy a pagar. **Como** aerolínea, **quiero** que el precio suba con la
+demanda y con la cercanía del vuelo, y que las ofertas ayuden a llenar los vuelos con baja ocupación.
+
+### Cómo funcionan los precios
+
+Todos los valores están en USD; el front convierte a COP con `IATA_TRM`. Cada vuelo guarda cuatro cifras que
+alimentan el cálculo: `basePriceDefault` (precio mínimo de partida del vuelo), `averagePriceEconomy`,
+`averagePriceBusiness` (promedio de lo pagado por asiento en cada clase) y `occupancyRate`, además de
+`numAvailableSeats`.
+
+**Precio base de cada clase.** Economy parte de `basePriceDefault`; Business parte de
+`basePriceDefault × BUSINESS_BASE_MULTIPLIER` (por defecto ×3), porque `basePriceDefault` es un solo valor por
+vuelo.
+
+**Primer ticket (promedio en 0).** Si todavía no se ha comprado ningún asiento de esa clase, el precio es el
+precio base de la clase **+20 %**.
+
+**Con compras previas (promedio > 0).** El precio es el promedio de esa clase **+5 %**. Al comprar, el
+promedio cambia, así que el precio del siguiente comprador sube un poco más.
+
+**Subida por cercanía al vuelo.** En las **últimas 72 horas** antes de la salida, cada hora completa que pasa
+suma **0,5 %** de la referencia (el promedio de la clase; o, si todavía no hay ventas, el precio del primer
+ticket). La subida se detiene (queda congelada) a **2 horas** de la salida en vuelos nacionales y a **5 horas**
+en internacionales: a partir de ahí el precio ya no sube más y las ventas siguen abiertas. Máximo: 70 horas
+de recargo en nacionales (+35 %) y 67 en internacionales (+33,5 %).
+
+Ejemplo (nacional, promedio Economy 200 USD): el precio base es 210 USD (promedio +5 %). A 48 h de la salida han
+pasado 24 h dentro de la ventana: 210 + 24 × 1,00 = 234 USD. A 2 h o menos: 210 + 70 × 1,00 = 280 USD.
+
+**Cuándo se calcula y cuándo se congela.** El precio se calcula al momento de mostrarlo: en `GET /flights`,
+`GET /flights/:id` (`priceEconomyUsd`, `priceBusinessUsd`) y en el mapa de asientos (los asientos libres
+muestran el precio vigente de su clase). **Al bloquear un asiento, el precio vigente se congela** en el
+asiento y es el que se cobra: el viajero paga lo que vio al elegir, aunque el precio cambie mientras completa
+sus datos.
+
+**Cuándo se actualizan las cifras.** Después de cada **compra exitosa** (en la misma transacción que confirma
+la reserva) se recalculan `numAvailableSeats`, `occupancyRate` y los promedios de cada clase. Un pago
+rechazado no cambia nada.
+- `numAvailableSeats` = asientos máximos − asientos `RESERVED`.
+- `occupancyRate` = asientos `RESERVED` / asientos máximos × 100 (2 decimales).
+- `averagePriceEconomy` / `averagePriceBusiness` = promedio del precio congelado de los asientos `RESERVED` de
+  la clase (0 si no hay ninguno). El equipaje, los extras y los impuestos no entran en el promedio.
+
+**Equipaje y extras son costos adicionales.** El precio de la tarifa (el del asiento) no incluye equipaje: el
+equipaje y demás servicios se cobran aparte, como un porcentaje (`feePercentage` del tipo de equipaje) sobre el
+precio del asiento, cuando el usuario elige o mejora su opción después de escoger el asiento. Los impuestos
+(`TAX_PERCENTAGE`) se suman al final sobre el vuelo más el equipaje.
+
+### Ofertas y descuentos
+
+Las **ofertas son el descuento** y son **excluyentes con el precio dinámico**: un vuelo en oferta no lleva
+el +20 %, el +5 % ni el recargo por horas. Su precio de clase es el precio base de la clase menos
+`OFFER_DISCOUNT_PERCENTAGE` (por defecto 15 %), y el vuelo se marca con `offer: { discountPercentage }`.
+No existen otros descuentos: si se agregan en el futuro, tampoco se acumularán con el precio dinámico ni
+entre sí.
+
+Un vuelo es oferta si está `ACTIVE`, sale **entre 8 y 30 días** desde hoy y cumple **cualquiera** de:
+1. `occupancyRate` ≤ 60 %.
+2. `numAvailableSeats` ≥ 100.
+3. Los promedios de ambas clases no superan en más de 30 % su precio base (Economy ≤ `basePriceDefault × 1,3`
+   y Business ≤ `basePriceDefault × BUSINESS_BASE_MULTIPLIER × 1,3`; un promedio en 0 cumple).
+
+`GET /flights/offers` (público) elige al azar entre los vuelos elegibles, **sin repetir ruta**, hasta **5
+nacionales y 5 internacionales**, ya con el descuento aplicado.
+
+| # | Criterio | Tipo de prueba |
+|---|---|---|
+| 5.1 | Primer ticket de una clase: precio base de la clase +20 % (Business usa el multiplicador ×3). | Unitaria (dominio) |
+| 5.2 | Con promedio > 0 el precio es el promedio +5 %. | Unitaria (dominio) |
+| 5.3 | El recargo es 0,5 % de la referencia por hora completa dentro de las últimas 72 h, y se congela a 2 h (nacional) y a 5 h (internacional); se prueban 72, 48, 10, 5, 2 y 1 h. | Unitaria (dominio, reloj inyectado) |
+| 5.4 | `GET /flights` y `GET /flights/:id` devuelven `priceEconomyUsd`, `priceBusinessUsd` y `offer` calculados al consultar. | Integración (BD real) |
+| 5.5 | El mapa de asientos muestra el precio vigente en los asientos libres; al bloquear, el precio se congela y un cambio posterior del promedio no lo toca; la reserva cobra el precio congelado. | Integración (BD real) |
+| 5.6 | Tras un pago aprobado se recalculan `numAvailableSeats`, `occupancyRate` y los promedios; el segundo comprador ve el precio subido; un pago rechazado no cambia nada. | Integración (BD real) |
+| 5.7 | Una oferta ignora el precio dinámico; los bordes de 8 y 30 días y los umbrales de 60 %, 100 asientos y 30 % se cumplen exactamente. | Unitaria (dominio) |
+| 5.8 | `GET /flights/offers` respeta la ventana de 8 a 30 días, devuelve como máximo 5 nacionales y 5 internacionales, no repite ruta y excluye vuelos que no cumplen ningún criterio o no están `ACTIVE`. | Integración (BD real) |
+| 5.9 | El precio de una oferta coincide en `GET /flights`, en `GET /flights/offers` y en el precio que se congela al bloquear un asiento. | Integración (BD real) |
+
 ---
 
 ## Notas de alcance para testing

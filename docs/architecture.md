@@ -186,6 +186,25 @@ por orden con todos sus pasajeros. Reglas: no se notifica a órdenes sin pagar n
 a `ACTIVE` o `FINALIZED` no envía nada; un fallo del proveedor se reintenta con *backoff* y el cambio de
 estado ya guardado no se revierte.
 
+### 4.4.3 Precios dinámicos y ofertas
+
+El precio de cada clase se calcula al mostrar el vuelo, con un servicio de dominio puro
+(`flights/domain/services/dynamic-price.ts`): primer ticket +20 %, promedio +5 % y +0,5 % por hora en las
+últimas 72 h (congelado a 2 h nacional / 5 h internacional). Una oferta (vuelo `ACTIVE` a 8–30 días con
+ocupación ≤ 60 %, ≥ 100 asientos libres o promedios dentro de 30 % de su base) sustituye ese cálculo por el
+precio base menos `OFFER_DISCOUNT_PERCENTAGE`. Las reglas completas están en HU5
+([`user-stories-acceptance-criteria.md`](user-stories-acceptance-criteria.md)).
+
+- `GET /flights`, `GET /flights/:id` y `GET /flights/offers` (público; hasta 5 nacionales y 5 internacionales,
+  sin repetir ruta) devuelven `priceEconomyUsd`, `priceBusinessUsd` y `offer`. `/flights/offers` se registra
+  antes que `/flights/:id`.
+- `HoldSeat` guarda el precio vigente en `flights_seat_availability.seat_price`: el precio se congela al
+  bloquear y es el que cobran la reserva y el pago.
+- `settleApproved` recalcula, en la misma transacción que confirma el pago, `num_available_seats`,
+  `occupancy_rate`, `average_price_economy` y `average_price_business` a partir de los asientos `RESERVED`.
+- Variables de entorno (solo se leen en `composition.ts`): `BUSINESS_BASE_MULTIPLIER` (3) y
+  `OFFER_DISCOUNT_PERCENTAGE` (15).
+
 ### 4.5 Tiempo real: por qué `ws` y no Socket.io
 
 Se eligió la librería `ws` (WebSocket nativo) en vez de Socket.io para no introducir una dependencia con
@@ -303,8 +322,9 @@ cliente, resolviendo el límite de `ws` sin adaptador mencionado en 4.5.
 countries        id, iso_code, name, name_es
 cities           id, country_id → countries, name, name_es
 airports         id, city_id → cities, iata_code
-aircraft         id, internal_identifier, reference, type_range (DOMESTIC|INTERNATIONAL),
-                 range_miles, max_number_seats, status (AVAILABLE|UNAVAILABLE)
+aircraft         id, internal_identifier, reference (modelo), description, description_es,
+                 type_range (DOMESTIC|INTERNATIONAL), range_miles (millas náuticas),
+                 max_number_seats, business_seats, seat_columns, status (AVAILABLE|UNAVAILABLE)
 luggage_type     id, name, name_es, rank, fee_percentage   -- catálogo único, sin cruzar con flight_class
 ```
 

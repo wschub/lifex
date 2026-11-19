@@ -107,6 +107,29 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [ ] Selector de idioma (es/en) que también activa la conversión USD→COP con `IATA_TRM`.
 - [ ] Logo definitivo en la app y en las dos plantillas de correo.
 
+## 12.1 Precios dinámicos, ofertas y flota (HU5)
+- [x] Servicio de dominio `dynamic-price.ts` (primer ticket +20 %, promedio +5 %, +0,5 % por hora en las
+      últimas 72 h con tope a 2 h nacional / 5 h internacional, multiplicador de Business ×3).
+- [x] Precio vigente en `GET /flights`, `GET /flights/:id` y el mapa de asientos; se congela al bloquear el asiento.
+- [x] Tras cada compra exitosa se recalculan asientos disponibles, ocupación y promedios por clase.
+- [x] `GET /flights/offers`: 5 nacionales + 5 internacionales, sin rutas repetidas, ventana 8–30 días; el
+      descuento (`OFFER_DISCOUNT_PERCENTAGE`) es excluyente con el precio dinámico.
+- [x] `aircraft.description` / `descriptionEs` y flota 787-8, 787-9, 737 MAX 8 y A320neo en el seed.
+- [x] Reglas documentadas en HU5 (`docs/user-stories-acceptance-criteria.md`).
+
+## Pendientes
+- [ ] **Cookie de refresh en Railway:** con `COOKIE_SAME_SITE=strict` solo funciona si el frontend y la API
+      comparten sitio. Si van en dominios distintos hay que usar `COOKIE_SAME_SITE=none` (con cookie `Secure`, que exige HTTPS)
+      y **crear la variable en Railway al desplegar** (acordarse de crearla en el servicio de la API).
+- [ ] **Imágenes de ciudades:** guardarlas en `frontend/public` y guardar en la BD solo el nombre del archivo
+      (hoy `cities.imageUrl` guarda la ruta `/img/destinations/x.jpg`).
+- [ ] **Convertir las imágenes a WebP** (recordárselo al usuario antes del despliegue).
+- [ ] **Web pública:** usar `priceEconomyUsd` / `priceBusinessUsd` / `offer` de `GET /flights` y mostrar las
+      ofertas de la portada con `GET /flights/offers` (reemplaza los precios estimados actuales).
+- [ ] **Alineación de tarifas** (Light / Classic / Flex y Business) con el precio dinámico, al terminar la v1
+      del frontend. El equipaje y demás servicios son costos adicionales sobre el precio de la tarifa.
+- [ ] Endpoint de ofertas: ya implementado en el backend (`GET /flights/offers`); falta consumirlo en el front.
+
 ## 13. Documentación final
 - [x] `docs/ia.md`, `docs/architecture.md`, `docs/user-stories-acceptance-criteria.md`,
       `docs/seed-plan.md` y `README.md` actualizados con el backend implementado.
