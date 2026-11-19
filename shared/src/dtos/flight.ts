@@ -5,7 +5,7 @@ export const airportInfoSchema = z.object({
   iataCode: z.string().length(3),
   city: z.string(),
   cityEs: z.string(),
-  cityImageUrl: z.string().nullable(),
+  cityImageName: z.string().nullable(),
   country: z.string(),
   countryEs: z.string(),
 });
@@ -23,6 +23,11 @@ export const publicFlightSchema = z.object({
   basePriceUsd: z.number(),
   averagePriceEconomyUsd: z.number(),
   averagePriceBusinessUsd: z.number(),
+  /** Precio vigente por clase (USD), calculado al consultar: precio dinámico u oferta. */
+  priceEconomyUsd: z.number(),
+  priceBusinessUsd: z.number(),
+  /** Presente si el vuelo es una oferta: el descuento reemplaza al precio dinámico. */
+  offer: z.object({ discountPercentage: z.number() }).nullable(),
   numAvailableSeats: z.number().int(),
   availableByClass: z.object({ economy: z.number().int(), business: z.number().int() }),
   /** Un vuelo sin asientos se marca como agotado en vez de ocultarse. */
@@ -39,6 +44,13 @@ export const flightSearchQuerySchema = z.object({
 export type FlightSearchQuery = z.infer<typeof flightSearchQuerySchema>;
 
 export const flightSearchResponseSchema = z.object({ flights: z.array(publicFlightSchema) });
+/** `GET /flights/offers`: hasta 5 nacionales y 5 internacionales, sin rutas repetidas, ya con descuento. */
+export const offerFlightSchema = publicFlightSchema.extend({
+  offer: z.object({ discountPercentage: z.number() }),
+});
+export type OfferFlight = z.infer<typeof offerFlightSchema>;
+export const offersResponseSchema = z.object({ offers: z.array(offerFlightSchema) });
+
 export const flightDetailResponseSchema = z.object({ flight: publicFlightSchema });
 
 /** `PATCH /flights/:id/status` (permiso `flights:manage`). Los administradores no pueden fijar SOLD_OUT: lo decide el sistema. */
