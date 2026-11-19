@@ -41,6 +41,29 @@ function toAirportInfo(airport: AirportRow): AirportInfo {
   };
 }
 
+function toListing(
+  row: FlightRow,
+  availableByClass: FlightListing["availableByClass"],
+): FlightListing {
+  return {
+    id: row.id,
+    flightRouteId: row.flightRouteId,
+    routeType: row.flightRoute.routeType,
+    from: toAirportInfo(row.flightRoute.fromAirport),
+    to: toAirportInfo(row.flightRoute.destinationAirport),
+    departureDate: row.departureDate,
+    arrivalDate: row.arrivalDate,
+    status: row.status,
+    numMaxSeats: row.numMaxSeats,
+    numAvailableSeats: row.numAvailableSeats,
+    occupancyRate: Number(row.occupancyRate),
+    basePriceDefault: Number(row.basePriceDefault),
+    averagePriceEconomy: Number(row.averagePriceEconomy),
+    averagePriceBusiness: Number(row.averagePriceBusiness),
+    availableByClass,
+  };
+}
+
 export class PrismaScheduledFlightRepository implements ScheduledFlightRepository {
   private readonly prisma: PrismaClient;
 
@@ -61,7 +84,7 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
       include: LISTING_INCLUDE,
       orderBy: { departureDate: "asc" },
     });
-    return this.withAvailability(rows);
+    return this.attachAvailability(rows);
   }
 
   async findOfferCandidates(from: Date, to: Date): Promise<FlightListing[]> {
@@ -70,7 +93,17 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
       include: LISTING_INCLUDE,
       orderBy: { departureDate: "asc" },
     });
-    return this.withAvailability(rows);
+    // Son miles de vuelos: los asientos libres por clase solo se cuentan para los elegidos (withAvailability).
+    return rows.map((row) => toListing(row, { economy: 0, business: 0 }));
+  }
+
+  async withAvailability(listings: FlightListing[]): Promise<FlightListing[]> {
+    if (listings.length === 0) return [];
+    const free = await this.freeSeatsByClass(listings.map((listing) => listing.id));
+    return listings.map((listing) => ({
+      ...listing,
+      availableByClass: free(listing.id),
+    }));
   }
 
   async findListing(id: string): Promise<FlightListing | null> {
@@ -79,7 +112,7 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
       include: LISTING_INCLUDE,
     });
     if (!row) return null;
-    const [listing] = await this.withAvailability([row]);
+    const [listing] = await this.attachAvailability([row]);
     return listing ?? null;
   }
 
@@ -126,33 +159,26 @@ export class PrismaScheduledFlightRepository implements ScheduledFlightRepositor
     });
   }
 
-  private async withAvailability(rows: FlightRow[]): Promise<FlightListing[]> {
+  private async attachAvailability(rows: FlightRow[]): Promise<FlightListing[]> {
     if (rows.length === 0) return [];
+    const free = await this.freeSeatsByClass(rows.map((row) => row.id));
+    return rows.map((row) => toListing(row, free(row.id)));
+  }
+
+  /** Asientos libres por clase de cada vuelo (una sola consulta agrupada). */
+  private async freeSeatsByClass(
+    flightIds: string[],
+  ): Promise<(flightId: string) => { economy: number; business: number }> {
     const free = await this.prisma.flightSeat.groupBy({
       by: ["scheduledFlightId", "seatClass"],
-      where: { scheduledFlightId: { in: rows.map((row) => row.id) }, seatStatus: "FREE" },
+      where: { scheduledFlightId: { in: flightIds }, seatStatus: "FREE" },
       _count: { _all: true },
     });
-    const count = (flightId: string, seatClass: "ECONOMY" | "BUSINESS"): number =>
-      free.find((item) => item.scheduledFlightId === flightId && item.seatClass === seatClass)
-        ?._count._all ?? 0;
-
-    return rows.map((row) => ({
-      id: row.id,
-      flightRouteId: row.flightRouteId,
-      routeType: row.flightRoute.routeType,
-      from: toAirportInfo(row.flightRoute.fromAirport),
-      to: toAirportInfo(row.flightRoute.destinationAirport),
-      departureDate: row.departureDate,
-      arrivalDate: row.arrivalDate,
-      status: row.status,
-      numMaxSeats: row.numMaxSeats,
-      numAvailableSeats: row.numAvailableSeats,
-      occupancyRate: Number(row.occupancyRate),
-      basePriceDefault: Number(row.basePriceDefault),
-      averagePriceEconomy: Number(row.averagePriceEconomy),
-      averagePriceBusiness: Number(row.averagePriceBusiness),
-      availableByClass: { economy: count(row.id, "ECONOMY"), business: count(row.id, "BUSINESS") },
-    }));
+    return (flightId) => {
+      const count = (seatClass: "ECONOMY" | "BUSINESS"): number =>
+        free.find((item) => item.scheduledFlightId === flightId && item.seatClass === seatClass)
+          ?._count._all ?? 0;
+      return { economy: count("ECONOMY"), business: count("BUSINESS") };
+    };
   }
 }

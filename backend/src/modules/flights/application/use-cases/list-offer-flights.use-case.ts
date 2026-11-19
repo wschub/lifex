@@ -63,6 +63,7 @@ export class ListOfferFlights {
       perType[flight.routeType] += 1;
       picked.push(flight);
     }
-    return picked.map((flight) => toPublicFlight(flight, { now, config: this.pricing }));
+    const withSeats = await this.flights.withAvailability(picked);
+    return withSeats.map((flight) => toPublicFlight(flight, { now, config: this.pricing }));
   }
 }

@@ -1,14 +1,26 @@
 /**
- * Datos de prueba de Lifex (ver docs/seed-plan.md).
+ * Datos de Lifex (ver docs/seed-plan.md): catálogo, roles, usuarios de demostración y vuelos.
  *
- *   npm run db:seed            catálogo, roles, usuarios y vuelos (si ya hay vuelos, no los duplica)
- *   npm run db:seed -- --reset borra los vuelos, asientos, reservas y pagos y los vuelve a crear
+ *   npm run db:seed                  desarrollo (tsx)
+ *   node dist/cli/seed.js            producción (la imagen trae este script compilado)
+ *
+ * Opciones:
+ *   --reset              borra los vuelos, asientos, reservas y pagos antes de crearlos de nuevo
+ *   --from=AAAA-MM-DD    primer día de vuelos (por defecto, hoy en hora de Colombia)
+ *   --to=AAAA-MM-DD      último día, inclusive (por defecto, 2027-01-31)
+ *   --no-flights         solo catálogo (países, ciudades, aeropuertos, aeronaves, equipaje) y roles
+ *   --no-users           no crea los usuarios de demostración (admin@lifex.test y viewer@lifex.test)
+ *
+ * Es idempotente: el catálogo se actualiza con upsert y los vuelos que ya existen (misma ruta y misma
+ * salida) no se duplican, así que se puede ejecutar de nuevo para ampliar el rango de fechas.
+ * SEED_PASSWORD cambia la clave de los usuarios de demostración (en producción no uses la de ejemplo).
  *
  * Es un script de arranque, no código de la aplicación: puede leer el entorno y usar Prisma directo.
  */
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Prisma, PrismaClient } from "../src/generated/prisma/client.ts";
-import { Argon2PasswordHasher } from "../src/modules/auth/infrastructure/security/argon2-password-hasher.ts";
+import { Prisma, PrismaClient } from "../generated/prisma/client.ts";
+import { Argon2PasswordHasher } from "../modules/auth/infrastructure/security/argon2-password-hasher.ts";
+import { DAY_MS, planFlights } from "./seed/flight-plan.ts";
 
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not defined");
@@ -344,9 +356,9 @@ async function seedCatalog(): Promise<void> {
 
 const ADMIN_PERMISSIONS = ["flights:read", "flights:manage", "dashboard:read"];
 const VIEWER_PERMISSIONS = ["flights:read", "dashboard:read"];
-export const SEED_PASSWORD = "Lifex-Demo-2026!";
+export const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "Lifex-Demo-2026!";
 
-async function seedRolesAndUsers(): Promise<void> {
+async function seedRolesAndUsers(withUsers: boolean): Promise<void> {
   const hasher = new Argon2PasswordHasher();
   const roles = [
     {
@@ -380,6 +392,7 @@ async function seedRolesAndUsers(): Promise<void> {
       data: item.permissions.map((permission) => ({ roleId: role.id, permission })),
     });
 
+    if (!withUsers) continue;
     const user =
       (await prisma.user.findUnique({ where: { email: item.email } })) ??
       (await prisma.user.create({
@@ -400,81 +413,29 @@ async function seedRolesAndUsers(): Promise<void> {
 
 // ───────────────────────────── Vuelos ─────────────────────────────
 
-const START = Date.UTC(2026, 10, 19); // 2026-11-19
-const END = Date.UTC(2027, 0, 31); // 2027-01-31 (inclusive)
-const DAY_MS = 24 * 60 * 60 * 1000;
-const COLOMBIA_OFFSET_HOURS = 5;
-const BATCH = 4000;
-
-/** Hora local de Colombia → instante UTC. */
-function localDeparture(dayMs: number, hour: number, minute: number): Date {
-  return new Date(dayMs + (hour + COLOMBIA_OFFSET_HOURS) * 3_600_000 + minute * 60_000);
-}
+const DEFAULT_END = "2027-01-31";
+const COLOMBIA_OFFSET_MS = 5 * 3_600_000;
+const FLIGHT_BATCH = 2000;
+const SEAT_FLIGHTS_PER_STATEMENT = 300;
 
 const money = (value: number): Prisma.Decimal => new Prisma.Decimal(value.toFixed(2));
 
-interface FlightPlan {
-  fromIata: string;
-  toIata: string;
-  type: "DOMESTIC" | "INTERNATIONAL";
-  departure: Date;
-  minutes: number;
-  /** basePriceDefault del vuelo (USD): precio mínimo de partida; Business se deriva con el multiplicador. */
-  economy: number;
+function optionValue(name: string): string | undefined {
+  return process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 }
 
-function planFlights(): FlightPlan[] {
-  const domesticCities = COLOMBIA.cities.map((city) => city.iata);
-  const pairs: [string, string][] = [];
-  for (const from of domesticCities)
-    for (const to of domesticCities) if (from !== to) pairs.push([from, to]);
-
-  const destinations = INTERNATIONAL.flatMap((country) =>
-    country.cities.map((city) => ({ iata: city.iata, minutes: country.flightMinutes })),
-  );
-
-  const plans: FlightPlan[] = [];
-  const days = Math.round((END - START) / DAY_MS) + 1; // 74
-  const domesticSlots = [
-    [7, 30],
-    [13, 30],
-    [19, 30],
-  ] as const;
-  const internationalSlots = [
-    [14, 30],
-    [22, 30],
-  ] as const;
-
-  for (let day = 0; day < days; day += 1) {
-    const dayMs = START + day * DAY_MS;
-    domesticSlots.forEach(([hour, minute], slot) => {
-      const pairIndex = (day * 3 + slot) % pairs.length;
-      const [fromIata, toIata] = pairs[pairIndex] as [string, string];
-      plans.push({
-        fromIata,
-        toIata,
-        type: "DOMESTIC",
-        departure: localDeparture(dayMs, hour, minute),
-        minutes: 60 + (pairIndex % 4) * 10,
-        economy: 80 + (pairIndex % 8) * 10,
-      });
-    });
-    internationalSlots.forEach(([hour, minute], slot) => {
-      const destination = destinations[
-        (day * 2 + slot) % destinations.length
-      ] as (typeof destinations)[number];
-      const destinationIndex = (day * 2 + slot) % destinations.length;
-      plans.push({
-        fromIata: day % 2 === 0 ? "MDE" : "BOG",
-        toIata: destination.iata,
-        type: "INTERNATIONAL",
-        departure: localDeparture(dayMs, hour, minute),
-        minutes: destination.minutes,
-        economy: 400 + (destinationIndex % 10) * 50,
-      });
-    });
+/** "AAAA-MM-DD" → medianoche UTC de ese día calendario. */
+function parseDay(text: string, option: string): number {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text) || Number.isNaN(Date.parse(text))) {
+    throw new Error(`--${option} must be AAAA-MM-DD (received "${text}")`);
   }
-  return plans;
+  return Date.parse(`${text}T00:00:00Z`);
+}
+
+/** Hoy en hora de Colombia, como medianoche UTC. */
+function today(now: Date): number {
+  const local = new Date(now.getTime() - COLOMBIA_OFFSET_MS);
+  return Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate());
 }
 
 interface SeatLayout {
@@ -506,14 +467,50 @@ async function resetFlights(): Promise<void> {
   );
 }
 
-async function seedFlights(): Promise<void> {
+/**
+ * Los asientos se generan dentro de Postgres (INSERT … SELECT con el plano de la aeronave): son millones
+ * de filas y así no viajan por la red ni se acumulan en memoria.
+ */
+async function insertSeats(flightIds: string[], layout: SeatLayout[]): Promise<number> {
+  const identifiers = layout.map((seat) => `${String(seat.row).padStart(2, "0")}${seat.column}`);
+  const rows = layout.map((seat) => seat.row);
+  const columns = layout.map((seat) => seat.column);
+  const classes = layout.map((seat) => seat.seatClass);
+  let inserted = 0;
+  for (let index = 0; index < flightIds.length; index += SEAT_FLIGHTS_PER_STATEMENT) {
+    const ids = flightIds.slice(index, index + SEAT_FLIGHTS_PER_STATEMENT);
+    // Precio base de la clase; al bloquear, el asiento guarda el precio dinámico vigente.
+    inserted += await prisma.$executeRaw`
+      INSERT INTO "flights_seat_availability"
+        ("scheduledFlightId", "seatIdentifier", "seatRow", "seatColumn", "seatClass", "seatPrice")
+      SELECT f."id", l."ident", l."row", l."col", l."class"::"SeatClass",
+             ROUND(f."basePriceDefault" * CASE WHEN l."class" = 'BUSINESS' THEN ${BUSINESS_BASE_MULTIPLIER}::numeric ELSE 1 END, 2)
+      FROM "scheduled_flights" f
+      CROSS JOIN unnest(${identifiers}::text[], ${rows}::int[], ${columns}::text[], ${classes}::text[])
+        AS l("ident", "row", "col", "class")
+      WHERE f."id" = ANY(${ids}::uuid[])`;
+  }
+  return inserted;
+}
+
+async function seedFlights(startDay: number, endDay: number): Promise<void> {
   const airports = await prisma.airport.findMany();
   const airportId = new Map(airports.map((airport) => [airport.iataCode.trim(), airport.id]));
   const aircraft = await prisma.aircraft.findMany({ orderBy: { id: "asc" } });
   const domestic = aircraft.filter((item) => item.typeRange === "DOMESTIC");
   const international = aircraft.filter((item) => item.typeRange === "INTERNATIONAL");
 
-  const plans = planFlights();
+  const plans = planFlights({
+    startDay,
+    endDay,
+    now: new Date(),
+    domesticIatas: COLOMBIA.cities.map((city) => city.iata),
+    internationalDestinations: INTERNATIONAL.flatMap((country) =>
+      country.cities.map((city) => ({ iata: city.iata, minutes: country.flightMinutes })),
+    ),
+    internationalOrigins: ["MDE", "BOG"],
+  });
+
   const routeKeys = new Map<
     string,
     { type: "DOMESTIC" | "INTERNATIONAL"; from: number; to: number }
@@ -534,20 +531,35 @@ async function seedFlights(): Promise<void> {
     skipDuplicates: true,
   });
   const routes = await prisma.flightRoute.findMany();
+  const routeIdByKey = new Map(
+    routes.map((route) => [`${route.fromAirportId}-${route.destinationAirportId}`, route.id]),
+  );
   const routeId = (fromIata: string, toIata: string): number =>
-    routes.find(
-      (route) =>
-        route.fromAirportId === airportId.get(fromIata) &&
-        route.destinationAirportId === airportId.get(toIata),
-    )?.id as number;
+    routeIdByKey.get(`${airportId.get(fromIata)}-${airportId.get(toIata)}`) as number;
+
+  // Idempotencia: lo que ya existe (misma ruta y misma salida) no se vuelve a crear.
+  const existing = await prisma.scheduledFlight.findMany({
+    where: {
+      departureDate: {
+        gte: new Date(startDay),
+        lt: new Date(endDay + DAY_MS + COLOMBIA_OFFSET_MS),
+      },
+    },
+    select: { flightRouteId: true, departureDate: true },
+  });
+  const exists = new Set(
+    existing.map((flight) => `${flight.flightRouteId}|${flight.departureDate.getTime()}`),
+  );
 
   const flightRows: Prisma.ScheduledFlightCreateManyInput[] = [];
-  const seatRows: Prisma.FlightSeatCreateManyInput[] = [];
+  const idsByAircraft = new Map<number, string[]>();
   let domesticCount = 0;
   let internationalCount = 0;
   const rotation = new Map<string, number>();
 
   for (const plan of plans) {
+    const flightRouteId = routeId(plan.fromIata, plan.toIata);
+    if (exists.has(`${flightRouteId}|${plan.departure.getTime()}`)) continue;
     if (plan.type === "DOMESTIC") domesticCount += 1;
     else internationalCount += 1;
     // Solo aeronaves con alcance suficiente (≈ 450 nudos de crucero); entre ellas, las regionales
@@ -565,7 +577,7 @@ async function seedFlights(): Promise<void> {
     const id = crypto.randomUUID();
     flightRows.push({
       id,
-      flightRouteId: routeId(plan.fromIata, plan.toIata),
+      flightRouteId,
       aircraftId: plane.id,
       departureDate: plan.departure,
       arrivalDate: new Date(plan.departure.getTime() + plan.minutes * 60_000),
@@ -577,44 +589,50 @@ async function seedFlights(): Promise<void> {
       averagePriceEconomy: money(0),
       averagePriceBusiness: money(0),
     });
-    for (const seat of seatLayout(plane.businessSeats, plane.seatColumns, plane.maxNumberSeats)) {
-      seatRows.push({
-        scheduledFlightId: id,
-        seatIdentifier: `${String(seat.row).padStart(2, "0")}${seat.column}`,
-        seatRow: seat.row,
-        seatColumn: seat.column,
-        seatClass: seat.seatClass,
-        // Precio base de la clase; al bloquear, el asiento guarda el precio dinámico vigente.
-        seatPrice: money(
-          seat.seatClass === "BUSINESS" ? plan.economy * BUSINESS_BASE_MULTIPLIER : plan.economy,
-        ),
-      });
-    }
+    const ids = idsByAircraft.get(plane.id) ?? [];
+    ids.push(id);
+    idsByAircraft.set(plane.id, ids);
   }
 
-  for (let index = 0; index < flightRows.length; index += BATCH) {
-    await prisma.scheduledFlight.createMany({ data: flightRows.slice(index, index + BATCH) });
+  for (let index = 0; index < flightRows.length; index += FLIGHT_BATCH) {
+    await prisma.scheduledFlight.createMany({
+      data: flightRows.slice(index, index + FLIGHT_BATCH),
+    });
   }
-  for (let index = 0; index < seatRows.length; index += BATCH) {
-    await prisma.flightSeat.createMany({ data: seatRows.slice(index, index + BATCH) });
+  let seatCount = 0;
+  for (const [aircraftId, ids] of idsByAircraft) {
+    const plane = aircraft.find((item) => item.id === aircraftId) as (typeof aircraft)[number];
+    seatCount += await insertSeats(
+      ids,
+      seatLayout(plane.businessSeats, plane.seatColumns, plane.maxNumberSeats),
+    );
   }
   console.log(
-    `Flights: ${flightRows.length} (${domesticCount} domestic, ${internationalCount} international)`,
+    `Flights: ${flightRows.length} new (${domesticCount} domestic, ${internationalCount} international), ` +
+      `${plans.length - flightRows.length} already existed`,
   );
-  console.log(`Seats:   ${seatRows.length}`);
+  console.log(`Seats:   ${seatCount}`);
 }
 
 try {
   const reset = process.argv.includes("--reset");
+  const startDay = parseDay(
+    optionValue("from") ?? new Date(today(new Date())).toISOString().slice(0, 10),
+    "from",
+  );
+  const endDay = parseDay(optionValue("to") ?? DEFAULT_END, "to");
+  if (endDay < startDay) throw new Error("--to must not be before --from");
+
   await seedCatalog();
-  await seedRolesAndUsers();
-  if (reset) await resetFlights();
-  if ((await prisma.scheduledFlight.count()) === 0) {
-    await seedFlights();
-  } else {
-    console.log("Flights already seeded (use --reset to recreate them).");
+  const withUsers = !process.argv.includes("--no-users");
+  await seedRolesAndUsers(withUsers);
+  if (!process.argv.includes("--no-flights")) {
+    if (reset) await resetFlights();
+    await seedFlights(startDay, endDay);
   }
-  console.log(`Users: admin@lifex.test / viewer@lifex.test  (password: ${SEED_PASSWORD})`);
+  if (withUsers) {
+    console.log(`Users: admin@lifex.test / viewer@lifex.test  (password: ${SEED_PASSWORD})`);
+  }
 } finally {
   await prisma.$disconnect();
 }

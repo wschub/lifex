@@ -1,19 +1,37 @@
 # Plan de seed
 
-Implementado en `backend/prisma/seed.ts`:
+Implementado en `backend/src/cli/seed.ts` (el plan de vuelos, una función pura con pruebas, en
+`backend/src/cli/seed/flight-plan.ts`). Se compila a `dist/cli/seed.js`, así que también corre en la imagen de producción.
 
 ```bash
 cd backend
-npm run db:seed            # catálogo + roles + usuarios + vuelos (no duplica si ya hay vuelos)
-npm run db:seed -- --reset # borra vuelos, asientos, reservas y pagos y los vuelve a crear
+npm run db:seed                    # desarrollo: catálogo + roles + usuarios + vuelos de hoy a 2027-01-31
+npm run db:seed -- --reset         # borra vuelos, asientos, reservas y pagos y los vuelve a crear
+node dist/cli/seed.js --no-users   # producción (imagen de Docker / consola de Railway), sin usuarios de ejemplo
 ```
 
-Resultado actual: **370 vuelos** (222 nacionales + 148 internacionales) y **74.740 asientos**, en ~8 s.
+| Opción | Efecto |
+|---|---|
+| `--reset` | Borra vuelos, asientos, reservas, pagos y eventos antes de crear los vuelos |
+| `--from=AAAA-MM-DD` | Primer día de vuelos (por defecto, **hoy** en hora de Colombia; los vuelos de hoy que ya salieron no se crean) |
+| `--to=AAAA-MM-DD` | Último día, inclusive (por defecto 2027-01-31) |
+| `--no-flights` | Solo catálogo (países, ciudades, aeropuertos, aeronaves, tipos de equipaje) y roles |
+| `--no-users` | No crea `admin@lifex.test` ni `viewer@lifex.test` |
+
+Variable `SEED_PASSWORD`: clave de los usuarios de demostración (por defecto la de ejemplo; **no la uses en producción**,
+está publicada en el repositorio).
+
+Es **idempotente**: el catálogo se actualiza con `upsert` y un vuelo que ya existe (misma ruta y misma salida) no se
+duplica; las horas son deterministas (misma ruta, día y franja → misma hora), así que se puede volver a ejecutar para
+ampliar el rango de fechas.
+
+Resultado con el rango completo (2026-11-19 → 2027-01-31): **25.540 vuelos** (19.916 nacionales + 5.624
+internacionales) y **4.391.032 asientos**, en ~2 minutos en local. Ocupa **~0,93 GB** en Postgres (918 MB son los
+asientos): ≈ 13 MB por día de vuelos. Los asientos se generan dentro de Postgres (`INSERT … SELECT` con el plano de
+la aeronave), no viajan por la red.
+
 Usuarios de prueba: `admin@lifex.test` (rol `ADMIN`) y `viewer@lifex.test` (rol `ADMIN_VIEWER`), contraseña
 `Lifex-Demo-2026!`.
-
-Describe los datos y el algoritmo; la implementación va en `backend/prisma/seed.ts` (o equivalente), no en
-este documento.
 
 ## 1. Roles y permisos
 - Crear roles `ADMIN` (todos los permisos de todos los módulos de negocio: `flights:manage`, `flights:read`,
@@ -56,7 +74,7 @@ este documento.
 | Países Bajos | Ámsterdam | — |
 
 > En la implementación son **11 países y 19 ciudades internacionales** (Panamá, Bélgica y Países Bajos con una
-> sola ciudad); la rotación de destinos recorre esas 19.
+> sola ciudad); todas las rutas de Medellín y Bogotá cubren esos 19 destinos.
 
 Cada ciudad lleva su aeropuerto principal con código IATA real (ej. Madrid → MAD, Londres → LHR, Miami →
 MIA). Los países sin "ciudad secundaria" en la nota original del cliente se seedean con una sola ciudad.
@@ -142,26 +160,23 @@ las de Europa los 787 (rotan entre 787-8 y 787-9). Los `seat_row`/`seat_column` 
 
 ## 5. Vuelos programados
 
-Rango de fechas: **2026-11-19 → 2027-01-31** (inclusive), 74 días.
+Rango de fechas: **de hoy a 2027-01-31** (inclusive); con el seed del 2026-11-19, 74 días.
 
-### Nacionales — 3 vuelos diarios
-- Rotan combinando las 10 ciudades colombianas entre sí (todas las combinaciones ordenadas
-  origen≠destino son válidas: 10 × 9 = 90 pares posibles).
-- Algoritmo: generar la lista completa de 90 pares, y cada día tomar 3 pares consecutivos de esa lista en un
-  índice circular que avanza 3 posiciones por día (`dayIndex * 3 % 90`), así en ~30 días se recorre toda la
-  matriz de rutas antes de repetir.
-- Horarios sugeridos por vuelo/día: mañana (07:00–09:00 según duración estimada), tarde (13:00–15:00), noche
-  (19:00–21:00) — fijos por posición dentro del día, para que la demo pueda mostrar los 3 horarios distintos.
-- Aeronave `DOMESTIC` en cada uno.
+### Nacionales — 3 vuelos diarios **por ruta**
+- 10 ciudades colombianas (Medellín, Bogotá, Cartagena, Santa Marta, Barranquilla, San Andrés, Cali, Bucaramanga,
+  Pereira y Armenia), cada una hacia las otras 9: **90 rutas**.
+- Cada ruta tiene, todos los días, un vuelo en la **mañana** (05:00–11:55), uno en la **tarde** (12:00–17:55) y uno
+  en la **noche** (18:00–23:55), en hora de Colombia. La hora dentro de la franja es aleatoria pero determinista.
+- Aeronave `DOMESTIC` (Airbus A320neo).
 
-### Internacionales — 2 vuelos diarios (uno de tarde, uno de noche)
-- Origen: solo Medellín (MDE) o Bogotá (BOG), alternando por día (días pares desde MDE, días impares desde
-  BOG, o el criterio que resulte más simple de generar).
-- Destino: capital o ciudad secundaria de uno de los 10 países, rotando por la lista completa de 20 ciudades
-  (10 países × hasta 2 ciudades) en índice circular, 2 por día.
-- Horario de tarde: ~14:00–16:00 salida; horario de noche: ~22:00–00:00 salida (según duración estimada por
-  distancia real aproximada).
-- Aeronave `INTERNATIONAL`.
+### Internacionales — 2 vuelos diarios **por ruta**
+- Origen: **Medellín (MDE) y Bogotá (BOG)**, cada uno hacia los 19 destinos internacionales (Washington D.C.,
+  Miami, Ciudad de Panamá, Londres, Mánchester, Madrid, Barcelona, París, Niza, Berlín, Múnich, Lisboa, Oporto,
+  Bruselas, Roma, Milán, Zúrich, Ginebra y Ámsterdam): **38 rutas**.
+- Cada ruta tiene, todos los días, un vuelo en la **tarde** (12:00–17:55) y otro en la **noche** (18:00–23:55).
+- Aeronave `INTERNATIONAL` (787-8, 787-9 y 737 MAX 8 según el alcance necesario).
+
+Total por día: 90 × 3 + 38 × 2 = **346 vuelos**.
 
 ### Campos derivados al generar cada `scheduled_flight`
 - `arrival_date` = `departure_date` + duración estimada (puede ser un valor fijo razonable por tipo de ruta
@@ -184,5 +199,6 @@ Rango de fechas: **2026-11-19 → 2027-01-31** (inclusive), 74 días.
 3. `luggage_type`.
 4. `roles` + `role_permissions` + usuarios de prueba (`ADMIN`, `ADMIN_VIEWER`). `ADMIN`: `flights:read`, `flights:manage`, `dashboard:read`; `ADMIN_VIEWER`: `flights:read`, `dashboard:read`.
 5. `flight_routes` (se derivan de las combinaciones de aeropuertos que usan los vuelos del paso 6).
-6. `scheduled_flights` + `flights_seat_availability` (el paso más pesado; generar en lotes con
-   `createMany` de Prisma, no fila por fila, para que el seed corra en segundos y no en minutos).
+6. `scheduled_flights` (en lotes con `createMany`) + `flights_seat_availability` (el paso más pesado: millones de
+   filas; se generan dentro de Postgres con `INSERT … SELECT … unnest(plano de la aeronave)`, por aeronave y en
+   bloques de 300 vuelos).

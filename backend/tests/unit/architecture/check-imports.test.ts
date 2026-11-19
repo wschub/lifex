@@ -128,6 +128,12 @@ describe("checkImports", () => {
       expect(rulesOf(file, `import type { PrismaClient } from "${specifier}";`)).toEqual(["R6"]);
     });
 
+    it("permite que lo importen los scripts de arranque de src/cli (el seed usa Prisma directo)", () => {
+      const source = 'import { PrismaClient } from "../generated/prisma/client.ts";';
+      expect(rulesOf("src/cli/seed.ts", source)).toEqual([]);
+      expect(rulesOf("src/shared/scheduler.ts", source)).toEqual(["R6"]);
+    });
+
     it("rechaza que lo importen shared, app.ts o main.ts", () => {
       const source = (path: string) => `import { PrismaClient } from "${path}";`;
 

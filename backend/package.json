@@ -18,7 +18,8 @@
     "db:migrate": "prisma migrate deploy",
     "admin:create": "tsx --env-file=.env src/cli/create-admin.ts",
     "admin:create:prod": "node --env-file-if-exists=.env dist/cli/create-admin.js",
-    "db:seed": "tsx --env-file=.env prisma/seed.ts"
+    "db:seed": "tsx --env-file=.env src/cli/seed.ts",
+    "db:seed:prod": "node --env-file-if-exists=.env dist/cli/seed.js"
   },
   "type": "module",
   "devDependencies": {

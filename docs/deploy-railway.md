@@ -82,9 +82,23 @@ Servicio de plantilla de Railway: no requiere configuración. Usa `${{Postgres.D
    - Variables: `BACKEND_INTERNAL_URL=http://backend.railway.internal:8080`.
    - Settings → Networking → **Generate Domain** (o dominio propio). Ese dominio es el único público.
 4. **Vuelve al backend** y fija `CORS_ORIGINS`, `APP_URL` y `PUBLIC_API_URL` con el dominio generado (sin barra final, con `https://`). Redespliega.
-5. **Datos iniciales.** La imagen de producción no trae el seed (usa `tsx`):
-   - Super admin: `railway run --service backend` no llega a la red privada; usa `railway ssh --service backend` y ahí `ADMIN_PASSWORD=… node dist/cli/create-admin.js --email … --first-name … --last-name …`.
-   - Datos de demostración (vuelos, usuarios `admin@lifex.test` y `viewer@lifex.test`): desde tu equipo, con el Postgres en su URL pública (`DATABASE_PUBLIC_URL`): `cd backend && DATABASE_URL=<url pública> npm run db:seed`. No lo hagas en un entorno real con datos.
+5. **Datos iniciales.** El seed está compilado en la imagen del backend (`dist/cli/seed.js`), así que se ejecuta **dentro
+   del servicio `backend`** (consola/shell de Railway o `railway ssh --service backend`), donde `DATABASE_URL` ya apunta a
+   la red privada. Es idempotente: se puede repetir sin duplicar.
+   ```bash
+   # catálogo (países, ciudades, aeropuertos, aeronaves, equipaje), roles y vuelos de hoy a 2027-01-31
+   node dist/cli/seed.js --no-users
+   # si el volumen de Postgres es chico, carga menos días (≈ 13 MB por día de vuelos):
+   node dist/cli/seed.js --no-users --to=2026-12-31
+   # más adelante, para ampliar el rango sin duplicar lo que ya existe:
+   node dist/cli/seed.js --no-users --from=2027-01-01 --to=2027-03-31
+   ```
+   - El rango completo son 25.540 vuelos y 4,39 millones de asientos (~0,93 GB y ~2 minutos). Comprueba el tamaño del
+     volumen de tu plan antes de cargarlo.
+   - **Usuarios:** no uses `--no-users` solo por comodidad: los usuarios de demostración (`admin@lifex.test`) traen una
+     clave que está publicada en el repositorio. En producción crea tu administrador con tu propia clave:
+     `ADMIN_PASSWORD='<clave>' node dist/cli/create-admin.js --email <correo> --first-name <nombre> --last-name <apellido>`.
+     Si de verdad quieres los dos usuarios de ejemplo, ejecuta el seed con otra clave: `SEED_PASSWORD='<clave>' node dist/cli/seed.js`.
 6. **Comprueba:** `https://<dominio>/healthz`, `https://<dominio>/api/health`, `https://<dominio>/api/config`, el login en `https://<dominio>/dashboard/login` y una compra de punta a punta.
 
 Cada servicio se redespliega solo cuando cambia su carpeta (`watchPatterns`): un cambio en `shared/` redespliega el frontend pero no el backend. Que el contrato se mantenga compatible lo comprueba la CI (la prueba de contrato del backend usa `shared/`).
@@ -96,7 +110,7 @@ docker compose up -d --build          # raíz del repo; web en http://localhost:
 # datos de demostración (solo en local): imagen de compilación del backend con tsx
 docker build -q --target build -t lifex-backend:build backend
 docker run --rm --network lifex-stack_default \
-  -e DATABASE_URL=postgresql://app:app@postgres:5432/lifex lifex-backend:build npx tsx prisma/seed.ts
+  -e DATABASE_URL=postgresql://app:app@postgres:5432/lifex lifex-backend:build npx tsx src/cli/seed.ts --to=2026-12-05
 docker compose down                   # (-v borra también la base de datos)
 ```
 

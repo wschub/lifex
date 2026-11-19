@@ -151,6 +151,8 @@ function readsConfigOutsideEntryPoints(file: string, targetPath: string): boolea
 function checkRelative(file: string, source: Location, imported: string): Rule | undefined {
   const targetPath = posix.join(posix.dirname(file), imported);
   const layerRule = checkInternal(source, locate(targetPath));
+  // Los scripts de arranque de src/cli (p. ej. el seed) usan Prisma directo, como composition.ts.
+  if (layerRule === "R6" && file.startsWith("src/cli/")) return undefined;
   if (layerRule) return layerRule;
   if (importsHttpFromCore(source, targetPath)) return "R8";
   if (readsConfigOutsideEntryPoints(file, targetPath)) return "R9";

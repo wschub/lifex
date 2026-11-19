@@ -86,7 +86,7 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [x] `GET /dashboard/flights/:id` (métricas por estado y clase) y `GET /dashboard/flights?date=`, permiso `dashboard:read`.
 
 ## 10. Seed
-- [x] `backend/prisma/seed.ts` según `docs/seed-plan.md` (`npm run db:seed`).
+- [x] `backend/src/cli/seed.ts` según `docs/seed-plan.md` (`npm run db:seed`; en producción `node dist/cli/seed.js`).
 
 ## 11. `shared/`
 - [x] Paquete `@lifex/shared` (solo código fuente TypeScript, sin build): esquemas Zod de los DTOs
