@@ -3,7 +3,9 @@ import { useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { createQueryClient } from "@/api/query-client.ts";
 import { TooltipProvider } from "@/components/ui/tooltip.tsx";
+import { AdminGuard } from "./AdminGuard.tsx";
 import { LoginPage } from "./login/LoginPage.tsx";
+import { AdminLayout } from "./layout/AdminLayout.tsx";
 import "./styles/admin.css";
 
 /**
@@ -18,7 +20,16 @@ export default function AdminApp() {
         <BrowserRouter>
           <Routes>
             <Route path="/admin/login" element={<LoginPage />} />
-            <Route path="/admin" element={<p>Panel (Tarea 13)</p>} />
+            <Route
+              path="/admin"
+              element={
+                <AdminGuard>
+                  <AdminLayout />
+                </AdminGuard>
+              }
+            >
+              <Route index element={<p>Dashboard (Tarea 14)</p>} />
+            </Route>
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>
         </BrowserRouter>

@@ -29,7 +29,7 @@ export function LoginPage() {
         setError(tx.noAccess);
         return;
       }
-      useStaffSession.getState().setSession(session.accessToken, me);
+      useStaffSession.getState().setSession(session.accessToken, me, session.expiresIn);
       await navigate("/admin");
     } catch (caught) {
       setError(isApiError(caught) && caught.code !== "NETWORK" ? caught.message : tx.networkError);
