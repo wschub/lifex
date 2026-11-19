@@ -16,7 +16,7 @@ import { Shell } from "../shell/Shell.tsx";
 import { fareOptions, farePriceUsd, MILES_PER_USD, type FareOption } from "../fares.ts";
 import { bogotaDay } from "../flight-view.ts";
 import { pickDisplayOffers } from "../offers.ts";
-import { cityImageSrc, SKY_IMAGE } from "../city-image.ts";
+import { cityImageSrc, fallbackToSky, SKY_IMAGE, useImageOrSky } from "../city-image.ts";
 
 const SKY = SKY_IMAGE;
 /** Orden de preferencia de los destinos destacados (los del prototipo). */
@@ -45,6 +45,11 @@ function ordered(
   return [...first, ...rest].slice(0, max);
 }
 
+function ChipThumb({ imageName }: { imageName: string | null | undefined }) {
+  const src = useImageOrSky(cityImageSrc(imageName));
+  return <i style={{ backgroundImage: `url(${src})` }} />;
+}
+
 function OfferCard({
   offer,
   light,
@@ -68,7 +73,12 @@ function OfferCard({
         onPick(offer);
       }}
     >
-      <img src={cityImageSrc(offer.to.cityImageName)} alt="" loading="lazy" />
+      <img
+        src={cityImageSrc(offer.to.cityImageName)}
+        alt=""
+        loading="lazy"
+        onError={fallbackToSky}
+      />
       <div className="offer-body">
         <div>
           <h3>{city}</h3>
@@ -192,12 +202,14 @@ export function Home() {
                   src={panes.a.src}
                   style={{ objectPosition: panes.a.pos }}
                   alt=""
+                  onError={fallbackToSky}
                 />
                 <img
                   className={`pane${panes.front === "b" ? "" : " is-off"}`}
                   src={panes.b.src}
                   style={{ objectPosition: panes.b.pos }}
                   alt=""
+                  onError={fallbackToSky}
                 />
                 <div className="shade" aria-hidden="true" />
                 <div className="dest-caption" hidden={!cur}>
@@ -296,7 +308,7 @@ export function Home() {
                     aria-pressed={cur === c.iata}
                     onClick={() => pick(c.iata)}
                   >
-                    <i style={{ backgroundImage: `url(${cityImageSrc(c.imageName)})` }} />
+                    <ChipThumb imageName={c.imageName} />
                     {lang === "es" ? c.nameEs : c.name}
                   </button>
                 ))}

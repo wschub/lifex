@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useLangStore } from "@/i18n/i18n.ts";
@@ -132,6 +132,17 @@ describe("Home", () => {
     expect(within(card).getByText(/−15 %/)).toBeInTheDocument();
     // priceEconomyUsd 85 (ya con la oferta) × 1.00 × 1.19 × 3300 = 333.795
     expect(within(card).getByText("COP 333.795")).toBeInTheDocument();
+  });
+
+  it("si la foto de la ciudad no existe, la tarjeta usa la imagen del cielo", async () => {
+    mockOffers([offerFlight]);
+    renderPage(<Home />);
+    const card = (await screen.findByRole("heading", { name: "Medellín", level: 3 })).closest(
+      ".offer",
+    ) as HTMLElement;
+    const img = card.querySelector("img") as HTMLImageElement;
+    fireEvent.error(img);
+    expect(img.getAttribute("src")).toBe("/img/sky.jpg");
   });
 
   it("elegir una oferta guarda ese vuelo y va a las tarifas", async () => {
