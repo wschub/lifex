@@ -145,7 +145,12 @@ export function createFrontendServer({ dist, backendUrl }) {
       },
     );
     upstream.on("timeout", () => upstream.destroy(new Error("upstream timeout")));
-    upstream.on("error", () => {
+    upstream.on("error", (error) => {
+      // Solo al log del servidor (el cliente no recibe el detalle): ENOTFOUND = nombre mal escrito,
+      // ECONNREFUSED = puerto incorrecto o backend caído.
+      console.error(
+        `proxy ${req.method} ${path} -> ${target.host}: ${error.code ?? error.message}`,
+      );
       if (!res.headersSent)
         sendJson(res, 502, { code: "BAD_GATEWAY", detail: "The API is unreachable" });
       else res.destroy();
@@ -185,7 +190,10 @@ export function createFrontendServer({ dist, backendUrl }) {
       );
       socket.end();
     });
-    upstream.on("error", () => socket.destroy());
+    upstream.on("error", (error) => {
+      console.error(`proxy WS ${path} -> ${target.host}: ${error.code ?? error.message}`);
+      socket.destroy();
+    });
     socket.on("error", () => upstream.destroy());
     upstream.end();
   }
