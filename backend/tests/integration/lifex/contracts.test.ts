@@ -97,8 +97,10 @@ describe("contratos de shared/ contra la API real", () => {
     const config = publicConfigSchema.parse(response.body);
     expect(config.iataTrm).toBe(3300);
     expect(config.taxPercentage).toBe(19);
+    expect(config.idleTimeoutMinutes).toBe(2);
     expect(Object.keys(config).sort()).toEqual([
       "iataTrm",
+      "idleTimeoutMinutes",
       "maxHeldSeatsPerSession",
       "maxSeatLockMinutes",
       "taxPercentage",

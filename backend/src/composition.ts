@@ -286,6 +286,7 @@ export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
         iataTrm: env.IATA_TRM,
         taxPercentage: env.TAX_PERCENTAGE,
         maxSeatLockMinutes: env.MAX_SEAT_LOCK_TIME,
+        idleTimeoutMinutes: env.WEB_IDLE_TIMEOUT_MINUTES,
         maxHeldSeatsPerSession: env.MAX_HELD_SEATS_PER_SESSION,
       },
     }),

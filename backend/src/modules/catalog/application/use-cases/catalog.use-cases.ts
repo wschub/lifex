@@ -37,6 +37,8 @@ export interface PublicConfig {
   iataTrm: number;
   taxPercentage: number;
   maxSeatLockMinutes: number;
+  /** Minutos de inactividad en la web antes del modal de sesión (WEB_IDLE_TIMEOUT_MINUTES). */
+  idleTimeoutMinutes: number;
   maxHeldSeatsPerSession: number;
 }
 

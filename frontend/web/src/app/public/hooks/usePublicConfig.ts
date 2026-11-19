@@ -7,6 +7,7 @@ const FALLBACK: PublicConfig = {
   iataTrm: 3300,
   taxPercentage: 19,
   maxSeatLockMinutes: 15,
+  idleTimeoutMinutes: 2,
   maxHeldSeatsPerSession: 6,
 };
 

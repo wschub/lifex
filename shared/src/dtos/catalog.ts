@@ -41,6 +41,8 @@ export const publicConfigSchema = z.object({
   /** Porcentaje de impuestos incluido en el total. */
   taxPercentage: z.number(),
   maxSeatLockMinutes: z.number(),
+  /** Minutos sin actividad en la web antes de mostrar el modal de sesión inactiva. */
+  idleTimeoutMinutes: z.number(),
   maxHeldSeatsPerSession: z.number(),
 });
 export type PublicConfig = z.infer<typeof publicConfigSchema>;

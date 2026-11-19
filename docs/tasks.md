@@ -142,8 +142,7 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [ ] **Origen y destino con autocompletar** (una vez habilitado el tab de ida y vuelta): los dos campos filtran
       mientras se escribe, por código de aeropuerto (IATA) o por nombre de ciudad, en español e inglés.
 - [ ] **Solo ida deshabilita la fecha de regreso** (una vez habilitado el tab de ida y vuelta).
-- [ ] **Solo adultos:** quitar los niños (hoy `passengerType` admite `ADULT` y `CHILD`). Es un cambio chico:
-      el selector de pasajeros y la página de pasajeros dejan solo adultos, y el backend/`shared/` rechazan `CHILD`.
+- [x] **Niños en la reserva:** se conservan (`passengerType` sigue admitiendo `ADULT` y `CHILD`); no hay cambio.
 - [ ] **Plantillas de correo nuevas** (ejemplo en la carpeta local `FRONTEND-WEB/Modal-template-mail/template-notificacion.html`, que **no** está en el repo,
       con el logo `lifex-email-logo-white.png` de esa carpeta). Reemplazan el diseño actual de
       `ticket-confirmation` y `flight-status-change` (mismo renderer `renderEmail()`). Variables del ejemplo:
@@ -154,7 +153,10 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [ ] **Modal de sesión** (ejemplo en la carpeta local `FRONTEND-WEB/Modal-template-mail/modal-sesion.html`, es/en; el modal se extrae de ahí cuando se vaya a implementar). Dos variantes:
       **sesión inactiva** (el usuario deja la web quieta y la sesión expira) y **tiempo excedido** (vence el tiempo
       para hacer la compra: `expiresAt` de la reserva y/o el bloqueo del asiento `MAX_SEAT_LOCK_TIME`). Botones
-      "Continuar" y "Ayuda". Debe aparecer en la web pública (checkout) con el mismo diseño, liberar el asiento y
+      "Continuar" y "Ayuda". Plazo de compra: `MAX_SEAT_LOCK_TIME` (15 min). Inactividad: variable
+      `WEB_IDLE_TIMEOUT_MINUTES` (2 min por ahora, ya existe y llega al navegador en `GET /config` como
+      `idleTimeoutMinutes`); el modal se dispara por inactividad en **cualquier sección** del sitio (un detector
+      global de actividad: mouse, teclado, scroll, toque). Debe aparecer en la web pública (checkout) con el mismo diseño, liberar el asiento y
       llevar de vuelta a la selección; probar los casos de borde de la Tarea 11 (bloqueo vencido en `/payment`).
 
 ## 13. Documentación final

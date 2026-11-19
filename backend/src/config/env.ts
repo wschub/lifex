@@ -77,6 +77,8 @@ const schema = z.object({
   // ── Dominio de reservas ──
   /** Minutos que dura el bloqueo temporal de un asiento. */
   MAX_SEAT_LOCK_TIME: z.coerce.number().int().min(1).max(120).default(15),
+  /** Minutos sin actividad en la web pública antes de mostrar el modal de sesión inactiva. */
+  WEB_IDLE_TIMEOUT_MINUTES: z.coerce.number().positive().max(240).default(2),
   /** Máximo de asientos que una misma sesión puede mantener bloqueados a la vez. */
   MAX_HELD_SEATS_PER_SESSION: z.coerce.number().int().min(1).max(20).default(6),
   /** Tasa de cambio USD→COP que el front usa para mostrar precios en español. */

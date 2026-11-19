@@ -124,7 +124,8 @@ npm run verify              # lint + formato + tipos + todas las pruebas + test 
 
 | Variable | Descripción | Default |
 |---|---|---|
-| `MAX_SEAT_LOCK_TIME` | Minutos que dura el bloqueo temporal de un asiento | `15` |
+| `MAX_SEAT_LOCK_TIME` | Minutos que dura el bloqueo temporal de un asiento (y el plazo de compra) | `15` |
+| `WEB_IDLE_TIMEOUT_MINUTES` | Minutos sin actividad en la web antes del modal de sesión inactiva (se entrega al navegador en `GET /config` como `idleTimeoutMinutes`) | `2` |
 | `IATA_TRM` | Tasa de cambio USD→COP para mostrar precios en español | `3300` |
 | `MAX_HELD_SEATS_PER_SESSION` | Asientos que una sesión puede mantener bloqueados a la vez | `6` |
 | `BOOKING_TOKEN_EXPIRATION_TIME` | Vigencia de la reserva en curso (token de invitado) | `45m` |
