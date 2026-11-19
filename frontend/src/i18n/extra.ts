@@ -24,6 +24,11 @@ export const extra: Bundle = {
     "e.doc": "Revisa el número de documento (4 a 20 caracteres).",
     "e.name": "Usa solo letras.",
     "booking.error": "No pudimos abrir tu reserva.",
+    "hold.left": "Tu asiento queda reservado {time} más",
+    "hold.expired": "Tu selección de asiento venció. Elige de nuevo para continuar.",
+    "seat.taken": "Ese asiento acaba de ser tomado por otra persona. Elige otro.",
+    "soon.short": "Próximamente",
+    "seat.limit": "Puedes bloquear hasta {n} asientos a la vez.",
     "offers.date": "Precios por persona, impuestos incluidos, para el {date}.",
   },
   en: {
@@ -45,6 +50,11 @@ export const extra: Bundle = {
     "e.doc": "Check the document number (4 to 20 characters).",
     "e.name": "Use letters only.",
     "booking.error": "We couldn't open your booking.",
+    "hold.left": "Your seat is held for {time} more",
+    "hold.expired": "Your seat selection expired. Pick again to continue.",
+    "seat.taken": "Someone else just took that seat. Please pick another.",
+    "soon.short": "Coming soon",
+    "seat.limit": "You can hold up to {n} seats at a time.",
     "offers.date": "Prices per person, taxes included, for {date}.",
   },
 };

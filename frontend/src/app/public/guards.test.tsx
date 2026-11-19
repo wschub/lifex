@@ -70,7 +70,7 @@ describe("redirectFor", () => {
       holder: h,
       booking,
     };
-    expect(redirectFor("payment", ready)).toBe("/customize");
+    expect(redirectFor("payment", ready)).toBe("/seats");
     expect(redirectFor("payment", { ...ready, seats: [seat] })).toBeNull();
   });
   it("la confirmación solo existe tras un pago", () => {

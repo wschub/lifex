@@ -38,7 +38,8 @@ export function redirectFor(step: WizardStep, s: Snapshot): string | null {
   if (!peopleReady || !s.booking) return "/passengers";
   if (step === "customize" || step === "seats") return null;
   const seated = s.seats.length >= s.search.pax && s.seats.slice(0, s.search.pax).every(Boolean);
-  return seated ? null : "/customize";
+  // Sin asiento (por ejemplo, venció el bloqueo) se vuelve al mapa a elegirlo de nuevo.
+  return seated ? null : "/seats";
 }
 
 /** Protege una página del asistente: redirige al paso que falta en lugar de renderizar a medias. */

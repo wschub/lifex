@@ -5,7 +5,15 @@ import { CheckoutHeader, SiteHeader } from "./Header.tsx";
 
 type ShellProps =
   | { kind: "site"; title: string; page?: "home"; children: ReactNode }
-  | { kind: "co"; title: string; step: 1 | 2 | 3 | 4; children: ReactNode; bar?: ReactNode };
+  | {
+      kind: "co";
+      title: string;
+      step: 1 | 2 | 3 | 4;
+      children: ReactNode;
+      bar?: ReactNode;
+      /** La página de asientos no lleva pie. */
+      footer?: boolean;
+    };
 
 /**
  * Cascarón de página: encabezado (de sitio o de checkout), contenido y pie. La barra de resumen
@@ -21,7 +29,9 @@ export function Shell(props: ShellProps) {
         <CheckoutHeader step={props.step} />
       )}
       {props.children}
-      <SiteFooter compact={props.kind === "co"} />
+      {props.kind === "co" && props.footer === false ? null : (
+        <SiteFooter compact={props.kind === "co"} />
+      )}
       {props.kind === "co" ? props.bar : null}
     </>
   );
