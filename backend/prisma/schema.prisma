@@ -336,6 +336,8 @@ model Order {
   /// Idioma del comprador al iniciar la reserva ("es" | "en"): define la moneda que se muestra en el correo.
   locale            String          @default("es")
   status            OrderStatus     @default(DRAFT)
+  seatsPrice        Decimal         @default(0) @db.Decimal(10, 2)
+  luggagePrice      Decimal         @default(0) @db.Decimal(10, 2)
   flightPrice       Decimal         @default(0) @db.Decimal(10, 2)
   taxes             Decimal         @default(0) @db.Decimal(10, 2)
   totalPrice        Decimal         @default(0) @db.Decimal(10, 2)

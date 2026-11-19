@@ -9,7 +9,9 @@ export interface PublicBooking {
   contactEmail: string;
   contactPhone: string | null;
   expiresAt: string;
-  /** USD. */
+  /** USD. Desglose: `flightPriceUsd = seatsPriceUsd + luggagePriceUsd`. */
+  seatsPriceUsd: number;
+  luggagePriceUsd: number;
   flightPriceUsd: number;
   taxesUsd: number;
   totalPriceUsd: number;
@@ -27,6 +29,8 @@ export function toPublicBooking(detail: BookingDetail): PublicBooking {
     contactEmail: detail.contactEmail,
     contactPhone: detail.contactPhone,
     expiresAt: detail.expiresAt.toISOString(),
+    seatsPriceUsd: detail.pricing.seatsPrice,
+    luggagePriceUsd: detail.pricing.luggagePrice,
     flightPriceUsd: detail.pricing.flightPrice,
     taxesUsd: detail.pricing.taxes,
     totalPriceUsd: detail.pricing.totalPrice,

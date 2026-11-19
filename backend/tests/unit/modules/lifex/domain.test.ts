@@ -129,6 +129,8 @@ describe("Ticket: equipaje Business solo con asiento BUSINESS", () => {
 describe("computePricing", () => {
   it("suma en centavos: asientos + equipaje + impuestos", () => {
     expect(computePricing([{ seatPriceUsd: 80, luggageFeePercentage: 15 }], 19)).toEqual({
+      seatsPrice: 80,
+      luggagePrice: 12,
       flightPrice: 92,
       taxes: 17.48,
       totalPrice: 109.48,
@@ -142,6 +144,24 @@ describe("computePricing", () => {
         0,
       ).flightPrice,
     ).toBe(0.3);
+  });
+
+  it("separa asientos y equipaje y siempre cumple flightPrice = asientos + equipaje", () => {
+    const pricing = computePricing(
+      [
+        { seatPriceUsd: 105, luggageFeePercentage: 10 },
+        { seatPriceUsd: 99.99, luggageFeePercentage: null },
+        { seatPriceUsd: 33.33, luggageFeePercentage: 15 },
+      ],
+      19,
+    );
+    expect(pricing.seatsPrice).toBe(238.32);
+    expect(pricing.luggagePrice).toBe(15.5);
+    expect(pricing.flightPrice).toBe(253.82);
+    expect(Math.round((pricing.seatsPrice + pricing.luggagePrice) * 100)).toBe(
+      Math.round(pricing.flightPrice * 100),
+    );
+    expect(computePricing([], 19).luggagePrice).toBe(0);
   });
 });
 

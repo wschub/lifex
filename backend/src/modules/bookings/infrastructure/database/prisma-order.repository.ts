@@ -56,6 +56,8 @@ export class PrismaOrderRepository implements OrderRepository {
       const { count } = await tx.order.updateMany({
         where: { id: orderId, status: "DRAFT" },
         data: {
+          seatsPrice: new Prisma.Decimal(pricing.seatsPrice),
+          luggagePrice: new Prisma.Decimal(pricing.luggagePrice),
           flightPrice: new Prisma.Decimal(pricing.flightPrice),
           taxes: new Prisma.Decimal(pricing.taxes),
           totalPrice: new Prisma.Decimal(pricing.totalPrice),
@@ -107,6 +109,8 @@ export class PrismaOrderRepository implements OrderRepository {
       contactPhone: row.contactPhone,
       expiresAt: row.expiresAt,
       pricing: {
+        seatsPrice: Number(row.seatsPrice),
+        luggagePrice: Number(row.luggagePrice),
         flightPrice: Number(row.flightPrice),
         taxes: Number(row.taxes),
         totalPrice: Number(row.totalPrice),

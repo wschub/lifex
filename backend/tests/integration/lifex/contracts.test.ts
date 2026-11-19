@@ -142,8 +142,12 @@ describe("contratos de shared/ contra la API real", () => {
       .put(`/bookings/${booking.id}/passengers`)
       .set("Authorization", auth)
       .send(passengersBody);
-    expect(bookingResponseSchema.parse(withPassengers.body).booking.totalPriceUsd).toBeGreaterThan(
-      0,
+    const priced = bookingResponseSchema.parse(withPassengers.body).booking;
+    expect(priced.totalPriceUsd).toBeGreaterThan(0);
+    // Desglose de la compra: tiquetes + equipaje = precio del vuelo; impuestos aparte.
+    expect(priced.seatsPriceUsd).toBeGreaterThan(0);
+    expect(Math.round((priced.seatsPriceUsd + priced.luggagePriceUsd) * 100)).toBe(
+      Math.round(priced.flightPriceUsd * 100),
     );
 
     const paymentBody = requestPaymentSchema.parse({

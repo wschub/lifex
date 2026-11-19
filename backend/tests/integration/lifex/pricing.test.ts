@@ -77,6 +77,48 @@ describe("precios dinámicos (Postgres real)", () => {
     expect(priced.body.booking.flightPriceUsd).toBe(105);
   });
 
+  it("desglosa la compra: sin equipaje 0; con equipaje en un pasajero de dos suma bien", async () => {
+    const flight = await freshFlight();
+    const book = async (passengerSeats: string[], withLuggage: boolean[]) => {
+      const booking = await world.startBooking(flight.id);
+      const ids: string[] = [];
+      for (const identifier of passengerSeats) {
+        const id = await world.seatId(identifier, flight.id);
+        await world.hold(booking, id, flight.id);
+        ids.push(id);
+      }
+      const res = await world.setPassengers(
+        booking,
+        ids.map((id, index) =>
+          world.passenger(id, {
+            documentNumber: `1000000${index}`,
+            ...(withLuggage[index] ? { luggageTypeId: 1 } : {}),
+          }),
+        ),
+      );
+      expect(res.status).toBe(200);
+      return { booking, priced: res.body.booking };
+    };
+
+    const plain = await book(["02A"], [false]);
+    expect([plain.priced.seatsPriceUsd, plain.priced.luggagePriceUsd]).toEqual([105, 0]);
+    expect(plain.priced.flightPriceUsd).toBe(105);
+
+    const two = await book(["02B", "02C"], [true, false]);
+    const b = two.priced;
+    expect([b.seatsPriceUsd, b.luggagePriceUsd]).toEqual([210, 10.5]);
+    expect(Math.round((b.seatsPriceUsd + b.luggagePriceUsd) * 100)).toBe(
+      Math.round(b.flightPriceUsd * 100),
+    );
+
+    const read = await request(world.app)
+      .get(`/bookings/${two.booking.id}`)
+      .set("Authorization", two.booking.auth);
+    expect([read.body.booking.seatsPriceUsd, read.body.booking.luggagePriceUsd]).toEqual([
+      210, 10.5,
+    ]);
+  });
+
   it("tras un pago aprobado se recalculan asientos, ocupación y promedios; el segundo precio sube", async () => {
     const flight = await freshFlight();
 

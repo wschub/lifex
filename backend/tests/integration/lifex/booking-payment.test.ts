@@ -33,6 +33,7 @@ describe("reserva y pago (Postgres real)", () => {
     expect([priced.flightPriceUsd, priced.taxesUsd, priced.totalPriceUsd]).toEqual([
       115.5, 21.95, 137.45,
     ]);
+    expect([priced.seatsPriceUsd, priced.luggagePriceUsd]).toEqual([105, 10.5]);
   });
 
   it("el equipaje Business solo se acepta con un asiento BUSINESS", async () => {
