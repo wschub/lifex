@@ -6,6 +6,7 @@ import { flightQuery, ticketsQuery, bookingQuery } from "@/api/queries.ts";
 import { ErrorNotice } from "@/components/ErrorNotice.tsx";
 import { useLang } from "@/i18n/i18n.ts";
 import { formatDate } from "@/lib/dates.ts";
+import { PurchaseSummary } from "../PurchaseSummary.tsx";
 import { formatMoney } from "@/lib/money.ts";
 import { useWizard } from "@/stores/booking-wizard.ts";
 import { fareLabel, MILES_PER_USD } from "../fares.ts";
@@ -146,6 +147,18 @@ function ConfirmationContent() {
                 </article>
               ))
             : null}
+          {order.data ? (
+            <section
+              className="order"
+              aria-label={t("sum.title")}
+              style={{ position: "static", maxWidth: 880, margin: "28px auto 0" }}
+            >
+              <div className="panel">
+                <h2>{t("sum.title")}</h2>
+                <PurchaseSummary booking={order.data.booking} />
+              </div>
+            </section>
+          ) : null}
           <div style={{ textAlign: "center", marginTop: 34 }}>
             <Link className="btn btn-ghost" to="/" id="home" onClick={reset}>
               {t("home")}

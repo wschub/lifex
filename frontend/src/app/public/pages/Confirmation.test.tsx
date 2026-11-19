@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { useLangStore } from "@/i18n/i18n.ts";
 import { useWizard } from "@/stores/booking-wizard.ts";
@@ -44,6 +44,8 @@ const ORDER = {
     contactEmail: "a@b.co",
     contactPhone: null,
     expiresAt: "2026-11-21T13:00:00.000Z",
+    seatsPriceUsd: 100,
+    luggagePriceUsd: 10,
     flightPriceUsd: 110,
     taxesUsd: 20.9,
     totalPriceUsd: 130.9,
@@ -105,7 +107,16 @@ describe("Confirmation", () => {
     expect(screen.getByText("02A")).toBeInTheDocument();
     const qr = screen.getByAltText("QR LXABCDEFGH23") as HTMLImageElement;
     expect(qr.src).toContain("/tickets/LXABCDEFGH23/qr.png");
-    expect(screen.getAllByText("COP 431.970")).toHaveLength(2);
+    // El total aparece en el resumen de la compra y en el talón de cada boleto (2).
+    expect(screen.getAllByText("COP 431.970")).toHaveLength(3);
+    const summary = screen.getByRole("region", { name: /resumen de tu compra/i });
+    expect(within(summary).getByText("Precio de tiquetes").closest("div")).toHaveTextContent(
+      "COP 330.000",
+    );
+    expect(within(summary).getByText("Equipaje").closest("div")).toHaveTextContent("COP 33.000");
+    expect(within(summary).getByText("Impuestos, tasas y cargos").closest("div")).toHaveTextContent(
+      "COP 68.970",
+    );
   });
 
   it("mientras los boletos no existen muestra un aviso en vez de una página vacía", async () => {

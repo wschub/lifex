@@ -44,6 +44,8 @@ const booking = (email: string) => ({
   contactEmail: email,
   contactPhone: null,
   expiresAt: "2026-11-21T13:00:00.000Z",
+  seatsPriceUsd: 0,
+  luggagePriceUsd: 0,
   flightPriceUsd: 0,
   taxesUsd: 0,
   totalPriceUsd: 0,

@@ -12,6 +12,7 @@ import { formatMoney } from "@/lib/money.ts";
 import { useWizard } from "@/stores/booking-wizard.ts";
 import { getWsClient } from "@/ws/shared-client.ts";
 import { fareLabel } from "../fares.ts";
+import { PurchaseSummary } from "../PurchaseSummary.tsx";
 import { flightTimes } from "../flight-view.ts";
 import { RequireStep } from "../guards.tsx";
 import { useHoldCountdown } from "../hooks/useHoldCountdown.ts";
@@ -346,32 +347,7 @@ function PaymentContent() {
             <aside className="order" aria-label="Resumen">
               <div className="panel">
                 <h2>{t("o.h")}</h2>
-                <dl id="lines">
-                  {(
-                    [
-                      ["o.tickets", order?.flightPriceUsd ?? 0],
-                      ["o.taxes", order?.taxesUsd ?? 0],
-                      ["o.services", null],
-                    ] as const
-                  ).map(([key, usd]) => (
-                    <div key={key}>
-                      <dt>{t(key)}</dt>
-                      <dd className="num" style={{ margin: 0 }}>
-                        {/* El backend suma el equipaje al precio de tiquetes y no lo devuelve aparte. */}
-                        {usd === null ? t("o.services.incl") : money(usd)}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <div className="total">
-                  <div>
-                    <small style={{ maxWidth: "none" }}>{t("o.total")}</small>
-                    <b className="num" id="tot">
-                      {money(total)}
-                    </b>
-                  </div>
-                  <small>{t("o.incl")}</small>
-                </div>
+                <PurchaseSummary booking={order} />
                 <div className="sel">
                   <h3>{t("o.sel")}</h3>
                   <div id="mini">

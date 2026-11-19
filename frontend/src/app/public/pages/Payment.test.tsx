@@ -40,7 +40,7 @@ const FLIGHT = {
   availableByClass: { economy: 6, business: 2 },
   soldOut: false,
 };
-const order = (status: string, payment: { status: string } | null = null) => ({
+const order = (status: string, payment: { status: string } | null = null, luggageUsd = 0) => ({
   booking: {
     id: BOOKING_ID,
     orderNumber: "LX-1",
@@ -50,6 +50,8 @@ const order = (status: string, payment: { status: string } | null = null) => ({
     contactEmail: "a@b.co",
     contactPhone: null,
     expiresAt: "2026-11-21T13:00:00.000Z",
+    seatsPriceUsd: 110 - luggageUsd,
+    luggagePriceUsd: luggageUsd,
     flightPriceUsd: 110,
     taxesUsd: 20.9,
     totalPriceUsd: 130.9,
@@ -185,12 +187,23 @@ describe("Payment", () => {
     expect(screen.getByText("COP 68.970")).toBeInTheDocument(); // 20,9 × 3300 (impuestos)
   });
 
-  it("el equipaje va dentro del precio de tiquetes: no se inventa un valor de servicios", async () => {
+  it("sin equipaje no muestra la línea de equipaje ni «Precio de servicios»", async () => {
     setup();
     await screen.findAllByText("COP 431.970");
-    const services = screen.getByText("Precio de servicios").closest("div") as HTMLElement;
-    expect(services).toHaveTextContent("Incluido en tiquetes");
-    expect(services).not.toHaveTextContent("COP");
+    expect(screen.queryByText("Equipaje")).toBeNull();
+    expect(screen.queryByText("Precio de servicios")).toBeNull();
+    expect(screen.queryByText(/incluido en tiquetes/i)).toBeNull();
+  });
+
+  it("con equipaje muestra tiquetes, equipaje, impuestos y total con los valores de la reserva", async () => {
+    bookingState = order("DRAFT", null, 10);
+    setup();
+    await screen.findAllByText("COP 431.970");
+    const line = (label: string) => screen.getByText(label).closest("div") as HTMLElement;
+    expect(line("Precio de tiquetes")).toHaveTextContent("COP 330.000"); // 100 × 3300
+    expect(line("Equipaje")).toHaveTextContent("COP 33.000"); // 10 × 3300
+    expect(line("Impuestos, tasas y cargos")).toHaveTextContent("COP 68.970"); // 20,9 × 3300
+    // 330.000 + 33.000 + 68.970 = 431.970 = total de la reserva
   });
 
   it("doble clic en Pagar envía una sola petición y no guarda la tarjeta en el navegador", async () => {
