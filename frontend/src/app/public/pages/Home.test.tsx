@@ -13,22 +13,22 @@ const city = (
   nameEs: string,
   iata: string,
   country: string,
-  imageUrl: string | null,
+  imageName: string | null,
 ) => ({
   id,
   name,
   nameEs,
   countryIsoCode: country,
-  imageUrl,
+  imageName,
   airports: [{ id, iataCode: iata }],
 });
 
 const CITIES = {
   cities: [
-    city(1, "Bogotá", "Bogotá", "BOG", "CO", "/img/destinations/bogota.jpg"),
-    city(2, "Medellín", "Medellín", "MDE", "CO", "/img/destinations/medellin.jpg"),
+    city(1, "Bogotá", "Bogotá", "BOG", "CO", "bogota.jpg"),
+    city(2, "Medellín", "Medellín", "MDE", "CO", "medellin.jpg"),
     city(3, "Pereira", "Pereira", "PEI", "CO", null),
-    city(4, "London", "Londres", "LHR", "GB", "/img/destinations/london.jpg"),
+    city(4, "London", "Londres", "LHR", "GB", "london.jpg"),
   ],
 };
 
@@ -68,7 +68,7 @@ describe("Home", () => {
     await waitFor(() => expect(within(strip).getAllByRole("button").length).toBe(2));
     const medellin = within(strip).getByRole("button", { name: "Medellín" });
     expect((medellin.querySelector("i") as HTMLElement).style.backgroundImage).toContain(
-      "/img/destinations/medellin.jpg",
+      "medellin.jpg",
     );
     // Pereira no tiene imagen: no es destino destacado
     expect(within(strip).queryByRole("button", { name: "Pereira" })).toBeNull();

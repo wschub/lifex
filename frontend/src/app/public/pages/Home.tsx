@@ -11,8 +11,9 @@ import { usePublicConfig } from "../hooks/usePublicConfig.ts";
 import { Icon } from "../shell/Icon.tsx";
 import { Shell } from "../shell/Shell.tsx";
 import { MILES_PER_USD } from "../fares.ts";
+import { cityImageSrc, SKY_IMAGE } from "../city-image.ts";
 
-const SKY = "/img/sky.jpg";
+const SKY = SKY_IMAGE;
 /** Orden de preferencia de los destinos destacados (los del prototipo). */
 const DEST_ORDER = ["LHR", "MAD", "MIA", "CTG", "MDE", "SAI"];
 const OFFER_ORDER = ["CTG", "MIA", "MAD", "LHR", "SAI"];
@@ -34,7 +35,7 @@ function ordered(
   exclude: string,
   max: number,
 ): AirportEntry[] {
-  const withImage = entries.filter((e) => e.imageUrl && e.iata !== exclude);
+  const withImage = entries.filter((e) => e.imageName && e.iata !== exclude);
   const first = order.flatMap((iata) => withImage.filter((e) => e.iata === iata));
   const rest = withImage.filter((e) => !order.includes(e.iata));
   return [...first, ...rest].slice(0, max);
@@ -54,7 +55,7 @@ function OfferCard({
   const { priceUsd } = useLowestPrice(ORIGIN, entry.iata, date);
   return (
     <a className="offer" href="#buscar" onClick={() => onPick(entry.iata)}>
-      <img src={entry.imageUrl ?? SKY} alt="" loading="lazy" />
+      <img src={cityImageSrc(entry.imageName)} alt="" loading="lazy" />
       <div className="offer-body">
         <div>
           <h3>{lang === "es" ? entry.nameEs : entry.name}</h3>
@@ -112,7 +113,7 @@ export function Home() {
     setCur(next);
     if (next) {
       setTo(next === from ? "" : next);
-      windowTo(byIata.get(next)?.imageUrl ?? SKY, POS[next]);
+      windowTo(cityImageSrc(byIata.get(next)?.imageName), POS[next]);
     } else {
       setTo("");
       windowTo(SKY);
@@ -271,7 +272,7 @@ export function Home() {
                     aria-pressed={cur === c.iata}
                     onClick={() => pick(c.iata)}
                   >
-                    <i style={{ backgroundImage: `url(${c.imageUrl})` }} />
+                    <i style={{ backgroundImage: `url(${cityImageSrc(c.imageName)})` }} />
                     {lang === "es" ? c.nameEs : c.name}
                   </button>
                 ))}

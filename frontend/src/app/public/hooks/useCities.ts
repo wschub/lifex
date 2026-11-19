@@ -8,7 +8,7 @@ export interface AirportEntry {
   name: string;
   nameEs: string;
   countryIsoCode: string;
-  imageUrl: string | null;
+  imageName: string | null;
 }
 
 /** Un registro por aeropuerto, con el nombre de su ciudad en ambos idiomas. */
@@ -22,7 +22,7 @@ export function useCities() {
           name: city.name,
           nameEs: city.nameEs,
           countryIsoCode: city.countryIsoCode,
-          imageUrl: city.imageUrl,
+          imageName: city.imageName,
         })),
       ),
     [query.data],
