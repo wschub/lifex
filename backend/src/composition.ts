@@ -64,6 +64,7 @@ import {
   DASHBOARD_PERMISSIONS,
 } from "./modules/dashboard/application/permissions.ts";
 import {
+  GetDashboardOverview,
   GetFlightDashboard,
   ListDashboardFlights,
 } from "./modules/dashboard/application/use-cases/dashboard.use-cases.ts";
@@ -348,6 +349,7 @@ export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
     authorize,
     getFlightDashboard: new GetFlightDashboard({ dashboard }),
     listDashboardFlights: new ListDashboardFlights({ dashboard, now: clock }),
+    getDashboardOverview: new GetDashboardOverview({ dashboard, now: clock }),
   });
 
   // Tiempo real: el WebSocket se suscribe a temas; los de dashboard exigen el permiso dashboard:read.

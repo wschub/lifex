@@ -24,8 +24,13 @@ export interface FlightMetrics {
 export interface DashboardFlightRow {
   flightId: string;
   status: string;
+  routeType: "DOMESTIC" | "INTERNATIONAL";
+  /** Códigos IATA de origen y destino. */
   from: string;
   to: string;
+  /** Ciudades en español, para mostrarlas en la tabla. */
+  fromCity: string;
+  toCity: string;
   departureDate: Date;
   numMaxSeats: number;
   numAvailableSeats: number;

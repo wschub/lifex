@@ -1,10 +1,11 @@
 import type { PrismaClient } from "../../../../generated/prisma/client.ts";
+import type { OverviewRaw } from "../../domain/entities/dashboard-overview.ts";
+import type { FlightMetrics, SeatCounts } from "../../domain/entities/flight-metrics.ts";
 import type {
-  DashboardFlightRow,
-  FlightMetrics,
-  SeatCounts,
-} from "../../domain/entities/flight-metrics.ts";
-import type { DashboardRepository } from "../../domain/repositories/dashboard.repository.ts";
+  DashboardRepository,
+  FlightListPage,
+  FlightListQuery,
+} from "../../domain/repositories/dashboard.repository.ts";
 
 const emptyCounts = (): SeatCounts => ({ free: 0, blocked: 0, paymentPending: 0, reserved: 0 });
 
@@ -63,22 +64,106 @@ export class PrismaDashboardRepository implements DashboardRepository {
     };
   }
 
-  async listFlights(query: { from: Date; to: Date; limit: number }): Promise<DashboardFlightRow[]> {
-    const rows = await this.prisma.scheduledFlight.findMany({
-      where: { departureDate: { gte: query.from, lt: query.to } },
-      include: { flightRoute: { include: { fromAirport: true, destinationAirport: true } } },
-      orderBy: { departureDate: "asc" },
-      take: query.limit,
-    });
-    return rows.map((row) => ({
-      flightId: row.id,
-      status: row.status,
-      from: row.flightRoute.fromAirport.iataCode,
-      to: row.flightRoute.destinationAirport.iataCode,
-      departureDate: row.departureDate,
-      numMaxSeats: row.numMaxSeats,
-      numAvailableSeats: row.numAvailableSeats,
-      occupancyRate: Number(row.occupancyRate),
-    }));
+  async overview(range: { from: Date; to: Date }): Promise<OverviewRaw> {
+    const departure = { gte: range.from, lt: range.to };
+    const [flights, seatGroups, revenue, tickets] = await this.prisma.$transaction([
+      this.prisma.scheduledFlight.findMany({
+        where: { departureDate: departure },
+        select: {
+          status: true,
+          departureDate: true,
+          numMaxSeats: true,
+          numAvailableSeats: true,
+          flightRoute: { select: { routeType: true } },
+        },
+      }),
+      this.prisma.flightSeat.groupBy({
+        by: ["seatClass", "seatStatus"],
+        where: { scheduledFlight: { departureDate: departure } },
+        _count: { _all: true },
+        orderBy: [{ seatClass: "asc" }, { seatStatus: "asc" }],
+      }),
+      this.prisma.order.aggregate({
+        where: { status: "CONFIRMED", scheduledFlight: { departureDate: departure } },
+        _sum: { totalPrice: true },
+      }),
+      this.prisma.ticket.count({
+        where: {
+          passenger: {
+            order: { status: "CONFIRMED", scheduledFlight: { departureDate: departure } },
+          },
+        },
+      }),
+    ]);
+    return {
+      flights: flights.map((flight) => ({
+        status: flight.status,
+        routeType: flight.flightRoute.routeType,
+        departureDate: flight.departureDate,
+        numMaxSeats: flight.numMaxSeats,
+        numAvailableSeats: flight.numAvailableSeats,
+      })),
+      classSeats: seatGroups.map((group) => ({
+        seatClass: group.seatClass,
+        status: group.seatStatus,
+        count: group._count._all,
+      })),
+      sales: { tickets, revenueUsd: Number(revenue._sum.totalPrice ?? 0) },
+    };
+  }
+
+  async listFlights(query: FlightListQuery): Promise<FlightListPage> {
+    const where = {
+      ...(query.from || query.to
+        ? {
+            departureDate: {
+              ...(query.from ? { gte: query.from } : {}),
+              ...(query.to ? { lt: query.to } : {}),
+            },
+          }
+        : {}),
+      ...(query.origin || query.destination
+        ? {
+            flightRoute: {
+              ...(query.origin ? { fromAirport: { iataCode: query.origin } } : {}),
+              ...(query.destination ? { destinationAirport: { iataCode: query.destination } } : {}),
+            },
+          }
+        : {}),
+    };
+    const [total, rows] = await this.prisma.$transaction([
+      this.prisma.scheduledFlight.count({ where }),
+      this.prisma.scheduledFlight.findMany({
+        where,
+        include: {
+          flightRoute: {
+            include: {
+              fromAirport: { include: { city: true } },
+              destinationAirport: { include: { city: true } },
+            },
+          },
+        },
+        // El id desempata las salidas a la misma hora: la paginación no repite ni salta filas.
+        orderBy: [{ departureDate: "asc" }, { id: "asc" }],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+      }),
+    ]);
+    return {
+      total,
+      rows: rows.map((row) => ({
+        flightId: row.id,
+        status: row.status,
+        routeType: row.flightRoute.routeType,
+        from: row.flightRoute.fromAirport.iataCode,
+        to: row.flightRoute.destinationAirport.iataCode,
+        fromCity: row.flightRoute.fromAirport.city.nameEs,
+        toCity: row.flightRoute.destinationAirport.city.nameEs,
+        departureDate: row.departureDate,
+        numMaxSeats: row.numMaxSeats,
+        numAvailableSeats: row.numAvailableSeats,
+        occupancyRate: Number(row.occupancyRate),
+      })),
+    };
   }
 }

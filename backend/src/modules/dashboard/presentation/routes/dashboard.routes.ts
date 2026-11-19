@@ -15,6 +15,7 @@ export function createDashboardRouter(deps: DashboardRouterDeps): Router {
   const controller = createDashboardController(deps);
   const read = [deps.authenticate, deps.authorize(DASHBOARD_PERMISSION.read)];
 
+  router.get("/dashboard/overview", read, controller.overview);
   router.get("/dashboard/flights", read, controller.list);
   router.get("/dashboard/flights/:id", read, controller.flight);
 
