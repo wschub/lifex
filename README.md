@@ -35,8 +35,9 @@ tareas de implementación, en [`docs/tasks.md`](docs/tasks.md); el plan de datos
 ```
 lifex/
 ├── backend/              # API — Express, arquitectura hexagonal por módulos
+│   └── src/shared/notifications/templates/   # plantillas de correo (HTML + texto plano)
 ├── frontend/             # React — web pública + dashboard admin
-├── shared/               # Esquemas Zod de DTOs y catálogo de eventos de WebSocket
+├── shared/               # @lifex/shared — esquemas Zod de DTOs y catálogo de eventos de WebSocket
 ├── docs/
 │   ├── architecture.md
 │   ├── user-stories-acceptance-criteria.md
@@ -48,26 +49,38 @@ lifex/
 
 ## Ejecución local
 
-> Instrucciones a confirmar/ajustar una vez el código esté implementado; reflejan los scripts ya existentes
-> en el scaffold base del backend.
+> El backend está implementado y probado; el frontend está pendiente.
 
 ### Requisitos
 - Node.js (versión del `.nvmrc`/`engines` del backend)
 - Docker (para PostgreSQL vía Testcontainers en las pruebas de integración, o para levantar Postgres local)
 - Una cuenta de Brevo con API key (opcional — sin ella, el envío de correo queda en modo log)
 
+### Shared
+
+```bash
+cd shared
+npm install      # el backend lo usa en sus pruebas de contrato (y el frontend, con un alias)
+npm run typecheck
+```
+
 ### Backend
 
 ```bash
 cd backend
-cp .env.example .env        # completar DATABASE_URL, JWT_ACCESS_SECRET, MAX_SEAT_LOCK_TIME, IATA_TRM, etc.
+cp .env.example .env        # completar JWT_ACCESS_SECRET (≥ 32 caracteres) y, opcional, BREVO_API_KEY
+docker compose up -d --wait postgres   # PostgreSQL en 127.0.0.1:55432, base "lifex"
 npm install
 npm run db:migrate
 npm run db:generate
-npm run db:seed             # ver docs/seed-plan.md
+npm run db:seed             # catálogo, roles, usuarios y vuelos; ver docs/seed-plan.md
 npm run admin:create        # usuario SUPER_ADMIN inicial, si hace falta
-npm run dev
+npm run dev                 # API en http://localhost:3000 y WebSocket en ws://localhost:3000/ws
 ```
+
+Usuarios del seed: `admin@lifex.test` y `viewer@lifex.test`, contraseña `Lifex-Demo-2026!`.
+Tarjetas de prueba: `4242 4242 4242 4242` (aprobada), `4000 0000 0000 0002` (rechazada),
+`4000 0000 0000 9995` (timeout de la pasarela).
 
 ### Frontend
 
@@ -93,7 +106,16 @@ npm run verify              # lint + formato + tipos + todas las pruebas + test 
 |---|---|---|
 | `MAX_SEAT_LOCK_TIME` | Minutos que dura el bloqueo temporal de un asiento | `15` |
 | `IATA_TRM` | Tasa de cambio USD→COP para mostrar precios en español | `3300` |
-| `BREVO_API_KEY` | API key para el envío del ticket por correo | — |
+| `MAX_HELD_SEATS_PER_SESSION` | Asientos que una sesión puede mantener bloqueados a la vez | `6` |
+| `BOOKING_TOKEN_EXPIRATION_TIME` | Vigencia de la reserva en curso (token de invitado) | `45m` |
+| `TAX_PERCENTAGE` | Impuestos sobre el precio del vuelo | `19` |
+| `OUTBOX_MAX_ATTEMPTS` | Reintentos de un evento del outbox (pago, correo) antes de darlo por fallido | `5` |
+| `BREVO_API_KEY` | API key de Brevo para los correos (boleto y aviso de vuelo). Sin ella solo se registra en el log | — |
+| `BREVO_SENDER_EMAIL` / `BREVO_SENDER_NAME` | Remitente de los correos (debe estar verificado en Brevo) | `no-reply@lifex.test` / `Lifex` |
+| `PUBLIC_API_URL` | URL pública de la API; los correos enlazan allí la imagen QR del ticket | `http://localhost:3000` |
+
+Otras piezas: los correos (confirmación de boleto, un correo por ticket, y aviso de vuelo cancelado o
+retrasado, un correo por orden) se detallan en [`docs/architecture.md`](docs/architecture.md) §4.4.1–4.4.2.
 
 Las demás variables (conexión a base de datos, secretos de JWT, duración de tokens, CORS) siguen la
 convención ya existente del backend; ver `backend/.env.example`.

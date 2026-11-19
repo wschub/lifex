@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lifex — Elige tu tarifa</title>
+<link rel="icon" href="assets/logo/lifex-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/lifex.css">
+</head>
+<body data-page="fares">
+<header id="shell-header"></header>
+<main id="main" class="co-main">
+  <div class="wrap">
+    <a class="back-link" href="resultados.html"><span id="backIco"></span><span data-i18n="back.results"></span></a>
+    <h1 class="co-title" data-i18n="title"></h1>
+    <p class="co-sub" data-i18n="sub"></p>
+
+    <div class="flight-card" style="margin-bottom:28px" id="flight"></div>
+
+    <div style="text-align:center"><div class="cabin-toggle" role="group" data-i18n-aria="cabin.aria">
+      <button type="button" id="tEco" aria-pressed="true" data-i18n="cabin.economy"></button>
+      <button type="button" id="tBiz" aria-pressed="false" data-i18n="cabin.business"></button>
+    </div></div>
+
+    <div class="fare-panel" id="panel"></div>
+  </div>
+</main>
+<footer id="shell-footer"></footer>
+
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  LX.add({
+    es: {
+      "back.results": "Volver a los vuelos", title: "Elige tu tarifa", sub: "El precio incluye impuestos y cargos. Puedes cambiar de cabina en cualquier momento.", "cabin.aria": "Cabina",
+      "rec": "Recomendada", full: "La más completa", "choose": "Elegir {price}",
+      "i.personal": "1 artículo personal (bajo el asiento)", "i.carry": "1 equipaje de mano (10 kg)", "i.bag": "1 equipaje de bodega (23 kg)", "i.bag2": "2 equipajes de bodega (32 kg)",
+      "i.checkin": "Check-in en aeropuerto", "i.seatE": "Asiento Economy", "i.seatP": "Asiento Plus (sujeto a disponibilidad)", "i.seatB": "Asiento Business flatbed",
+      "i.meal": "Menú a bordo", "i.menuB": "Menú de alta cocina", "i.miles3": "3 millas lifexperience por USD", "i.miles6": "6 millas lifexperience por USD", "i.miles8": "8 millas lifexperience por USD", "i.miles10": "10 millas lifexperience por USD",
+      "i.change": "Cambios (antes del vuelo)", "i.refund": "Reembolsos (antes del vuelo)", "i.priority": "Servicio prioritario", "i.lounge": "Salas VIP (sujeto a disponibilidad)",
+      "biz.h": "Business", "biz.p": "Una experiencia con más confort, menú de alta cocina y atención preferencial. La experiencia puede variar según el vuelo.",
+      "biz.n": "Imagen de referencia", "per": "Precio por pasajero"
+    },
+    en: {
+      "back.results": "Back to flights", title: "Choose your fare", sub: "The price includes taxes and charges. You can switch cabins at any time.", "cabin.aria": "Cabin",
+      "rec": "Recommended", full: "Most complete", "choose": "Choose {price}",
+      "i.personal": "1 personal item (under the seat)", "i.carry": "1 carry-on bag (10 kg)", "i.bag": "1 checked bag (23 kg)", "i.bag2": "2 checked bags (32 kg)",
+      "i.checkin": "Airport check-in", "i.seatE": "Economy seat", "i.seatP": "Plus seat (subject to availability)", "i.seatB": "Business flatbed seat",
+      "i.meal": "Onboard meal", "i.menuB": "Fine-dining menu", "i.miles3": "3 lifexperience miles per USD", "i.miles6": "6 lifexperience miles per USD", "i.miles8": "8 lifexperience miles per USD", "i.miles10": "10 lifexperience miles per USD",
+      "i.change": "Changes (before the flight)", "i.refund": "Refunds (before the flight)", "i.priority": "Priority service", "i.lounge": "VIP lounges (subject to availability)",
+      "biz.h": "Business", "biz.p": "An experience with more comfort, a fine-dining menu and preferential service. The experience may vary by flight.",
+      "biz.n": "Reference image", "per": "Price per passenger"
+    }
+  });
+  LX.init({ kind: "co", step: 1 });
+  var S = LX.state(), $ = function (id) { return document.getElementById(id); }, cabin = S.cabin === "business" ? "business" : "economy";
+
+
+  function li(a) { return '<li class="' + (a[1] ? "" : "no") + '">' + LX.ico(a[2]) + "<span>" + LX.t(a[0]) + "</span></li>"; }
+  function flightCard() {
+    var info = LX.routeInfo(S.from, S.to), ft = LX.flightTimes(S.depTime || info.dep, info.dur, info.tz);
+    $("flight").innerHTML = '<div class="flight-main"><div class="fl-time num">' + ft.dep + "<small>" + S.from + '</small></div><div class="fl-line"><b>' + LX.t("direct") + "</b> · " + LX.dur(info.dur) + '<div class="track">' + LX.ico("plane") + "</div>" + LX.t("operated") + '</div><div class="fl-time num" style="text-align:right">' + ft.arr + (ft.next ? '<sup style="font:500 13px var(--font-text);color:var(--gray);margin-left:4px">' + LX.t("next.day") + "</sup>" : "") + "<small>" + S.to + "</small></div></div>" +
+      '<div class="flight-price"><small>' + LX.t("from") + '</small><span class="price num">' + LX.money(LX.farePrice("light", S)) + "</span></div>";
+  }
+  function panel() {
+    $("tEco").setAttribute("aria-pressed", cabin === "economy"); $("tBiz").setAttribute("aria-pressed", cabin === "business");
+    var h = "";
+    if (cabin === "economy") {
+      h = '<div class="fare-grid econ">' + ["light", "classic", "flex"].map(function (id) {
+        return '<div class="fare' + (id === "classic" ? " featured" : "") + '" data-f="' + id + '">' + (id === "classic" ? '<span class="tag">' + LX.t("rec") + "</span>" : "") +
+          "<h3>" + LX.t("fare." + id) + "</h3><ul>" + LX.fareItems(id).map(li).join("") + '</ul><div class="price-row"><button type="button" class="btn ' + (id === "classic" ? "btn-primary" : "btn-dark") + '">' + LX.t("choose", { price: LX.money(LX.farePrice(id, S)) }) + "</button><small class=\"per\">" + LX.t("per") + "</small></div></div>";
+      }).join("") + "</div>";
+    } else {
+      h = '<div class="biz-intro"><div class="pic"><img src="assets/img/business-seat.jpg" alt=""></div><div class="copy"><h3>' + LX.t("biz.h") + "</h3><p>" + LX.t("biz.p") + ' <span style="color:var(--gray);font-size:13.5px">(' + LX.t("biz.n") + ")</span></p></div></div>" +
+        '<div class="fare-grid biz">' + ["elite", "royal"].map(function (id) {
+          return '<div class="fare biz-fare' + (id === "royal" ? " featured" : "") + '" data-f="' + id + '">' + (id === "royal" ? '<span class="tag">' + LX.t("full") + "</span>" : "") + "<h3>Business " + LX.t("fare." + id) + "</h3><ul>" + LX.fareItems(id).map(li).join("") + '</ul><div class="price-row"><button type="button" class="btn">' + LX.t("choose", { price: LX.money(LX.farePrice(id, S)) }) + '</button><small class="per">' + LX.t("per") + "</small></div></div>";
+        }).join("") + "</div>";
+    }
+    $("panel").innerHTML = h;
+    $("panel").querySelectorAll(".fare").forEach(function (b) {
+      b.addEventListener("click", function () { var id = b.getAttribute("data-f"); LX.save({ fare: id, cabin: LX.FARES[id].cab, seat: null }); location.href = "resumen.html"; });
+    });
+  }
+  $("backIco").innerHTML = LX.ico("arrow-left");
+  $("tEco").addEventListener("click", function () { cabin = "economy"; panel(); });
+  $("tBiz").addEventListener("click", function () { cabin = "business"; panel(); });
+  LX.onLang(function () { flightCard(); panel(); LX.apply(); });
+})();
+</script>
+</body>
+</html>

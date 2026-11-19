@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lifex — Selección de asientos (business)</title>
+<link rel="icon" href="assets/logo/lifex-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/lifex.css">
+</head>
+<body data-page="seats-business">
+<header id="shell-header"></header>
+<main id="main" class="seat-page" style="display:block">
+  <div class="seat-top"><div class="wrap">
+    <h1 id="title"></h1>
+    <div class="leg-tabs" role="tablist"><button type="button" role="tab" aria-selected="true" id="tab"></button></div>
+  </div></div>
+  <div class="seat-body">
+    <section aria-label="Pasajeros"><div id="pax" class="stack"></div><div class="legend" id="legend"></div></section>
+    <section aria-label="Mapa de la cabina"><div class="cabin-shell biz seats-recede" id="map"></div></section>
+    <aside class="side-info" id="side" aria-live="polite"></aside>
+  </div>
+  <div class="seat-foot" id="sfoot"></div>
+  <div class="seat-tip" id="tip" role="status"></div>
+  <div class="sr-only" id="live" aria-live="polite"></div>
+</main>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/seats.js"></script>
+<script>LXSeats.init("business");</script>
+</body>
+</html>

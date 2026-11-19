@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lifex — The best experience, always.</title>
+<meta name="description" content="lifex, la nueva aerolínea premium de Colombia. Busca tu vuelo y mira tu destino desde tu ventanilla.">
+<link rel="icon" href="assets/logo/lifex-icon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/Jost-Variable.ttf" as="font" type="font/ttf" crossorigin>
+<link rel="stylesheet" href="assets/css/lifex.css">
+</head>
+<body data-page="home">
+<header id="shell-header"></header>
+
+<main id="main">
+  <section class="hero" aria-labelledby="h1">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1 id="h1" data-i18n-html="h1"></h1>
+        <p class="lede" data-i18n="lede"></p>
+      </div>
+      <div class="hero-window" aria-hidden="false">
+        <div class="window" role="img" id="win" data-i18n-aria="win.alt">
+          <img class="pane" id="paneA" src="assets/img/sky.jpg" alt="">
+          <img class="pane is-off" id="paneB" src="assets/img/sky.jpg" alt="">
+          <div class="shade" aria-hidden="true"></div>
+          <div class="dest-caption" id="caption" hidden><b id="capCity"></b><span id="capPrice"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap" id="buscar">
+      <form class="search-dock" id="searchForm" novalidate aria-label="Buscar vuelos">
+        <div class="trip-toggle" role="group" aria-label="Tipo de viaje">
+          <button type="button" aria-pressed="false" disabled data-i18n="trip.rt" data-i18n-title="soon"></button>
+          <button type="button" aria-pressed="true" data-i18n="trip.ow"></button>
+        </div>
+        <div class="search-row">
+          <div class="field" id="fFrom"><label for="from" data-i18n="f.from"></label><select id="from" name="from"></select></div>
+          <div class="field" id="fTo"><label for="to" data-i18n="f.to"></label><select id="to" name="to"></select><span class="err-msg" data-i18n="err.to"></span></div>
+          <div class="field"><label for="dep" data-i18n="f.dep"></label><input id="dep" name="dep" type="date" min="2026-11-18" value="2026-11-24"></div>
+          <div class="field"><label for="pax" data-i18n="f.pax"></label><select id="pax" name="pax"></select></div>
+          <button class="btn btn-primary" type="submit"><span data-i18n="search"></span></button>
+        </div>
+        <div class="dest-strip" id="chips"><span data-i18n="see"></span></div>
+      </form>
+    </div>
+  </section>
+
+  <section class="section" id="ofertas" aria-labelledby="h-offers">
+    <div class="wrap">
+      <div class="section-head">
+        <div><h2 id="h-offers" data-i18n="offers.h"></h2><p data-i18n="offers.p"></p></div>
+        <span class="sample-note" data-i18n="sample"></span>
+      </div>
+      <div class="offers" id="offers"></div>
+    </div>
+  </section>
+
+  <section class="section promise" aria-labelledby="h-promise">
+    <div class="wrap promise-grid">
+      <h2 id="h-promise" data-i18n="promise.h"></h2>
+      <ul class="promise-list">
+        <li><span class="win-ico" aria-hidden="true"></span><div><h3 data-i18n="p1.h"></h3><p data-i18n="p1.p"></p></div></li>
+        <li><span class="win-ico" aria-hidden="true"></span><div><h3 data-i18n="p2.h"></h3><p data-i18n="p2.p"></p></div></li>
+        <li><span class="win-ico" aria-hidden="true"></span><div><h3 data-i18n="p3.h"></h3><p data-i18n="p3.p"></p></div></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="h-cabins">
+    <div class="wrap">
+      <div class="section-head"><div><h2 id="h-cabins" data-i18n="cabins.h"></h2></div></div>
+      <div class="cabins">
+        <article class="cabin"><img src="assets/img/economy-cabin.jpg" alt="" loading="lazy"><div><h3>Economy</h3><p data-i18n="cabin.e"></p></div></article>
+        <article class="cabin"><img src="assets/img/business-seat.jpg" alt="" loading="lazy"><div><h3>Business</h3><p data-i18n="cabin.b"></p></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="lifexperience" style="padding-top:0">
+    <div class="wrap">
+      <div class="lifexp">
+        <div><h2 data-i18n="lx.h"></h2><p data-i18n="lx.p"></p><a class="btn btn-primary" href="#" data-i18n="lx.cta"></a></div>
+        <ul class="earn" id="earn" aria-label="lifexperience"></ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="shell-footer"></footer>
+
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  LX.add({
+    es: {
+      h1: "La mejor experiencia, <em>siempre.</em>", lede: "Cada destino se ve mejor desde tu ventanilla. Busca tu vuelo y elige tu asiento antes de pagar.",
+      "trip.rt": "Ida y vuelta", "trip.ow": "Solo ida", soon: "Próximamente",
+      "f.from": "Origen", "f.to": "Destino", "f.dep": "Salida", "f.pax": "Pasajeros", search: "Buscar vuelos", see: "Mira desde tu ventanilla:",
+      "to.ph": "¿A dónde viajas?", "err.to": "Elige un destino.", "pax.n1": "1 adulto", "pax.n": "{n} adultos",
+      "offers.h": "Ofertas desde Bogotá", "offers.p": "Precios por persona, impuestos incluidos, para el 24 de noviembre.",
+      "from.price": "Desde", "oneway": "Solo ida",
+      "promise.h": "La ventanilla es para todos.",
+      "p1.h": "El precio que ves es el que pagas", "p1.p": "Los impuestos y cargos están incluidos desde la primera pantalla. El total te acompaña en cada paso.",
+      "p2.h": "Elige tu asiento antes de pagar", "p2.p": "Mira el mapa de la cabina, compara zonas y decide con calma. Sin sorpresas en el aeropuerto.",
+      "p3.h": "Premium en cada cabina", "p3.p": "Economy y Business comparten la misma promesa: un viaje cuidado de principio a fin.",
+      "cabins.h": "Dos cabinas, una misma promesa", "cabin.e": "Tres tarifas (Light, Classic y Flex) para viajar como prefieras.", "cabin.b": "Asiento flatbed, servicio prioritario y mucho espacio para ti.",
+      "lx.h": "lifexperience: viaja, acumula, repite.", "lx.p": "Nuestro programa de millas. Acumula millas en cada vuelo y úsalas en tu próximo destino.", "lx.cta": "Unirme a lifexperience", "lx.miles": "millas por USD", "win.alt": "Vista desde la ventanilla"
+    },
+    en: {
+      h1: "The best experience, <em>always.</em>", lede: "Every destination looks better from your window. Search your flight and pick your seat before you pay.",
+      "trip.rt": "Round trip", "trip.ow": "One way", soon: "Coming soon",
+      "f.from": "From", "f.to": "To", "f.dep": "Departure", "f.pax": "Passengers", search: "Search flights", see: "See it from your window:",
+      "to.ph": "Where to?", "err.to": "Choose a destination.", "pax.n1": "1 adult", "pax.n": "{n} adults",
+      "offers.h": "Offers from Bogotá", "offers.p": "Prices per person, taxes included, for November 24.",
+      "from.price": "From", "oneway": "One way",
+      "promise.h": "The window seat is for everyone.",
+      "p1.h": "The price you see is the price you pay", "p1.p": "Taxes and charges are included from the very first screen. Your total stays with you at every step.",
+      "p2.h": "Pick your seat before you pay", "p2.p": "See the cabin map, compare zones and decide at your own pace. No surprises at the airport.",
+      "p3.h": "Premium in every cabin", "p3.p": "Economy and Business share the same promise: a trip cared for from start to finish.",
+      "cabins.h": "Two cabins, one promise", "cabin.e": "Three fares (Light, Classic and Flex) so you travel the way you like.", "cabin.b": "Flatbed seat, priority service and plenty of space for you.",
+      "lx.h": "lifexperience: fly, earn, repeat.", "lx.p": "Our miles program. Earn miles on every flight and use them on your next destination.", "lx.cta": "Join lifexperience", "lx.miles": "miles per USD", "win.alt": "View from the window seat"
+    }
+  });
+  LX.init({ kind: "site", page: "home" });
+
+  var S = LX.state(), $ = function (id) { return document.getElementById(id); };
+  var DESTS = ["LHR", "MAD", "MIA", "CTG", "MDE", "SAI"];
+  var IMG = { LHR: "london", MAD: "madrid", MIA: "miami", CTG: "cartagena", MDE: "medellin", SAI: "sanandres", BOG: "bogota" };
+  var POS = { LHR: "50% 45%", MAD: "55% 50%", MIA: "50% 50%", CTG: "50% 50%", MDE: "50% 60%", SAI: "50% 55%" };
+  var cur = null, front = $("paneA"), back = $("paneB");
+
+  function fillSelects() {
+    var from = $("from"), to = $("to"), pax = $("pax");
+    var f = from.value || S.from || "BOG", tv = to.value || "";
+    from.innerHTML = ["BOG", "MDE", "CTG"].map(function (c) { return '<option value="' + c + '">' + LX.city(c) + " (" + c + ")</option>"; }).join("");
+    from.value = f;
+    to.innerHTML = '<option value="">' + LX.t("to.ph") + "</option>" + Object.keys(LX.CITIES).filter(function (c) { return c !== f; }).map(function (c) { return '<option value="' + c + '">' + LX.city(c) + " (" + c + ")</option>"; }).join("");
+    to.value = tv && tv !== f ? tv : "";
+    pax.innerHTML = [1, 2, 3, 4].map(function (n) { return '<option value="' + n + '">' + (n === 1 ? LX.t("pax.n1") : LX.t("pax.n", { n: n })) + "</option>"; }).join("");
+    pax.value = S.pax || 1;
+  }
+  function chips() {
+    $("chips").innerHTML = '<span>' + LX.t("see") + "</span>" + DESTS.map(function (c) {
+      return '<button class="chip" type="button" data-c="' + c + '" aria-pressed="' + (cur === c) + '"><i style="background-image:url(assets/img/' + IMG[c] + '.jpg)"></i>' + LX.city(c) + "</button>";
+    }).join("");
+    $("chips").querySelectorAll(".chip").forEach(function (b) { b.addEventListener("click", function () { pick(b.getAttribute("data-c")); }); });
+  }
+  function windowTo(src, pos) {
+    back.src = src; back.style.objectPosition = pos || "50% 50%";
+    back.classList.remove("is-off"); front.classList.add("is-off");
+    var t = front; front = back; back = t;
+  }
+  function caption() {
+    var cap = $("caption"); if (!cur) { cap.hidden = true; $("win").setAttribute("aria-label", LX.t("win.alt")); return; }
+    var p = LX.farePrice("light", { from: $("from").value || "BOG", to: cur });
+    cap.hidden = false; $("capCity").textContent = LX.city(cur); $("capPrice").textContent = LX.t("from.price") + " " + LX.money(p);
+    $("win").setAttribute("aria-label", LX.city(cur));
+  }
+  function pick(c) {
+    cur = cur === c ? null : c;
+    if (cur) { $("to").value = cur === $("from").value ? "" : cur; windowTo("assets/img/" + IMG[cur] + ".jpg", POS[cur]); }
+    else { $("to").value = ""; windowTo("assets/img/sky.jpg"); }
+    chips(); caption(); var kb = $("chips").querySelector('[data-c="' + c + '"]'); if (kb) kb.focus();
+  }
+  function offers() {
+    var list = [["CTG", "cartagena"], ["MIA", "miami"], ["MAD", "madrid"], ["LHR", "london"], ["SAI", "sanandres"]];
+    $("offers").innerHTML = list.map(function (o) {
+      var p = LX.farePrice("light", { from: "BOG", to: o[0] });
+      return '<a class="offer" href="#buscar" data-c="' + o[0] + '"><img src="assets/img/' + o[1] + '.jpg" alt="" loading="lazy"><div class="offer-body"><div><h3>' + LX.city(o[0]) + "</h3><small>" + LX.t("oneway") + '</small></div><div class="price"><small>' + LX.t("from.price") + "</small>" + LX.money(p) + "</div></div></a>";
+    }).join("");
+    $("offers").querySelectorAll(".offer").forEach(function (a) { a.addEventListener("click", function () { $("from").value = "BOG"; fillSelects(); pick(a.getAttribute("data-c")); }); });
+  }
+
+  $("from").addEventListener("change", function () { fillSelects(); if (cur === $("from").value) { cur = null; chips(); caption(); } else { $("to").value = cur || ""; } });
+  $("to").addEventListener("change", function () { var v = $("to").value; if (v) { if (v !== cur) pick(v); } else if (cur) pick(cur); $("fTo").classList.remove("invalid"); });
+  $("searchForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!$("to").value) { $("fTo").classList.add("invalid"); $("to").focus(); return; }
+    LX.save({ from: $("from").value, to: $("to").value, dep: $("dep").value || "2026-11-24", pax: +$("pax").value, fare: "", cabin: "economy", seat: null, bags: 0, sport: 0 });
+    location.href = "resultados.html";
+  });
+
+  document.querySelectorAll(".win-ico").forEach(function (el, i) { el.innerHTML = LX.ico(["globe", "seat", "wing"][i], "") ; el.firstChild.style.width = "26px"; el.firstChild.style.height = "26px"; });
+  function earn() { var r = [["light", 3], ["classic", 6], ["flex", 8], ["elite", 10], ["royal", 12]]; $("earn").innerHTML = r.map(function (x) { return "<li><span>" + (x[0] === "elite" || x[0] === "royal" ? "Business " : "Economy ") + LX.t("fare." + x[0]) + "</span><b class=\"num\">" + x[1] + " " + LX.t("lx.miles") + "</b></li>"; }).join(""); }
+  LX.onLang(function () { fillSelects(); chips(); caption(); offers(); earn(); LX.apply(); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lifex — Compra confirmada</title>
+<link rel="icon" href="assets/logo/lifex-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/lifex.css">
+</head>
+<body data-page="confirmation">
+<header id="shell-header"></header>
+<main id="main" style="padding-bottom:40px">
+  <div class="wrap">
+    <section class="confirm-hero">
+      <div class="window" aria-hidden="true" id="okWin"></div>
+      <h1 data-i18n="h"></h1>
+      <p data-i18n="p"></p>
+      <div class="code-box num" id="code" aria-label="Código de reserva"></div>
+    </section>
+    <article class="boarding" aria-label="Pase de abordar de ejemplo">
+      <div class="main">
+        <small data-i18n="b.pax"></small><b style="font:500 22px var(--font-display)" id="pname"></b>
+        <div class="big"><span id="o"></span><span id="pl"></span><span id="d"></span></div>
+        <div style="display:flex;justify-content:space-between;color:var(--gray);font-size:15px"><span id="oc"></span><span id="dc"></span></div>
+        <div class="meta">
+          <div><small data-i18n="b.date"></small><b id="date"></b></div>
+          <div><small data-i18n="b.flight"></small><b id="fl"></b></div>
+          <div><small data-i18n="b.time"></small><b class="num" id="tm"></b></div>
+        </div>
+      </div>
+      <div class="stub">
+        <div><small data-i18n="b.cabin"></small><b id="cab"></b></div>
+        <div><small data-i18n="b.seat"></small><b id="seat"></b></div>
+        <div><small data-i18n="b.paid"></small><b class="num" id="paid"></b></div>
+        <div><small data-i18n="b.miles"></small><b class="num" id="miles"></b></div>
+      </div>
+    </article>
+    <div style="text-align:center;margin-top:34px"><a class="btn btn-ghost" href="index.html" id="home" data-i18n="home"></a></div>
+    <p class="sample-note" style="text-align:center;margin-top:22px" data-i18n="sample"></p>
+  </div>
+</main>
+<footer id="shell-footer"></footer>
+<script src="assets/js/app.js"></script>
+<script>
+(function () {
+  LX.add({
+    es: { h: "¡Tu viaje está confirmado!", p: "Te enviamos los detalles a tu correo. Este es tu código de reserva:", "b.pax": "Pasajero", "b.date": "Fecha", "b.flight": "Vuelo", "b.time": "Salida", "b.cabin": "Cabina y tarifa", "b.seat": "Asiento", "b.paid": "Total pagado", "b.miles": "Millas lifexperience", home: "Volver al inicio", "seat.none": "Sin asignar", miles: "{n} millas", pax1: "Pasajero 1" },
+    en: { h: "Your trip is confirmed!", p: "We sent the details to your email. This is your booking code:", "b.pax": "Passenger", "b.date": "Date", "b.flight": "Flight", "b.time": "Departure", "b.cabin": "Cabin and fare", "b.seat": "Seat", "b.paid": "Total paid", "b.miles": "lifexperience miles", home: "Back to home", "seat.none": "Unassigned", miles: "{n} miles", pax1: "Passenger 1" }
+  });
+  var $ = function (id) { return document.getElementById(id); };
+  var q = new URLSearchParams(location.search), S = LX.state();
+  if (q.get("demo") && !S.code) { LX.ensureFare(); S = LX.state(); LX.save({ code: "LX7K2P", paid: LX.totals().total }); S = LX.state(); }
+  else if (!S.code) { LX.ensureFare(); S = LX.state(); LX.save({ code: "LX7K2P", paid: LX.totals().total }); S = LX.state(); }
+  LX.init({ kind: "site", page: "trips" });
+  $("okWin").innerHTML = LX.ico("check");
+  function render() {
+    S = LX.state(); var info = LX.routeInfo(S.from, S.to), ft = LX.flightTimes(S.depTime || info.dep, info.dur, info.tz), p = (S.passengers || [])[0];
+    $("code").textContent = S.code;
+    $("pname").textContent = p && p.ok ? " " + p.first + " " + p.last : " " + LX.t("pax1");
+    $("o").textContent = S.from; $("d").textContent = S.to; $("pl").innerHTML = LX.ico("plane"); $("pl").firstChild.style.transform = "rotate(90deg)";
+    $("oc").textContent = LX.city(S.from); $("dc").textContent = LX.city(S.to);
+    $("date").textContent = LX.fmtDate(S.dep, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+    $("fl").textContent = "LF926"; $("tm").textContent = ft.dep;
+    $("cab").textContent = LX.fareLabel(S.fare);
+    $("seat").textContent = S.seat ? S.seat.id : LX.t("seat.none");
+    $("paid").textContent = LX.money(S.paid || LX.totals().total);
+    var mult = { light: 3, classic: 6, flex: 8, elite: 10, royal: 12 }[S.fare] || 3;
+    $("miles").textContent = LX.t("miles", { n: new Intl.NumberFormat(LX.lang() === "en" ? "en-US" : "es-CO").format(Math.round((S.paid || LX.totals().total) / LX.RATE * mult)) });
+  }
+  $("home").addEventListener("click", function () { LX.reset(); });
+  LX.onLang(function () { render(); LX.apply(); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "@lifex/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contratos compartidos entre backend y frontend: esquemas Zod de DTOs y catálogo de eventos WebSocket. Solo contratos, nunca entidades de dominio.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3"
+  }
+}
