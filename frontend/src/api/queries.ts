@@ -1,5 +1,8 @@
 import {
   bookingResponseSchema,
+  citiesResponseSchema,
+  countriesResponseSchema,
+  publicConfigSchema,
   dashboardFlightsResponseSchema,
   flightDetailResponseSchema,
   flightMetricsResponseSchema,
@@ -14,8 +17,27 @@ import { queryOptions } from "@tanstack/react-query";
 import { apiFetch } from "./http.ts";
 import { keys } from "./keys.ts";
 
-// Las consultas de configuración (`GET /config`) y de ciudades (`GET /catalog/cities`) se añaden cuando
-// existan sus esquemas en `shared/` (las claves ya están en `keys.ts`).
+/** Valores públicos para el navegador: TRM (COP), impuestos y límites de asientos. */
+export const configQuery = () =>
+  queryOptions({
+    queryKey: keys.config,
+    queryFn: () => apiFetch("/config", publicConfigSchema),
+    staleTime: 60 * 60_000,
+  });
+
+export const citiesQuery = () =>
+  queryOptions({
+    queryKey: keys.cities,
+    queryFn: () => apiFetch("/catalog/cities", citiesResponseSchema),
+    staleTime: 60 * 60_000,
+  });
+
+export const countriesQuery = () =>
+  queryOptions({
+    queryKey: ["countries"] as const,
+    queryFn: () => apiFetch("/catalog/countries", countriesResponseSchema),
+    staleTime: 60 * 60_000,
+  });
 
 export const flightsQuery = (params: FlightSearchQuery) =>
   queryOptions({

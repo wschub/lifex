@@ -11,6 +11,7 @@ export const extra: Bundle = {
     "error.rateLimit": "Demasiados intentos seguidos. Espera un momento e inténtalo de nuevo.",
     "error.generic": "Algo salió mal. Inténtalo de nuevo.",
     "error.retry": "Reintentar",
+    "offers.date": "Precios por persona, impuestos incluidos, para el {date}.",
   },
   en: {
     "error.title": "We couldn't complete that",
@@ -18,5 +19,6 @@ export const extra: Bundle = {
     "error.rateLimit": "Too many attempts in a row. Wait a moment and try again.",
     "error.generic": "Something went wrong. Please try again.",
     "error.retry": "Retry",
+    "offers.date": "Prices per person, taxes included, for {date}.",
   },
 };
