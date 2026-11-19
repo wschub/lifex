@@ -4,6 +4,19 @@ Prototipo de un sistema de reservas de vuelos en tiempo real para la aerolínea 
 de vuelos, mapa de asientos interactivo con bloqueo temporal, confirmación de compra con pago simulado y
 dashboard de ocupación en vivo.
 
+## Demo en producción
+
+Desplegado en Railway: **<https://fortunate-charm-production.up.railway.app/>**
+
+| Qué | URL |
+|---|---|
+| Web pública (búsqueda, asientos, compra) | <https://fortunate-charm-production.up.railway.app/> |
+| Dashboard de administración (login) | <https://fortunate-charm-production.up.railway.app/dashboard/login> |
+
+Tarjetas de prueba para pagar: `4242 4242 4242 4242` (aprobada), `4000 0000 0000 0002` (rechazada) y
+`4000 0000 0000 9995` (timeout de la pasarela). La guía de despliegue está en
+[`docs/deploy-railway.md`](docs/deploy-railway.md).
+
 ## Visión general de la arquitectura
 
 Monolito modular en Node.js/TypeScript con arquitectura hexagonal (puertos y adaptadores): el dominio
