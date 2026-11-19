@@ -70,5 +70,35 @@
   "license": "CC0",
   "artist": "Harry Knight harryknight",
   "page": "https://commons.wikimedia.org/wiki/File:In_flight_above_scattered_clouds_(Unsplash).jpg"
+ },
+ "lisboa": {
+  "title": "Miradouro de Santa Luzia em Lisboa.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Hansfotos",
+  "page": "https://commons.wikimedia.org/wiki/File:Miradouro_de_Santa_Luzia_em_Lisboa.jpg"
+ },
+ "cali": {
+  "title": "Cali downtown- skyline.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Johannes Bud",
+  "page": "https://commons.wikimedia.org/wiki/File:Cali_downtown-_skyline.jpg"
+ },
+ "panama": {
+  "title": "Panama City Skyline 180107.jpg",
+  "license": "CC BY 2.0",
+  "artist": "Eric Titcombe",
+  "page": "https://commons.wikimedia.org/wiki/File:Panama_City_Skyline_180107.jpg"
+ },
+ "milan": {
+  "title": "20110724 Milan Cathedral 5266.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Jakub Hałun",
+  "page": "https://commons.wikimedia.org/wiki/File:20110724_Milan_Cathedral_5266.jpg"
+ },
+ "amsterdam": {
+  "title": "Amsterdam Canal Houses (Unsplash).jpg",
+  "license": "CC0",
+  "artist": "Kaci Baum kacibaum",
+  "page": "https://commons.wikimedia.org/wiki/File:Amsterdam_Canal_Houses_(Unsplash).jpg"
  }
 }
