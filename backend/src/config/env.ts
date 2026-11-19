@@ -85,6 +85,10 @@ const schema = z.object({
   BOOKING_TOKEN_EXPIRATION_TIME: duration("45m", MAX_ACCESS_TOKEN_SECONDS),
   /** Impuestos como porcentaje del precio del vuelo. */
   TAX_PERCENTAGE: z.coerce.number().min(0).max(100).default(19),
+  /** Business parte de basePriceDefault × este multiplicador (precio dinámico). */
+  BUSINESS_BASE_MULTIPLIER: z.coerce.number().min(1).max(20).default(3),
+  /** Descuento fijo (%) de las ofertas; una oferta no acumula el precio dinámico. */
+  OFFER_DISCOUNT_PERCENTAGE: z.coerce.number().min(0).max(100).default(15),
   /** Reintentos máximos de un evento del outbox antes de marcarlo FAILED. */
   OUTBOX_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(20).default(5),
   /** Correo: sin BREVO_API_KEY el envío solo se registra en el log. */
