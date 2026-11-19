@@ -50,6 +50,7 @@ export function createApp(deps: AppDependencies = {}) {
           "Accept-Language",
           "X-CSRF-Protection",
           "X-Request-Id",
+          "Idempotency-Key",
         ],
         exposedHeaders: ["X-Request-Id"],
         maxAge: 600,

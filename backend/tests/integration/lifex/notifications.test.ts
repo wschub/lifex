@@ -161,6 +161,8 @@ describe("correos al cliente (Postgres real)", () => {
     expect(png.status).toBe(200);
     expect(png.headers["content-type"]).toBe("image/png");
     expect(png.headers["cache-control"]).toContain("max-age");
+    // Los correos y el front (otro origen) deben poder mostrar la imagen.
+    expect(png.headers["cross-origin-resource-policy"]).toBe("cross-origin");
     expect((png.body as Buffer).subarray(1, 4).toString()).toBe("PNG");
     expect(unknown.status).toBe(404);
     expect(malformed.status).toBe(404);

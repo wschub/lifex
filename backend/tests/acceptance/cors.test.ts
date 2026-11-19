@@ -25,6 +25,18 @@ describe("CORS", () => {
     expect(String(res.headers["vary"])).toContain("Origin");
   });
 
+  it("permite la cabecera Idempotency-Key en el preflight del pago", async () => {
+    const res = await request(app)
+      .options("/bookings/abc/payments")
+      .set("Origin", ALLOWED)
+      .set("Access-Control-Request-Method", "POST")
+      .set("Access-Control-Request-Headers", "content-type,authorization,idempotency-key");
+    expect(res.status).toBe(204);
+    expect(String(res.headers["access-control-allow-headers"]).toLowerCase()).toContain(
+      "idempotency-key",
+    );
+  });
+
   it.each([
     "https://evil.example.com",
     "https://app.example.com.evil.com",

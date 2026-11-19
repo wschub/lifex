@@ -16,7 +16,12 @@ export function createTicketsController(deps: TicketsControllerDeps) {
   const qr: RequestHandler = async (req, res) => {
     const png = await deps.getTicketQr.execute(String(req.params.code));
     // El código del ticket nunca cambia: la imagen se puede cachear (los clientes de correo la piden una vez).
-    res.set({ "Content-Type": "image/png", "Cache-Control": "public, max-age=86400" });
+    // CORP cross-origin: la imagen se muestra en correos y en el front, que viven en otro origen.
+    res.set({
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=86400",
+      "Cross-Origin-Resource-Policy": "cross-origin",
+    });
     res.send(png);
   };
 
