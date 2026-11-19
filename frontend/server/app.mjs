@@ -56,6 +56,12 @@ function forwardedHeaders(req, target, { keepUpgrade = false } = {}) {
   return headers;
 }
 
+/** Solo al log (stderr): método, ruta, URL de destino y código (ENOTFOUND, ECONNREFUSED, ETIMEDOUT…). */
+function logProxyError(method, path, target, error) {
+  const code = error.cause?.code ?? error.code ?? error.message;
+  console.error(`proxy ${method} ${path} -> ${target.origin}${path}: ${code}`);
+}
+
 function sendJson(res, status, body) {
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
@@ -144,13 +150,11 @@ export function createFrontendServer({ dist, backendUrl }) {
         response.pipe(res);
       },
     );
-    upstream.on("timeout", () => upstream.destroy(new Error("upstream timeout")));
+    upstream.on("timeout", () =>
+      upstream.destroy(Object.assign(new Error("upstream timeout"), { code: "ETIMEDOUT" })),
+    );
     upstream.on("error", (error) => {
-      // Solo al log del servidor (el cliente no recibe el detalle): ENOTFOUND = nombre mal escrito,
-      // ECONNREFUSED = puerto incorrecto o backend caído.
-      console.error(
-        `proxy ${req.method} ${path} -> ${target.host}: ${error.code ?? error.message}`,
-      );
+      logProxyError(req.method, path, target, error);
       if (!res.headersSent)
         sendJson(res, 502, { code: "BAD_GATEWAY", detail: "The API is unreachable" });
       else res.destroy();
@@ -191,7 +195,7 @@ export function createFrontendServer({ dist, backendUrl }) {
       socket.end();
     });
     upstream.on("error", (error) => {
-      console.error(`proxy WS ${path} -> ${target.host}: ${error.code ?? error.message}`);
+      logProxyError(req.method, path, target, error);
       socket.destroy();
     });
     socket.on("error", () => upstream.destroy());

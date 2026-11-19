@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { createServer, request } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { after, before, describe, it } from "node:test";
+import { after, before, describe, it, mock } from "node:test";
 import { createFrontendServer, prefixCookiePath, stripApiPrefix } from "./app.mjs";
 
 let dist;
@@ -160,7 +160,14 @@ describe("proxy de /api", () => {
   it("si el backend no responde devuelve 502 y sin BACKEND_INTERNAL_URL devuelve 503", async () => {
     const down = createFrontendServer({ dist, backendUrl: "http://127.0.0.1:1" });
     const downPort = await listen(down);
-    assert.equal((await call("/api/x", { port: downPort })).status, 502);
+    const logged = mock.method(console, "error", () => {});
+    const failed = await call("/api/x?y=1", { port: downPort });
+    logged.mock.restore();
+    assert.equal(failed.status, 502);
+    // El detalle va solo al log: método, ruta, URL de destino y código; la respuesta no lo expone.
+    const line = String(logged.mock.calls[0]?.arguments[0]);
+    assert.match(line, /proxy GET \/x\?y=1 -> http:\/\/127\.0\.0\.1:1\/x\?y=1: ECONNREFUSED/);
+    assert.doesNotMatch(failed.text, /ECONNREFUSED|127\.0\.0\.1/);
     down.close();
     const none = createFrontendServer({ dist });
     const nonePort = await listen(none);
