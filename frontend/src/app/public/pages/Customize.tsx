@@ -37,7 +37,7 @@ function CustomizeContent() {
   const total = held.length
     ? seatsTotalUsd(held, fare?.feePercentage ?? 0, config.taxPercentage)
     : estimate;
-  const base = flight ? (biz ? flight.averagePriceBusinessUsd : flight.averagePriceEconomyUsd) : 0;
+  const base = flight ? (biz ? flight.priceBusinessUsd : flight.priceEconomyUsd) : 0;
   /** Lo que suman los asientos por encima del precio base; con precios uniformes por cabina es 0 ("Gratis"). */
   const extra =
     held.reduce((sum, s) => sum + Math.max(0, s.priceUsd - base), 0) *

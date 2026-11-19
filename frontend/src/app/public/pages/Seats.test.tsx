@@ -28,7 +28,7 @@ const airport = (iataCode: string) => ({
   cityEs: iataCode,
   country: "X",
   countryEs: "X",
-  cityImageUrl: null,
+  cityImageName: null,
 });
 const FLIGHT = {
   id: FLIGHT_ID,
@@ -39,8 +39,11 @@ const FLIGHT = {
   arrivalDate: "2026-11-21T13:35:00.000Z",
   status: "ACTIVE",
   basePriceUsd: 100,
-  averagePriceEconomyUsd: 100,
-  averagePriceBusinessUsd: 300,
+  averagePriceEconomyUsd: 0,
+  averagePriceBusinessUsd: 0,
+  priceEconomyUsd: 120,
+  priceBusinessUsd: 360,
+  offer: null,
   numAvailableSeats: 8,
   availableByClass: { economy: 6, business: 2 },
   soldOut: false,

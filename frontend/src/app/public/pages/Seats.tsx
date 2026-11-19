@@ -69,7 +69,7 @@ function SeatsContent() {
   const money = (usd: number) => formatMoney(usd, lang, config.iataTrm);
 
   const fee = fare?.feePercentage ?? 0;
-  const base = flight ? (biz ? flight.averagePriceBusinessUsd : flight.averagePriceEconomyUsd) : 0;
+  const base = flight ? (biz ? flight.priceBusinessUsd : flight.priceEconomyUsd) : 0;
   /** Lo que cuesta el asiento por encima del precio base de la cabina; con precios uniformes es 0 ("Gratis"). */
   const extraOf = (seat: Pick<PublicSeat, "priceUsd">) =>
     Math.max(0, seat.priceUsd - base) * (1 + fee / 100) * (1 + config.taxPercentage / 100);

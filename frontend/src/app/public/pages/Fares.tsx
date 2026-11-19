@@ -64,6 +64,11 @@ function FaresContent() {
               <div className="flight-card" style={{ marginBottom: 28 }}>
                 <FlightMain flight={flight} />
                 <div className="flight-price">
+                  {flight.offer ? (
+                    <span className="badge">
+                      {t("offer.tag", { n: flight.offer.discountPercentage })}
+                    </span>
+                  ) : null}
                   <small>{t("from")}</small>
                   <span className="price num">
                     {light ? money(farePriceUsd(light, flight, config.taxPercentage)) : "—"}

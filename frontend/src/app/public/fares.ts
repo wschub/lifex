@@ -40,16 +40,17 @@ export function fareOptions(types: readonly LuggageType[]): FareOption[] {
 const cents = (usd: number) => Math.round(usd * 100) / 100;
 
 /**
- * Precio por pasajero con impuestos incluidos, antes de elegir asiento: precio medio de la cabina,
- * más el recargo del tipo de equipaje, más impuestos. El total definitivo lo calcula el backend con el asiento real.
+ * Precio por pasajero con impuestos incluidos, antes de elegir asiento: el precio vigente de la cabina que
+ * calcula el backend (`priceEconomyUsd` / `priceBusinessUsd`, ya con la oferta si la hay), más el recargo del
+ * tipo de equipaje (costo adicional) y los impuestos. Es una estimación para mostrar: el valor que se cobra
+ * es el de la reserva (`totalPriceUsd`), con el precio congelado al bloquear el asiento.
  */
 export function farePriceUsd(
   fare: FareOption,
   flight: PublicFlight,
   taxPercentage: number,
 ): number {
-  const base =
-    fare.cabin === "business" ? flight.averagePriceBusinessUsd : flight.averagePriceEconomyUsd;
+  const base = fare.cabin === "business" ? flight.priceBusinessUsd : flight.priceEconomyUsd;
   return cents(base * (1 + fare.feePercentage / 100) * (1 + taxPercentage / 100));
 }
 

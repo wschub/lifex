@@ -26,7 +26,7 @@ const airport = (iataCode: string, city: string) => ({
   cityEs: city,
   country: "Colombia",
   countryEs: "Colombia",
-  cityImageUrl: null,
+  cityImageName: null,
 });
 const flight = (id: string, over: Partial<PublicFlight> = {}): PublicFlight => ({
   id,
@@ -37,8 +37,11 @@ const flight = (id: string, over: Partial<PublicFlight> = {}): PublicFlight => (
   arrivalDate: "2026-11-21T13:35:00.000Z",
   status: "ACTIVE",
   basePriceUsd: 100,
-  averagePriceEconomyUsd: 100,
-  averagePriceBusinessUsd: 300,
+  averagePriceEconomyUsd: 0,
+  averagePriceBusinessUsd: 0,
+  priceEconomyUsd: 120,
+  priceBusinessUsd: 360,
+  offer: null,
   numAvailableSeats: 40,
   availableByClass: { economy: 30, business: 10 },
   soldOut: false,
@@ -79,8 +82,34 @@ beforeEach(() => {
 describe("Results", () => {
   it("muestra el precio desde en COP con impuestos (precio × recargo Light × impuestos × TRM)", async () => {
     setup([flight(F1)]);
-    // 100 × 1.10 × 1.19 × 3300 = 431.970
-    expect(await screen.findAllByText("COP 431.970")).not.toHaveLength(0);
+    // priceEconomyUsd 120 × 1.10 × 1.19 × 3300 = 518.364
+    expect(await screen.findAllByText("COP 518.364")).not.toHaveLength(0);
+  });
+
+  it("un vuelo en oferta lo indica con la etiqueta de descuento", async () => {
+    setup([flight(F1, { offer: { discountPercentage: 15 } })]);
+    expect(await screen.findByText("Oferta −15 %")).toBeInTheDocument();
+  });
+
+  it("un vuelo sin oferta no muestra etiqueta de descuento", async () => {
+    setup([flight(F1)]);
+    await screen.findAllByText("COP 518.364");
+    expect(screen.queryByText(/oferta/i)).not.toBeInTheDocument();
+  });
+
+  it("ordena por precio vigente, no por el promedio de ventas", async () => {
+    setup([
+      flight(F1, { priceEconomyUsd: 200, departureDate: "2026-11-21T10:00:00.000Z" }),
+      flight(F2, { priceEconomyUsd: 150, departureDate: "2026-11-21T14:00:00.000Z" }),
+    ]);
+    await userEvent.click(await screen.findByRole("button", { name: /mostrar todos/i }));
+    await userEvent.click(screen.getByRole("button", { name: /precio/i }));
+    await screen.findAllByText("COP 647.955");
+    const cards = [...document.querySelectorAll("#flights .flight-card .price")].map(
+      (n) => n.textContent,
+    );
+    // 150 × 1.10 × 1.19 × 3300 = 647.955 (el más barato primero); 200 → 863.940
+    expect(cards).toEqual(["COP 647.955", "COP 863.940"]);
   });
 
   it("un vuelo agotado se marca y no se puede elegir; uno cancelado igual", async () => {

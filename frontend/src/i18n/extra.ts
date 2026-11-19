@@ -39,6 +39,7 @@ export const extra: Bundle = {
     "pay.restart": "Elegir asientos de nuevo",
     "conf.pending": "Estamos generando tus boletos…",
     "offers.date": "Precios por persona, impuestos incluidos, para el {date}.",
+    "offer.tag": "Oferta −{n} %",
   },
   en: {
     "error.title": "We couldn't complete that",
@@ -73,5 +74,6 @@ export const extra: Bundle = {
     "pay.restart": "Pick seats again",
     "conf.pending": "We are generating your tickets…",
     "offers.date": "Prices per person, taxes included, for {date}.",
+    "offer.tag": "Offer −{n}%",
   },
 };

@@ -68,7 +68,7 @@ export function Results() {
     if (bizOnly) list = list.filter((f) => f.availableByClass.business > 0);
     list.sort((a, b) =>
       sortPrice
-        ? a.averagePriceEconomyUsd - b.averagePriceEconomyUsd
+        ? a.priceEconomyUsd - b.priceEconomyUsd
         : a.departureDate.localeCompare(b.departureDate),
     );
     return showAll ? list : list.slice(0, 1);
@@ -169,6 +169,11 @@ export function Results() {
                   <article className="flight-card" key={f.id}>
                     <FlightMain flight={f} />
                     <div className="flight-price">
+                      {f.offer ? (
+                        <span className="badge">
+                          {t("offer.tag", { n: f.offer.discountPercentage })}
+                        </span>
+                      ) : null}
                       <small>{t("from")}</small>
                       <span className="price num">
                         {price !== null ? formatMoney(price, lang, config.iataTrm) : "—"}
