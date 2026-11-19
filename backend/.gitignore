@@ -1,0 +1,11 @@
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+src/generated
+.DS_Store
+.qodo
+notes.txt
+notes1.txt

@@ -61,6 +61,49 @@ este documento.
 Cada ciudad lleva su aeropuerto principal con código IATA real (ej. Madrid → MAD, Londres → LHR, Miami →
 MIA). Los países sin "ciudad secundaria" en la nota original del cliente se seedean con una sola ciudad.
 
+### Imágenes de ciudades (ciudad → nombre de archivo)
+
+La base de datos guarda solo el **nombre del archivo** (`cities.imageName`); las fotos viven en
+`frontend/public/img/destinations/` y la web arma la ruta `/img/destinations/<nombre>`. Si el archivo no existe,
+la web muestra la imagen genérica del cielo. El seed asigna el nombre a **todas** las ciudades (con `upsert`,
+así que `db:migrate` + `db:seed` sin `--reset` también lo dejan puesto en bases ya existentes). Regla del nombre:
+nombre en inglés, minúsculas, sin tildes, sin puntos y con guiones (`Santa Marta` → `santa-marta.jpg`); las excepciones
+son `sanandres.jpg`, `lisboa.jpg` y `panama.jpg` (nombres de las fotos ya agregadas). Al pasar las fotos a WebP hay que cambiar la extensión (`.jpg` → `.webp`) en el seed.
+
+| Ciudad (inglés) | Ciudad (español) | País | Archivo | ¿Foto ya en el repo? |
+|---|---|---|---|---|
+| Medellín | Medellín | CO | `medellin.jpg` | sí |
+| Bogotá | Bogotá | CO | `bogota.jpg` | sí |
+| Cartagena | Cartagena | CO | `cartagena.jpg` | sí |
+| Santa Marta | Santa Marta | CO | `santa-marta.jpg` | falta |
+| Barranquilla | Barranquilla | CO | `barranquilla.jpg` | falta |
+| San Andrés | San Andrés | CO | `sanandres.jpg` | sí |
+| Cali | Cali | CO | `cali.jpg` | sí |
+| Bucaramanga | Bucaramanga | CO | `bucaramanga.jpg` | falta |
+| Pereira | Pereira | CO | `pereira.jpg` | falta |
+| Armenia | Armenia | CO | `armenia.jpg` | falta |
+| Washington D.C. | Washington D.C. | US | `washington-dc.jpg` | falta |
+| Miami | Miami | US | `miami.jpg` | sí |
+| Panama City | Ciudad de Panamá | PA | `panama.jpg` | sí |
+| London | Londres | GB | `london.jpg` | sí |
+| Manchester | Mánchester | GB | `manchester.jpg` | falta |
+| Madrid | Madrid | ES | `madrid.jpg` | sí |
+| Barcelona | Barcelona | ES | `barcelona.jpg` | falta |
+| Paris | París | FR | `paris.jpg` | falta |
+| Nice | Niza | FR | `nice.jpg` | falta |
+| Berlin | Berlín | DE | `berlin.jpg` | falta |
+| Munich | Múnich | DE | `munich.jpg` | falta |
+| Lisbon | Lisboa | PT | `lisboa.jpg` | sí |
+| Porto | Oporto | PT | `porto.jpg` | falta |
+| Brussels | Bruselas | BE | `brussels.jpg` | falta |
+| Rome | Roma | IT | `rome.jpg` | falta |
+| Milan | Milán | IT | `milan.jpg` | sí |
+| Zurich | Zúrich | CH | `zurich.jpg` | falta |
+| Geneva | Ginebra | CH | `geneva.jpg` | falta |
+| Amsterdam | Ámsterdam | NL | `amsterdam.jpg` | sí |
+
+Faltan **22** fotos (las 7 existentes: Bogotá, Cartagena, Londres, Madrid, Medellín, Miami y San Andrés).
+
 ## 3. Equipaje (catálogo único, sin cruzar con `flight_class`)
 
 | luggage_type | rank | fee_percentage |
@@ -78,10 +121,24 @@ BUSINESS`; esa restricción se valida en la entidad `TicketLuggage`, no en el se
 
 ## 4. Aeronaves
 
-Se crean 5 aeronaves (3 `DOMESTIC` DOM-001..003 y 2 `INTERNATIONAL` INT-001..002) y los vuelos rotan entre las del mismo tipo. Layout: asientos `BUSINESS` en columnas `A C D F` (filas 1..6 en la nacional, 1..10 en la internacional) y `ECONOMY` en `ABCDEF` (nacional) o `ABCDEFGH` (internacional). Modelos: uno `DOMESTIC` (menor capacidad, ej. 150 asientos: 24 `BUSINESS` + 126 `ECONOMY`) y uno
-`INTERNATIONAL` (mayor capacidad, ej. 280 asientos: 40 `BUSINESS` + 240 `ECONOMY`), con su `seat_row`/
-`seat_column` generados en el seed de `flights_seat_availability` por cada vuelo programado (no se
-precargan asientos sin vuelo asociado).
+Cada aeronave tiene `reference` (el modelo), una `description` en inglés y una `description_es` en español
+(frase corta con alcance y capacidad). `range_miles` guarda **millas náuticas**. Se crean 9 aeronaves:
+
+| Modelo | Tipo | Alcance | Asientos | Business + Economy | Columnas Economy | Unidades |
+|---|---|---|---|---|---|---|
+| Boeing 787-8 Dreamliner | `INTERNATIONAL` (largo alcance) | 7.850 nmi (14.500 km) | 242 | 24 + 218 | `ABCDEFGH` | INT-001, INT-002 |
+| Boeing 787-9 | `INTERNATIONAL` (largo alcance) | 7.828 nmi (14.498 km) | 290 | 28 + 262 | `ABCDEFGH` | INT-003, INT-004 |
+| Boeing 737 MAX 8 | `INTERNATIONAL` (regional) | 3.547 nmi (6.570 km) | 162 | 12 + 150 | `ABCDEF` | INT-005, INT-006 |
+| Airbus A320neo | `DOMESTIC` (solo nacional) | 3.400 nmi | 150 | 24 + 126 | `ABCDEF` | DOM-001..003 |
+
+`BUSINESS` siempre en columnas `A C D F` (filas de 4). Decisión del seed: la cantidad de asientos Business de
+cada modelo (24, 28, 12 y 24) se eligió para que cuadre con filas completas de 4; los 787 no cierran en filas
+completas de Economy, así que su última fila queda parcial (2 y 6 asientos) para respetar la capacidad exacta.
+
+Los vuelos nacionales usan solo A320neo. Para los internacionales se comprueba que la aeronave tenga alcance
+suficiente (`duración × 450 nudos`): las rutas cortas a Estados Unidos y Panamá usan el 737 MAX 8 (regional) y
+las de Europa los 787 (rotan entre 787-8 y 787-9). Los `seat_row`/`seat_column` se generan en el seed de
+`flights_seat_availability` por cada vuelo programado (no se precargan asientos sin vuelo asociado).
 
 ## 5. Vuelos programados
 
@@ -111,10 +168,11 @@ Rango de fechas: **2026-11-19 → 2027-01-31** (inclusive), 74 días.
   para esta prueba, no cálculo real de grandes círculos).
 - `num_max_seats` = capacidad de la aeronave asignada.
 - `num_available_seats` = `num_max_seats` al momento de crear el vuelo (decrece con cada `RESERVED`).
-- `base_price_default`, `average_price_economy`, `average_price_business`: valores de ejemplo razonables en
-  USD (p. ej. nacional economy ~80–150 USD, nacional business ~200–300 USD; internacional economy ~400–900
-  USD, business ~1200–2500 USD, variando un poco por ruta para que la demo no se vea idéntica en todos los
-  vuelos).
+- `base_price_default`: único precio de partida, en USD (nacional ~80–150; internacional ~400–850, variando por
+  ruta). Business se deriva con `BUSINESS_BASE_MULTIPLIER` (×3). `average_price_economy`,
+  `average_price_business` y `occupancy_rate` empiezan en **0** y `num_available_seats` = `num_max_seats`:
+  las reglas de HU5 (precio dinámico y ofertas) aplican apenas se empieza a vender. El `seat_price` inicial de
+  cada asiento es el precio base de su clase; al bloquearse guarda el precio vigente.
 - `status` = `ACTIVE` por defecto; el seed no crea vuelos ya `CANCELLED`/`DELAYED` (esos estados se generan
   manualmente desde el dashboard durante la demo, para demostrar HU1.4 y HU4.5 en vivo).
 - `flights_seat_availability`: una fila por asiento según el layout de la aeronave (`seat_row`/

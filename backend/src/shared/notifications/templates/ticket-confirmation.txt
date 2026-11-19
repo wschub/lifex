@@ -1,0 +1,20 @@
+LIFEX — Confirmacion de reserva
+
+Hola {{ params.PASSENGER_NAME }},
+
+Tu pago fue aprobado y tu boleto ya esta listo.
+
+Codigo de reserva: {{ params.RESERVATION_NUMBER }}
+Codigo de ticket:  {{ params.TICKET_CODE }}
+
+Vuelo: {{ params.FROM_CITY }} ({{ params.FROM_AIRPORT_CODE }}) -> {{ params.TO_CITY }} ({{ params.TO_AIRPORT_CODE }})
+Fecha: {{ params.DEPARTURE_DATE }}
+Salida: {{ params.DEPARTURE_TIME }}
+Clase: {{ params.SEAT_CLASS }}
+Asiento: {{ params.SEAT_IDENTIFIER }}
+
+Pasajero: {{ params.PASSENGER_FULL_NAME }}
+Total pagado: {{ params.TOTAL_PRICE_DISPLAY }}
+
+Este es un correo generado automaticamente por Lifex. Si no reconoces esta compra, contactanos
+respondiendo este correo.

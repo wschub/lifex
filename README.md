@@ -112,6 +112,9 @@ npm run verify              # lint + formato + tipos + todas las pruebas + test 
 | `OUTBOX_MAX_ATTEMPTS` | Reintentos de un evento del outbox (pago, correo) antes de darlo por fallido | `5` |
 | `BREVO_API_KEY` | API key de Brevo para los correos (boleto y aviso de vuelo). Sin ella solo se registra en el log | — |
 | `BREVO_SENDER_EMAIL` / `BREVO_SENDER_NAME` | Remitente de los correos (debe estar verificado en Brevo) | `no-reply@lifex.test` / `Lifex` |
+| `BUSINESS_BASE_MULTIPLIER` | Business parte de `basePriceDefault ×` este valor (precio dinámico, HU5) | `3` |
+| `OFFER_DISCOUNT_PERCENTAGE` | Descuento fijo (%) de las ofertas de la portada; una oferta no lleva precio dinámico | `15` |
+| `APP_URL` | URL pública del frontend; los correos cargan el logo desde `${APP_URL}/mail/…` | `http://localhost:5173` |
 | `PUBLIC_API_URL` | URL pública de la API; los correos enlazan allí la imagen QR del ticket | `http://localhost:3000` |
 
 Otras piezas: los correos (confirmación de boleto, un correo por ticket, y aviso de vuelo cancelado o
