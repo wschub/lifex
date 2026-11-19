@@ -4,6 +4,12 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router";
 import { createQueryClient } from "@/api/query-client.ts";
 import { createAppRouter } from "@/app/router.tsx";
+import { reloadOnce } from "@/lib/chunk-reload.ts";
+
+// Vite avisa cuando no puede precargar un archivo (versión anterior tras un despliegue): se recarga una vez.
+window.addEventListener("vite:preloadError", (event) => {
+  if (reloadOnce()) event.preventDefault();
+});
 
 const queryClient = createQueryClient();
 const router = createAppRouter();

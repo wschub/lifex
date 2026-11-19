@@ -105,6 +105,11 @@ Servicio de plantilla de Railway: no requiere configuración. Usa `${{Postgres.D
      `ADMIN_PASSWORD='<clave>' node dist/cli/create-admin.js --email <correo> --first-name <nombre> --last-name <apellido>`.
 6. **Comprueba:** `https://<dominio>/healthz`, `https://<dominio>/api/health`, `https://<dominio>/api/config`, el login en `https://<dominio>/dashboard/login` y una compra de punta a punta.
 
+**Pestañas abiertas durante un despliegue.** Los archivos de la web llevan un hash en el nombre y cada despliegue reemplaza
+los anteriores: una pestaña que seguía abierta puede pedir uno que ya no existe («Failed to fetch dynamically imported
+module»). La web lo detecta, recarga sola una vez y, si el fallo persiste, muestra un aviso con un botón para recargar
+(`frontend/web/src/lib/chunk-reload.ts`).
+
 Cada servicio se redespliega solo cuando cambia su carpeta (`watchPatterns`): un cambio en `shared/` redespliega el frontend pero no el backend. Que el contrato se mantenga compatible lo comprueba la CI (la prueba de contrato del backend usa `shared/`).
 
 ## Prueba local con Docker Compose

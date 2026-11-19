@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
+import { RouteError } from "./RouteError.tsx";
 import { PublicLayout } from "./public/PublicLayout.tsx";
 
 const page = (load: () => Promise<Record<string, unknown>>, name: string) => async () => {
@@ -10,6 +11,7 @@ const page = (load: () => Promise<Record<string, unknown>>, name: string) => asy
 export const publicRoutes: RouteObject[] = [
   {
     element: <PublicLayout />,
+    errorElement: <RouteError />,
     children: [
       { path: "/", lazy: page(() => import("./public/pages/Home.tsx"), "Home") },
       { path: "/results", lazy: page(() => import("./public/pages/Results.tsx"), "Results") },
