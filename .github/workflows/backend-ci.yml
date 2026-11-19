@@ -1,9 +1,11 @@
-name: CI
+name: Backend CI
 
 on:
   pull_request:
+    paths: ["backend/**", ".github/workflows/backend-ci.yml"]
   push:
     branches: [main]
+    paths: ["backend/**", ".github/workflows/backend-ci.yml"]
 
 permissions:
   contents: read
@@ -11,6 +13,11 @@ permissions:
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+# El monorepo vive en la raíz: los comandos del backend corren desde backend/.
+defaults:
+  run:
+    working-directory: backend
 
 env:
   # Solo para "prisma generate", que no se conecta a la base de datos.
@@ -25,9 +32,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: backend/.nvmrc
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: backend/package-lock.json
       - run: npm ci
       # src/generated está en .gitignore: el cliente de Prisma se genera en cada job.
       - run: npm run db:generate
@@ -45,9 +52,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: backend/.nvmrc
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run db:generate
       - run: npm run test:integration
@@ -60,9 +67,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
-          node-version-file: .nvmrc
+          node-version-file: backend/.nvmrc
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run db:generate
       - run: npm run build
