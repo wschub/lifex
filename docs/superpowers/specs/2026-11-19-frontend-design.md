@@ -139,14 +139,53 @@ eventos para detectar huecos. Los eventos actualizan la caché con `queryClient.
 
 ## 8.1 Pendientes urgentes (se resuelven al terminar la v1 del frontend)
 
-- **Tarifas:** el prototipo tiene cinco tarifas con multiplicadores de precio de ejemplo (Light, Classic, Flex,
-  Business Classic, Business Flex) y precios de asiento por zona. Hay que alinearlas con lo que cobra realmente el
-  backend (tipos de equipaje y precios de asiento) y decidir qué se muestra. En la v1 se muestran los valores del
-  backend tal como vienen.
-- **Orden de pasos y reserva:** el titular de la reserva se completa antes de elegir asiento (así lo hace el
-  prototipo), por lo que crear la reserva al final de `/passengers` no cambia nada para el usuario ni para el
-  backend. Si al implementarlo se descubre un choque con el backend, se anota aquí como urgente y se resuelve junto
-  con las tarifas.
+Hallazgos de la Fase C (web pública conectada al backend real), de más a menos grave:
+
+**Resueltos en el backend (rama `backend`)**
+- CORS ya admite `Idempotency-Key` y el QR sale con `Cross-Origin-Resource-Policy: cross-origin`. Comprobado contra el
+  backend real con `VITE_API_URL=http://localhost:3000` (sin proxy): el pago funciona desde otro origen.
+
+**Tarifas y precios (el tema de tarifas que se resuelve junto)**
+- Las tarifas de la web son los tipos de equipaje del catálogo (rank 1-5 → Light, Classic, Flex, y Business "Elite" y
+  "Royal" con los nombres del prototipo; el backend las llama Business Classic y Business Flex, y los correos usan esos).
+- Los precios vienen del backend (precios dinámicos y ofertas, HU5): la web usa `priceEconomyUsd` / `priceBusinessUsd`
+  de cada vuelo (ya con la oferta si la hay), `priceUsd` de cada asiento y, desde el bloqueo, el precio congelado de la
+  reserva (`flightPriceUsd`, `taxesUsd`, `totalPriceUsd`), que es lo que se cobra.
+- Antes de reservar, el precio por pasajero de cada tarifa es una **estimación mostrada**: precio vigente de la cabina ×
+  (1 + recargo del tipo de equipaje) × (1 + impuestos). El backend no tiene un endpoint que lo devuelva por tarifa. En el
+  recorrido completo coincidió exactamente en cada paso (oferta, tarifas, resumen, asiento, pago y confirmación).
+- Equipaje y demás son costos adicionales sobre el precio de la tarifa, pero **la reserva no devuelve el desglose**
+  (`flightPriceUsd` suma asientos y recargo de equipaje). En el pago, "Precio de servicios" muestra "Incluido en
+  tiquetes". Para separarlo hace falta que `publicBookingSchema` incluya el recargo de equipaje (pendiente de backend).
+- "Elegir asiento" ya no suma un extra: el asiento es el precio. La tarjeta muestra "Gratis" cuando el asiento cuesta lo
+  mismo que el precio base de la cabina.
+- Equipaje adicional y equipaje deportivo no existen en el backend: las dos tarjetas se ven pero con el botón desactivado
+  ("Próximamente"). Igual PSE y Apple Pay (solo hay tarjeta).
+
+**Datos que el backend exige y el prototipo no pedía**
+- Tipo y número de documento de cada pasajero: se añadió una fila al formulario con las clases existentes.
+- Género: el backend solo admite masculino y femenino; se quitó "Sin especificar".
+- Nacionalidad: la lista sale de `GET /catalog/countries` (sin "Otra").
+- El asiento es obligatorio para pagar (el backend exige `seatId`): se quitó "Elegir asiento después" y el botón
+  "Ir a pagar" espera a que cada pasajero tenga asiento.
+
+**Diferencias visibles que vienen de los datos reales**
+- Sin zonas Plus ni salida de emergencia: el backend solo distingue Economy y Business.
+- Sin número de vuelo (el backend no lo tiene): se quitó "· LF926" y la celda "Vuelo" del pase de abordar.
+- Las horas se muestran en hora de Colombia, también la de llegada.
+- La portada usa `GET /flights/offers`: hasta 5 ofertas (internacional primero, alternando, sin repetir destino, con
+  imagen de ciudad primero); la sección se oculta si no hay ofertas y el subtítulo ya no menciona una fecha única.
+  Las ciudades sin imagen en el seed (Lisboa, Cali, Panamá, Milán, Ámsterdam…) muestran el cielo.
+- La semilla genera pocas rutas (un vuelo por ruta y día): la tira de fechas muestra "—" donde no hay vuelos.
+- Quedan textos del prototipo que dicen "Datos de ejemplo" (pie de página y confirmación): ya no son ciertos y habría
+  que quitarlos o cambiarlos con el diseño.
+- En las tarjetas pequeñas de oferta el texto "Desde {ciudad} · Solo ida · fecha" ocupa varias líneas.
+- Un pago rechazado cancela la reserva y libera los asientos: se vuelve a `/passengers` conservando los datos escritos.
+
+**Orden de pasos y reserva**
+- El titular de la reserva se completa antes de elegir asiento (así lo hace el prototipo), por lo que crear la reserva
+  al final de `/passengers` no cambia nada para el usuario ni para el backend: confirmado en el recorrido completo.
+  Si el correo o el teléfono cambian después, se abre otra reserva (el contacto no se puede editar) y se sueltan los asientos.
 
 ## 9. Lo que queda a criterio de quien lo construye
 

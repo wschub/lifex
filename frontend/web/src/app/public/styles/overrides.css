@@ -1,0 +1,41 @@
+/*
+ * Ajustes de la sección de ofertas con datos reales (precios largos en COP).
+ * lifex.css no se edita: este archivo se carga después y solo toca las tarjetas pequeñas.
+ * La tarjeta grande (la primera) conserva el diseño original.
+ */
+.offer:not(:first-child) .offer-body {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 22px;
+  min-width: 0;
+}
+.offer:not(:first-child) .offer-body > div {
+  min-width: 0;
+  max-width: 100%;
+}
+.offer:not(:first-child) h3 {
+  font-size: 28px;
+}
+.offer:not(:first-child) small {
+  font-size: 13px;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+/* El origen, "Solo ida" y la fecha ocupan como máximo dos líneas; la etiqueta de oferta va debajo. */
+.offer:not(:first-child) .offer-body > div > small:first-of-type {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.offer:not(:first-child) .price {
+  text-align: left;
+  font-size: 22px;
+  max-width: 100%;
+}
+.offer:not(:first-child) .price small {
+  display: inline;
+  margin: 0 6px 0 0;
+}
