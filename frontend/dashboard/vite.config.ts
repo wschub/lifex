@@ -18,7 +18,20 @@ export default defineConfig({
     },
   },
   // `shared/` (dos niveles arriba) vive fuera de la raíz del proyecto: el servidor de desarrollo debe poder leerlo.
-  server: { port: 5174, strictPort: true, fs: { allow: ["../.."] } },
+  server: {
+    port: 5174,
+    strictPort: true,
+    fs: { allow: ["../.."] },
+    // La API es /api en el mismo origen (igual que en producción): el proxy quita el prefijo.
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        ws: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],

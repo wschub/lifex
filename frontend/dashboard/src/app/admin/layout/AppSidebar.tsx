@@ -45,7 +45,7 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 {/* Navegación completa: la web pública no comparte CSS con el panel. */}
                 <SidebarMenuButton asChild tooltip="Ver sitio">
-                  <a href={import.meta.env.VITE_WEB_URL ?? "/"}>
+                  <a href={import.meta.env.VITE_WEB_URL || "/"}>
                     <Globe />
                     <span>Ver sitio</span>
                   </a>

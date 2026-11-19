@@ -109,11 +109,11 @@ describe("apiFetch", () => {
     await expect(apiFetch("/x", z.undefined())).resolves.toBeUndefined();
   });
 
-  it("construye la URL con VITE_API_URL por defecto y query", async () => {
+  it("sin VITE_API_URL la API es /api en el mismo origen, con query", async () => {
     fetchMock.mockResolvedValue(respond(200, { hello: "a" }));
     await apiFetch("/flights", okSchema, { query: { from: "BOG", to: "MDE" } });
     expect(String(fetchMock.mock.calls[0]![0])).toBe(
-      "http://localhost:3000/flights?from=BOG&to=MDE",
+      `${location.origin}/api/flights?from=BOG&to=MDE`,
     );
   });
 });

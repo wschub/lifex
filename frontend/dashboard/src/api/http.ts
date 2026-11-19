@@ -18,7 +18,7 @@ export interface ApiInit extends Omit<RequestInit, "body"> {
 }
 
 function buildUrl(path: string, query: ApiInit["query"]): string {
-  const url = new URL(apiBaseUrl() + path);
+  const url = new URL(apiBaseUrl() + path, location.origin);
   for (const [name, value] of Object.entries(query ?? {})) {
     if (value !== undefined) url.searchParams.set(name, String(value));
   }

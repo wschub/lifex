@@ -16,16 +16,15 @@ export const problem = (status: number, code: string, detail = code) => ({
 export function mockApi(routes: ApiRoutes) {
   const spy = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input));
+    // La API vive bajo /api en el mismo origen; las rutas de las pruebas son las del backend (sin prefijo).
+    const path = url.pathname.replace(/^\/api(?=\/|$)/, "");
     const method = (init?.method ?? "GET").toUpperCase();
-    const handler = routes[`${method} ${url.pathname}`];
+    const handler = routes[`${method} ${path}`];
     if (handler === undefined) {
-      return new Response(
-        JSON.stringify({ code: "NOT_MOCKED", detail: `${method} ${url.pathname}` }),
-        {
-          status: 404,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+      return new Response(JSON.stringify({ code: "NOT_MOCKED", detail: `${method} ${path}` }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
     const value = typeof handler === "function" ? await handler(url, init) : handler;
     const status =

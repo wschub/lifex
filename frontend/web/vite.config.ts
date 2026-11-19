@@ -18,8 +18,7 @@ export default defineConfig({
   server: {
     port: 5173,
     fs: { allow: ["../.."] },
-    // Opcional en desarrollo: con VITE_API_URL=http://localhost:5173/api el navegador habla con el mismo
-    // origen y no depende del CORS del backend (que hoy no admite la cabecera Idempotency-Key).
+    // La API es /api en el mismo origen (igual que en producción): el proxy quita el prefijo.
     proxy: {
       "/api": {
         target: "http://localhost:3000",
