@@ -97,6 +97,7 @@ eventos para detectar huecos. Los eventos actualizan la caché con `queryClient.
 
 ## 6. Panel administrativo (shadcn)
 
+- **Idioma (confirmado):** el panel es solo en español; no lleva selector es/en ni textos en inglés.
 - **Rutas:** `/admin/login` y `/admin` (dashboard). El botón de login de la web lleva a `/admin/login`; con sesión
   válida y permiso `dashboard:read`, a `/admin`.
 - **Login:** bloque `login-05` de shadcn (`npx shadcn@latest add login-05`). Primero se pide el correo y luego se
