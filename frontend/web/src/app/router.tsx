@@ -6,7 +6,7 @@ const page = (load: () => Promise<Record<string, unknown>>, name: string) => asy
   return { Component: mod[name] as React.ComponentType };
 };
 
-/** Rutas de la web pública (en inglés). El panel admin vive aparte y se abre con navegación completa. */
+/** Rutas de la web pública (en inglés). El dashboard (login + panel) vive aparte, en /dashboard, y se abre con navegación completa. */
 export const publicRoutes: RouteObject[] = [
   {
     element: <PublicLayout />,

@@ -24,8 +24,8 @@ export function SiteHeader({ current }: { current?: "home" }) {
         </nav>
         <div className="tools">
           <LangMenu />
-          {/* Carga completa a propósito: el panel admin lleva sus propios estilos y no deben mezclarse. */}
-          <a className="login" href="/admin/login">
+          {/* Carga completa a propósito: el dashboard lleva sus propios estilos y no deben mezclarse. */}
+          <a className="login" href={`${import.meta.env.VITE_DASHBOARD_URL ?? "/dashboard"}/login`}>
             <Icon name="user" />
             <span>{t("login")}</span>
           </a>

@@ -88,12 +88,12 @@ describe("Home", () => {
   it("el encabezado lleva el login al panel admin y cambia con el idioma", async () => {
     renderPage(<Home />);
     const login = await screen.findByRole("link", { name: /iniciar sesión/i });
-    expect(login).toHaveAttribute("href", "/admin/login");
+    expect(login).toHaveAttribute("href", "/dashboard/login");
     await userEvent.click(screen.getByRole("button", { name: /idioma y moneda/i }));
     await userEvent.click(screen.getByRole("menuitemradio", { name: /english/i }));
     expect(await screen.findByRole("link", { name: /log in/i })).toHaveAttribute(
       "href",
-      "/admin/login",
+      "/dashboard/login",
     );
     expect(screen.getByText("EN · USD")).toBeInTheDocument();
   });
