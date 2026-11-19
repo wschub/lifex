@@ -1,0 +1,52 @@
+name: Web CI
+
+on:
+  pull_request:
+    paths: ["frontend/web/**", "frontend/public/**", "shared/**", ".github/workflows/web-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["frontend/web/**", "frontend/public/**", "shared/**", ".github/workflows/web-ci.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, tipos, pruebas y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            shared/package-lock.json
+            frontend/web/package-lock.json
+      # shared/ son fuentes TypeScript que importan zod: necesita sus propias dependencias.
+      - name: Instalar shared
+        working-directory: shared
+        run: npm ci
+      - name: Instalar web
+        working-directory: frontend/web
+        run: npm ci
+      - name: Lint
+        working-directory: frontend/web
+        run: npm run lint
+      - name: Formato
+        working-directory: frontend/web
+        run: npm run format:check
+      - name: Tipos
+        working-directory: frontend/web
+        run: npm run typecheck
+      - name: Pruebas
+        working-directory: frontend/web
+        run: npm test
+      - name: Build
+        working-directory: frontend/web
+        run: npm run build

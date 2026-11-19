@@ -1,0 +1,52 @@
+name: Dashboard CI
+
+on:
+  pull_request:
+    paths: ["frontend/dashboard/**", "frontend/public/**", "shared/**", ".github/workflows/dashboard-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["frontend/dashboard/**", "frontend/public/**", "shared/**", ".github/workflows/dashboard-ci.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dashboard-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint, tipos, pruebas y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            shared/package-lock.json
+            frontend/dashboard/package-lock.json
+      # shared/ son fuentes TypeScript que importan zod: necesita sus propias dependencias.
+      - name: Instalar shared
+        working-directory: shared
+        run: npm ci
+      - name: Instalar dashboard
+        working-directory: frontend/dashboard
+        run: npm ci
+      - name: Lint
+        working-directory: frontend/dashboard
+        run: npm run lint
+      - name: Formato
+        working-directory: frontend/dashboard
+        run: npm run format:check
+      - name: Tipos
+        working-directory: frontend/dashboard
+        run: npm run typecheck
+      - name: Pruebas
+        working-directory: frontend/dashboard
+        run: npm test
+      - name: Build
+        working-directory: frontend/dashboard
+        run: npm run build
