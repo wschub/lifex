@@ -134,16 +134,24 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [ ] **Habilitar tickets con ida y vuelta.** Hoy la web y la reserva trabajan con un solo vuelo (solo ida; el
       selector "Ida y vuelta" de la portada no está activo). Implica: búsqueda con fecha de regreso, elegir dos
       vuelos (ida y regreso), asientos de los dos tramos, precio de cada tramo con las reglas de HU5, una sola
-      reserva con dos vuelos y un boleto por pasajero y tramo, y correos que los muestren. Requiere diseño previo
-      del modelo (una orden con dos vuelos) y de las pantallas (las pestañas por tramo ya están en el prototipo).
-- [ ] **Plantillas de correo nuevas** (ejemplo en `FRONTEND-WEB/Modal-template-mail/template-notificacion.html`,
+      reserva con dos vuelos y un boleto por pasajero y tramo, y correos que los muestren. El modelo ya parte de
+      que **una orden tiene uno o varios pasajeros y cada pasajero puede tener uno o varios tickets en la misma
+      compra** (ida y regreso): el ajuste es mover el vuelo y el asiento del nivel de la orden/pasajero al nivel
+      del tramo (ticket), porque hoy la orden referencia un solo vuelo. Las pestañas por tramo ya están en el
+      prototipo.
+- [ ] **Origen y destino con autocompletar** (una vez habilitado el tab de ida y vuelta): los dos campos filtran
+      mientras se escribe, por código de aeropuerto (IATA) o por nombre de ciudad, en español e inglés.
+- [ ] **Solo ida deshabilita la fecha de regreso** (una vez habilitado el tab de ida y vuelta).
+- [ ] **Solo adultos:** quitar los niños (hoy `passengerType` admite `ADULT` y `CHILD`). Es un cambio chico:
+      el selector de pasajeros y la página de pasajeros dejan solo adultos, y el backend/`shared/` rechazan `CHILD`.
+- [ ] **Plantillas de correo nuevas** (ejemplo en la carpeta local `FRONTEND-WEB/Modal-template-mail/template-notificacion.html`, que **no** está en el repo,
       con el logo `lifex-email-logo-white.png` de esa carpeta). Reemplazan el diseño actual de
       `ticket-confirmation` y `flight-status-change` (mismo renderer `renderEmail()`). Variables del ejemplo:
       `SUBJECT`, `PREHEADER`, `FIRST_NAME`, `MESSAGE_PRIMARY`, `MESSAGE_SECONDARY`, `DETAIL_1_LABEL/VALUE`,
       `DETAIL_2_LABEL/VALUE`, `INFO_LABEL/VALUE`, `NOTE`, `CTA_LABEL`, `CTA_URL`. Decidir cómo mapean los datos del
       boleto y del aviso de vuelo a esos campos, copiar el logo a `frontend/public/mail/` y armar su URL con
       `APP_URL` (hoy el ejemplo trae `https://TU-DOMINIO/email/...`).
-- [ ] **Modal de sesión** (ejemplo en `FRONTEND-WEB/Modal-template-mail/modal-sesion.html`, es/en). Dos variantes:
+- [ ] **Modal de sesión** (ejemplo en la carpeta local `FRONTEND-WEB/Modal-template-mail/modal-sesion.html`, es/en; el modal se extrae de ahí cuando se vaya a implementar). Dos variantes:
       **sesión inactiva** (el usuario deja la web quieta y la sesión expira) y **tiempo excedido** (vence el tiempo
       para hacer la compra: `expiresAt` de la reserva y/o el bloqueo del asiento `MAX_SEAT_LOCK_TIME`). Botones
       "Continuar" y "Ayuda". Debe aparecer en la web pública (checkout) con el mismo diseño, liberar el asiento y
