@@ -178,56 +178,88 @@ const LUGGAGE = [
   { name: "Business Flex", nameEs: "Business Flex", rank: 5, fee: 25, businessOnly: true },
 ];
 
-/** Aeronaves: 150 asientos (24 business + 126 economy) y 280 (40 business + 240 economy). */
+/**
+ * Flota. `miles` son millas náuticas. Business siempre en filas de 4 asientos (A C D F); Economy con
+ * 6 columnas (3-3) o 8 (2-4-2) y, si la capacidad no cierra en filas completas, la última fila queda
+ * parcial (787-8 y 787-9) para respetar la capacidad exacta.
+ *   787-8:  242 = 24 business + 218 economy (27 filas de 8 + 2)
+ *   787-9:  290 = 28 business + 262 economy (32 filas de 8 + 6)
+ *   737 MAX 8: 162 = 12 business + 150 economy (25 filas de 6)
+ *   A320neo: 150 = 24 business + 126 economy (21 filas de 6)
+ */
 const AIRCRAFT = [
-  {
-    id: "DOM-001",
-    ref: "Airbus A320",
-    range: "DOMESTIC",
-    miles: 3300,
-    seats: 150,
+  ...[1, 2].map((n) => ({
+    id: `INT-00${n}`,
+    ref: "Boeing 787-8 Dreamliner",
+    range: "INTERNATIONAL" as const,
+    miles: 7850,
+    seats: 242,
     business: 24,
-    columns: "ABCDEF",
-  },
-  {
-    id: "DOM-002",
-    ref: "Airbus A320",
-    range: "DOMESTIC",
-    miles: 3300,
-    seats: 150,
-    business: 24,
-    columns: "ABCDEF",
-  },
-  {
-    id: "DOM-003",
-    ref: "Airbus A320",
-    range: "DOMESTIC",
-    miles: 3300,
-    seats: 150,
-    business: 24,
-    columns: "ABCDEF",
-  },
-  {
-    id: "INT-001",
-    ref: "Airbus A330-200",
-    range: "INTERNATIONAL",
-    miles: 7250,
-    seats: 280,
-    business: 40,
     columns: "ABCDEFGH",
-  },
-  {
-    id: "INT-002",
-    ref: "Airbus A330-200",
-    range: "INTERNATIONAL",
-    miles: 7250,
-    seats: 280,
-    business: 40,
+    description:
+      "Long-haul widebody with a range of 14,500 km (7,850 nmi), 242 seats in two cabins.",
+    descriptionEs:
+      "Fuselaje ancho de largo alcance: 14.500 km (7.850 millas náuticas), 242 asientos en dos cabinas.",
+  })),
+  ...[3, 4].map((n) => ({
+    id: `INT-00${n}`,
+    ref: "Boeing 787-9",
+    range: "INTERNATIONAL" as const,
+    miles: 7828,
+    seats: 290,
+    business: 28,
     columns: "ABCDEFGH",
-  },
-] as const;
+    description:
+      "Stretched long-haul widebody, 14,498 km (7,828 nmi) range at full payload, about 290 seats in two classes.",
+    descriptionEs:
+      "Versión alargada de largo alcance: 14.498 km (7.828 millas náuticas) con carga completa, unos 290 asientos en dos clases.",
+  })),
+  ...[5, 6].map((n) => ({
+    id: `INT-00${n}`,
+    ref: "Boeing 737 MAX 8",
+    range: "INTERNATIONAL" as const,
+    miles: 3547,
+    seats: 162,
+    business: 12,
+    columns: "ABCDEF",
+    description:
+      "Regional narrowbody for medium-haul international routes, 6,570 km (3,547 nmi) range, 162 seats in two classes.",
+    descriptionEs:
+      "Pasillo único para rutas internacionales regionales: 6.570 km (3.547 millas náuticas), 162 asientos en dos clases.",
+  })),
+  ...[1, 2, 3].map((n) => ({
+    id: `DOM-00${n}`,
+    ref: "Airbus A320neo",
+    range: "DOMESTIC" as const,
+    miles: 3400,
+    seats: 150,
+    business: 24,
+    columns: "ABCDEF",
+    description:
+      "Domestic-only narrowbody, 3,400 nmi (about 6,300 km) range, 150 seats in two classes.",
+    descriptionEs:
+      "Pasillo único solo para vuelos nacionales: 3.400 millas náuticas (unos 6.300 km), 150 asientos en dos clases.",
+  })),
+];
 
 const BUSINESS_COLUMNS = "ACDF";
+/** Mismo valor que la variable de entorno BUSINESS_BASE_MULTIPLIER del backend. */
+const BUSINESS_BASE_MULTIPLIER = Number(process.env.BUSINESS_BASE_MULTIPLIER ?? 3);
+/** Velocidad de crucero para comprobar que una aeronave llega (nudos = millas náuticas por hora). */
+const CRUISE_KNOTS = 450;
+/** Por debajo de este alcance una aeronave se considera regional. */
+const REGIONAL_MAX_RANGE_NMI = 5000;
+
+const aircraftData = (aircraft: (typeof AIRCRAFT)[number]) => ({
+  reference: aircraft.ref,
+  description: aircraft.description,
+  descriptionEs: aircraft.descriptionEs,
+  typeRange: aircraft.range,
+  rangeMiles: aircraft.miles,
+  maxNumberSeats: aircraft.seats,
+  businessSeats: aircraft.business,
+  seatColumns: aircraft.columns,
+});
 
 async function seedCatalog(): Promise<void> {
   for (const country of [COLOMBIA, ...INTERNATIONAL]) {
@@ -277,16 +309,8 @@ async function seedCatalog(): Promise<void> {
   for (const aircraft of AIRCRAFT) {
     await prisma.aircraft.upsert({
       where: { internalIdentifier: aircraft.id },
-      update: {},
-      create: {
-        internalIdentifier: aircraft.id,
-        reference: aircraft.ref,
-        typeRange: aircraft.range,
-        rangeMiles: aircraft.miles,
-        maxNumberSeats: aircraft.seats,
-        businessSeats: aircraft.business,
-        seatColumns: aircraft.columns,
-      },
+      update: aircraftData(aircraft),
+      create: { internalIdentifier: aircraft.id, ...aircraftData(aircraft) },
     });
   }
 }
@@ -370,8 +394,8 @@ interface FlightPlan {
   type: "DOMESTIC" | "INTERNATIONAL";
   departure: Date;
   minutes: number;
+  /** basePriceDefault del vuelo (USD): precio mínimo de partida; Business se deriva con el multiplicador. */
   economy: number;
-  business: number;
 }
 
 function planFlights(): FlightPlan[] {
@@ -408,7 +432,6 @@ function planFlights(): FlightPlan[] {
         departure: localDeparture(dayMs, hour, minute),
         minutes: 60 + (pairIndex % 4) * 10,
         economy: 80 + (pairIndex % 8) * 10,
-        business: 200 + (pairIndex % 6) * 20,
       });
     });
     internationalSlots.forEach(([hour, minute], slot) => {
@@ -423,7 +446,6 @@ function planFlights(): FlightPlan[] {
         departure: localDeparture(dayMs, hour, minute),
         minutes: destination.minutes,
         economy: 400 + (destinationIndex % 10) * 50,
-        business: 1200 + (destinationIndex % 10) * 130,
       });
     });
   }
@@ -442,9 +464,13 @@ function seatLayout(business: number, economyColumns: string, total: number): Se
   for (let row = 1; row <= businessRows; row += 1) {
     for (const column of BUSINESS_COLUMNS) seats.push({ row, column, seatClass: "BUSINESS" });
   }
-  const economyRows = (total - business) / economyColumns.length;
-  for (let row = businessRows + 1; row <= businessRows + economyRows; row += 1) {
-    for (const column of economyColumns) seats.push({ row, column, seatClass: "ECONOMY" });
+  // Economy llena filas completas y, si sobran asientos, deja la última fila parcial.
+  let remaining = total - business;
+  for (let row = businessRows + 1; remaining > 0; row += 1) {
+    for (const column of economyColumns.slice(0, remaining)) {
+      seats.push({ row, column, seatClass: "ECONOMY" });
+    }
+    remaining -= economyColumns.length;
   }
   return seats;
 }
@@ -494,10 +520,22 @@ async function seedFlights(): Promise<void> {
   const seatRows: Prisma.FlightSeatCreateManyInput[] = [];
   let domesticCount = 0;
   let internationalCount = 0;
+  const rotation = new Map<string, number>();
 
   for (const plan of plans) {
-    const pool = plan.type === "DOMESTIC" ? domestic : international;
-    const counter = plan.type === "DOMESTIC" ? domesticCount++ : internationalCount++;
+    if (plan.type === "DOMESTIC") domesticCount += 1;
+    else internationalCount += 1;
+    // Solo aeronaves con alcance suficiente (≈ 450 nudos de crucero); entre ellas, las regionales
+    // (737 MAX 8) toman las rutas cortas y los 787 las de largo alcance.
+    const base = plan.type === "DOMESTIC" ? domestic : international;
+    const needed = (plan.minutes / 60) * CRUISE_KNOTS;
+    const capable = base.filter((item) => item.rangeMiles >= needed);
+    const regional = capable.filter((item) => item.rangeMiles < REGIONAL_MAX_RANGE_NMI);
+    const pool = regional.length > 0 ? regional : capable;
+    if (pool.length === 0) throw new Error(`No aircraft can fly ${plan.fromIata}-${plan.toIata}`);
+    const key = pool.map((item) => item.id).join(",");
+    const counter = rotation.get(key) ?? 0;
+    rotation.set(key, counter + 1);
     const plane = pool[counter % pool.length] as (typeof pool)[number];
     const id = crypto.randomUUID();
     flightRows.push({
@@ -508,9 +546,11 @@ async function seedFlights(): Promise<void> {
       arrivalDate: new Date(plan.departure.getTime() + plan.minutes * 60_000),
       numMaxSeats: plane.maxNumberSeats,
       numAvailableSeats: plane.maxNumberSeats,
+      // Sin ventas: ocupación y promedios en 0; basePriceDefault es el único precio de partida.
+      occupancyRate: money(0),
       basePriceDefault: money(plan.economy),
-      averagePriceEconomy: money(plan.economy),
-      averagePriceBusiness: money(plan.business),
+      averagePriceEconomy: money(0),
+      averagePriceBusiness: money(0),
     });
     for (const seat of seatLayout(plane.businessSeats, plane.seatColumns, plane.maxNumberSeats)) {
       seatRows.push({
@@ -519,7 +559,10 @@ async function seedFlights(): Promise<void> {
         seatRow: seat.row,
         seatColumn: seat.column,
         seatClass: seat.seatClass,
-        seatPrice: money(seat.seatClass === "BUSINESS" ? plan.business : plan.economy),
+        // Precio base de la clase; al bloquear, el asiento guarda el precio dinámico vigente.
+        seatPrice: money(
+          seat.seatClass === "BUSINESS" ? plan.economy * BUSINESS_BASE_MULTIPLIER : plan.economy,
+        ),
       });
     }
   }

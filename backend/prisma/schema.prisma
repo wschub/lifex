@@ -172,7 +172,11 @@ model Aircraft {
   id                 Int            @id @default(autoincrement())
   internalIdentifier String         @unique
   reference          String
+  /// Descripción corta en inglés y en español, adicional al nombre del modelo (`reference`).
+  description        String         @default("")
+  descriptionEs      String         @default("")
   typeRange          AircraftRange
+  /// Alcance en millas náuticas.
   rangeMiles         Int
   maxNumberSeats     Int
   businessSeats      Int
