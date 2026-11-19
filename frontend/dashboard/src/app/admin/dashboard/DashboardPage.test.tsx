@@ -6,9 +6,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { WsClient, WsHandlers } from "@/ws/client.ts";
 import { useStaffSession } from "@/stores/staff-session.ts";
 import {
+  CITIES,
   FLIGHT_A,
   flightMetrics,
   flightRow,
+  flightsPage,
+  overviewFixture,
   jsonResponse,
   makeMe,
   stubMatchMedia,
@@ -38,8 +41,10 @@ beforeEach(() => {
     const url = String(input);
     if (url.includes("/dashboard/flights/"))
       return Promise.resolve(jsonResponse({ metrics: flightMetrics(reserved) }));
+    if (url.includes("/dashboard/overview")) return Promise.resolve(jsonResponse(overviewFixture));
+    if (url.includes("/catalog/cities")) return Promise.resolve(jsonResponse(CITIES));
     if (url.includes("/dashboard/flights"))
-      return Promise.resolve(jsonResponse({ flights: [flightRow(FLIGHT_A)] }));
+      return Promise.resolve(jsonResponse(flightsPage([flightRow(FLIGHT_A)])));
     return Promise.resolve(jsonResponse({}, 404));
   });
   vi.stubGlobal("fetch", fetchMock);
@@ -59,7 +64,7 @@ describe("DashboardPage", () => {
     const { client, handlers } = fakeClient();
     renderPage(client);
 
-    await userEvent.click(await screen.findByText("BOG → MDE"));
+    await userEvent.click(await screen.findByText("Bogotá (BOG) → Medellín (MDE)"));
     const reservedCard = (await screen.findAllByText("Reservados"))[0]!.closest(
       "[data-slot=card]",
     )!;
@@ -80,7 +85,7 @@ describe("DashboardPage", () => {
 
   it("does not render the change-status control for a viewer", async () => {
     renderPage(fakeClient().client);
-    await screen.findByText("BOG → MDE");
+    await screen.findByText("Bogotá (BOG) → Medellín (MDE)");
     expect(screen.queryByRole("button", { name: /cambiar estado/i })).not.toBeInTheDocument();
   });
 });

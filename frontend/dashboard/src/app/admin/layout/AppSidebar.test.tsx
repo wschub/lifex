@@ -6,9 +6,9 @@ import { makeMe, stubMatchMedia } from "@/test/admin-fixtures.ts";
 import { useStaffSession } from "@/stores/staff-session.ts";
 import { AppSidebar } from "./AppSidebar.tsx";
 
-function renderSidebar(defaultOpen: boolean) {
+function renderSidebar(defaultOpen: boolean, path = "/") {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       <SidebarProvider defaultOpen={defaultOpen}>
         <AppSidebar />
       </SidebarProvider>
@@ -44,5 +44,15 @@ describe("AppSidebar", () => {
     renderSidebar(true);
     expect(screen.getByText("viewer@lifex.test")).toBeInTheDocument();
     expect(screen.queryByText(/acme/i)).not.toBeInTheDocument();
+  });
+
+  it("tiene las secciones Dashboard y Vuelos, y marca la activa", () => {
+    renderSidebar(true, "/vuelos");
+    const flights = screen.getByRole("link", { name: "Vuelos" });
+    const dashboard = screen.getByRole("link", { name: "Dashboard" });
+    expect(flights).toHaveAttribute("href", "/vuelos");
+    expect(dashboard).toHaveAttribute("href", "/");
+    expect(flights).toHaveAttribute("data-active", "true");
+    expect(dashboard).toHaveAttribute("data-active", "false");
   });
 });

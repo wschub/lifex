@@ -11,3 +11,12 @@ afterEach(() => {
     // jsdom sin almacenamiento: nada que limpiar
   }
 });
+
+// jsdom no trae ResizeObserver (las gráficas de recharts lo usan para medir su contenedor).
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  };
+}

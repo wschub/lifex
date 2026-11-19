@@ -164,6 +164,16 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       Decisión: se quitó del ejemplo el texto "tu reserva se conserva" y el botón "Solicitar ayuda", porque la compra se
       reinicia; los botones usan los `.btn` del sitio.
 
+## 12.1b Panel de administración (dashboard)
+- [x] **Dashboard:** indicadores (vuelos del día, ocupación, tickets vendidos, ingresos, vuelos con novedades) y tres gráficas
+      (vuelos por hora, ocupación por tipo de ruta y clase, vuelos por estado) con `GET /dashboard/overview`.
+- [x] **Tabla de vuelos del día** con paginación del servidor y filtros de origen y destino con autocompletar (como la web pública).
+- [x] **Sección «Vuelos»** (`/dashboard/vuelos`): todos los vuelos, nacionales e internacionales, con filtros de origen, destino y
+      fecha y paginación; la ven `ADMIN` y `ADMIN_VIEWER`. (La lista anterior se cortaba en los primeros 100 vuelos y por eso
+      no aparecían los internacionales; ahora `GET /dashboard/flights` pagina y filtra en el servidor.)
+- [x] **Avisos de cancelación o retraso:** a cada reserva confirmada del vuelo se le envía un correo cuyo asunto dice
+      «Cancelación…» o «Retraso…», con un texto corto y diplomático que pide estar pendiente del correo (HU4.6).
+
 ## 12.2 Despliegue y operación (Railway)
 - [ ] **Subir los commits pendientes** (`git push`) y comprobar la primera ejecución de los workflows en la pestaña Actions
       (`backend-ci`, `web-ci`, `dashboard-ci`).

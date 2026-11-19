@@ -6,7 +6,14 @@ import { FlightsTable } from "./FlightsTable.tsx";
 
 const flights = [
   flightRow(FLIGHT_A),
-  flightRow(FLIGHT_B, { from: "MDE", to: "CTG", status: "DELAYED", occupancyRate: 50 }),
+  flightRow(FLIGHT_B, {
+    from: "MDE",
+    to: "CTG",
+    fromCity: "Medellín",
+    toCity: "Cartagena",
+    status: "DELAYED",
+    occupancyRate: 50,
+  }),
 ];
 
 describe("FlightsTable", () => {
@@ -22,7 +29,7 @@ describe("FlightsTable", () => {
     );
     const rows = screen.getAllByRole("row").slice(1);
     expect(rows).toHaveLength(2);
-    expect(within(rows[0]!).getByText("BOG → MDE")).toBeInTheDocument();
+    expect(within(rows[0]!).getByText("Bogotá (BOG) → Medellín (MDE)")).toBeInTheDocument();
     expect(within(rows[0]!).getByText("Activo")).toBeInTheDocument();
     expect(within(rows[0]!).getByText("16,7 %")).toBeInTheDocument();
     expect(within(rows[1]!).getByText("Retrasado")).toBeInTheDocument();
@@ -67,7 +74,7 @@ describe("FlightsTable", () => {
         onChangeStatus={() => undefined}
       />,
     );
-    await userEvent.click(screen.getByText("BOG → MDE"));
+    await userEvent.click(screen.getByText("Bogotá (BOG) → Medellín (MDE)"));
     expect(onSelect).toHaveBeenCalledWith(FLIGHT_A);
   });
 });

@@ -17,7 +17,18 @@ import { formatPercent, statusLabel } from "./status.ts";
 const features = tableFeatures({});
 const helper = createColumnHelper<typeof features, DashboardFlightRow>();
 const columns = helper.columns([
-  helper.accessor((row) => `${row.from} → ${row.to}`, { id: "route", header: "Ruta" }),
+  helper.accessor((row) => `${row.fromCity} (${row.from}) → ${row.toCity} (${row.to})`, {
+    id: "route",
+    header: "Ruta",
+    cell: (info) => (
+      <div className="flex flex-col">
+        <span className="font-medium">{info.getValue()}</span>
+        <span className="text-muted-foreground text-xs">
+          {info.row.original.routeType === "INTERNATIONAL" ? "Internacional" : "Nacional"}
+        </span>
+      </div>
+    ),
+  }),
   helper.accessor("departureDate", {
     header: "Salida",
     cell: (info) => `${formatDate(info.getValue(), "es")} · ${formatTime(info.getValue())}`,
@@ -71,7 +82,7 @@ export function FlightsTable({
               colSpan={canManage ? 5 : 4}
               className="text-muted-foreground h-20 text-center"
             >
-              No hay vuelos para esta fecha.
+              No hay vuelos con estos filtros.
             </TableCell>
           </TableRow>
         ) : (

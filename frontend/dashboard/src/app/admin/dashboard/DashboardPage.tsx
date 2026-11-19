@@ -2,11 +2,12 @@ import { PERMISSION, type DashboardFlightRow } from "@lifex/shared";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { wsUrl } from "@/api/config.ts";
-import { dashboardFlightQuery, dashboardFlightsQuery } from "@/api/queries.ts";
+import { dashboardFlightQuery } from "@/api/queries.ts";
 import { Input } from "@/components/ui/input.tsx";
 import { usePermission, useStaffSession } from "@/stores/staff-session.ts";
 import { createWsClient, type WsClient } from "@/ws/client.ts";
-import { FlightsTable } from "./FlightsTable.tsx";
+import { FlightsPanel } from "../flights/FlightsPanel.tsx";
+import { OverviewSection } from "../overview/OverviewSection.tsx";
 import { FlightStatusDialog } from "./FlightStatusDialog.tsx";
 import { MetricsCards } from "./MetricsCards.tsx";
 import { useDashboardLive } from "./useDashboardLive.ts";
@@ -29,7 +30,6 @@ export function DashboardPage({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState<DashboardFlightRow | null>(null);
 
-  const list = useQuery({ ...dashboardFlightsQuery(date, token), enabled: token !== "" });
   const metrics = useQuery({
     ...dashboardFlightQuery(selectedId ?? "", token),
     enabled: token !== "" && selectedId !== null,
@@ -40,9 +40,9 @@ export function DashboardPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold">Vuelos del día</h2>
+          <h2 className="text-xl font-semibold">Resumen del día</h2>
           <p className="text-muted-foreground text-sm">
-            Selecciona un vuelo para ver su ocupación en tiempo real.
+            Indicadores y gráficas de los vuelos que salen en la fecha elegida.
           </p>
         </div>
         <label className="flex flex-col gap-1 text-sm">
@@ -51,7 +51,7 @@ export function DashboardPage({
             type="date"
             value={date}
             onChange={(event) => {
-              setDate(event.target.value);
+              setDate(event.target.value || todayInBogota());
               setSelectedId(null);
             }}
             className="w-44"
@@ -59,20 +59,23 @@ export function DashboardPage({
         </label>
       </div>
 
-      {list.isError ? (
-        <p role="alert" className="text-destructive text-sm">
-          No se pudieron cargar los vuelos. {list.error.message}
+      <OverviewSection date={date} />
+
+      <div>
+        <h2 className="text-xl font-semibold">Vuelos del día</h2>
+        <p className="text-muted-foreground text-sm">
+          Selecciona un vuelo para ver su ocupación en tiempo real.
         </p>
-      ) : null}
-      <div className="rounded-lg border">
-        <FlightsTable
-          flights={list.data?.flights}
-          selectedId={selectedId}
-          canManage={canManage}
-          onSelect={setSelectedId}
-          onChangeStatus={setEditing}
-        />
       </div>
+      <FlightsPanel
+        date={date}
+        onDateChange={() => undefined}
+        showDate={false}
+        canManage={canManage}
+        selectedId={selectedId}
+        onSelect={setSelectedId}
+        onChangeStatus={setEditing}
+      />
 
       {metrics.data ? <MetricsCards metrics={metrics.data.metrics} /> : null}
 

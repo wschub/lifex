@@ -10,7 +10,8 @@ export const keys = {
   config: ["config"] as const,
   cities: ["cities"] as const,
   luggageTypes: ["luggageTypes"] as const,
-  dashboardFlights: (date: string) => ["dashboardFlights", date] as const,
+  dashboardFlights: (params: object) => ["dashboardFlights", params] as const,
+  dashboardOverview: (date: string) => ["dashboardOverview", date] as const,
   dashboardFlight: (id: string) => ["dashboardFlight", id] as const,
   me: ["me"] as const,
 };

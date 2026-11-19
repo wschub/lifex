@@ -35,6 +35,7 @@ export function FlightStatusDialog({
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["dashboardFlights"] });
       await queryClient.invalidateQueries({ queryKey: ["dashboardFlight"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboardOverview"] });
       onChanged();
       close();
     },

@@ -1,5 +1,5 @@
-import { Globe, LayoutDashboard, LogOut } from "lucide-react";
-import { useNavigate } from "react-router";
+import { Globe, LayoutDashboard, LogOut, Plane } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { logout } from "@/api/auth.ts";
 import {
   Sidebar,
@@ -18,6 +18,8 @@ import { SidebarBrand } from "./SidebarBrand.tsx";
 export function AppSidebar() {
   const me = useStaffSession((state) => state.me);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const onFlights = pathname.replace(/\/$/, "") === "/vuelos";
 
   async function signOut() {
     await logout().catch(() => undefined);
@@ -35,11 +37,19 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive tooltip="Dashboard">
-                  <a href={import.meta.env.BASE_URL}>
+                <SidebarMenuButton asChild isActive={!onFlights} tooltip="Dashboard">
+                  <Link to="/">
                     <LayoutDashboard />
                     <span>Dashboard</span>
-                  </a>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={onFlights} tooltip="Vuelos">
+                  <Link to="/vuelos">
+                    <Plane />
+                    <span>Vuelos</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

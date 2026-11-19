@@ -1,6 +1,8 @@
 import {
   bookingResponseSchema,
+  citiesResponseSchema,
   dashboardFlightsResponseSchema,
+  dashboardOverviewResponseSchema,
   flightDetailResponseSchema,
   flightMetricsResponseSchema,
   flightSearchResponseSchema,
@@ -10,7 +12,7 @@ import {
   seatMapSchema,
   type FlightSearchQuery,
 } from "@lifex/shared";
-import { queryOptions } from "@tanstack/react-query";
+import { keepPreviousData, queryOptions } from "@tanstack/react-query";
 import { apiFetch } from "./http.ts";
 import { keys } from "./keys.ts";
 
@@ -58,14 +60,45 @@ export const ticketsQuery = (bookingId: string, token: string) =>
       apiFetch(`/bookings/${bookingId}/tickets`, orderTicketsSchema, { bookingToken: token }),
   });
 
-export const dashboardFlightsQuery = (date: string, staffToken: string) =>
+/** Filtros y página de la lista de vuelos (todos opcionales salvo la página). */
+export interface DashboardFlightsParams {
+  date?: string;
+  from?: string;
+  to?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** Una página de vuelos (nacionales e internacionales) con filtros por fecha, origen y destino. */
+export const dashboardFlightsQuery = (params: DashboardFlightsParams, staffToken: string) =>
   queryOptions({
-    queryKey: keys.dashboardFlights(date),
+    queryKey: keys.dashboardFlights(params),
     queryFn: () =>
       apiFetch("/dashboard/flights", dashboardFlightsResponseSchema, {
         staffToken,
+        query: { ...params },
+      }),
+    // Al cambiar de página se sigue mostrando la anterior hasta que llega la nueva (sin parpadeo).
+    placeholderData: keepPreviousData,
+  });
+
+/** Indicadores y series de los vuelos que salen en un día (AAAA-MM-DD, hora de Colombia). */
+export const dashboardOverviewQuery = (date: string, staffToken: string) =>
+  queryOptions({
+    queryKey: keys.dashboardOverview(date),
+    queryFn: () =>
+      apiFetch("/dashboard/overview", dashboardOverviewResponseSchema, {
+        staffToken,
         query: { date },
       }),
+    refetchInterval: 60_000,
+  });
+
+export const citiesQuery = () =>
+  queryOptions({
+    queryKey: keys.cities,
+    queryFn: () => apiFetch("/catalog/cities", citiesResponseSchema),
+    staleTime: 60 * 60_000,
   });
 
 export const dashboardFlightQuery = (id: string, staffToken: string) =>

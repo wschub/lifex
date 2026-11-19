@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip.tsx";
 import { AdminGuard } from "./AdminGuard.tsx";
 import { LoginPage } from "./login/LoginPage.tsx";
 import { DashboardPage } from "./dashboard/DashboardPage.tsx";
+import { FlightsPage } from "./flights/FlightsPage.tsx";
 import { AdminLayout } from "./layout/AdminLayout.tsx";
 import "./styles/admin.css";
 
@@ -30,6 +31,7 @@ export default function AdminApp() {
               }
             >
               <Route index element={<DashboardPage />} />
+              <Route path="vuelos" element={<FlightsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

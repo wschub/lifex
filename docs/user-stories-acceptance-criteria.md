@@ -65,8 +65,17 @@ vuelo, **para** monitorear la demanda en vivo.
 | 4.3 | Conectado al tema `dashboard:{id}`, el cliente recibe un evento cada vez que cambia el estado de cualquier asiento de ese vuelo (`SeatHeld`, `SeatReleased`, `SeatSold`), sin necesidad de refrescar. | Aceptación (WS) |
 | 4.4 | Solo el rol con permiso `flights:manage` (`ADMIN`) puede cambiar el `status` de un vuelo desde el dashboard; `ADMIN_VIEWER` puede ver pero el intento de cambiar responde `403`. | Aceptación |
 | 4.5 | Un cambio manual de `status` del vuelo se refleja en la búsqueda pública (HU1.4) y en el dashboard de cualquier otro admin conectado, en la misma operación. | Aceptación |
-| 4.6 | Cuando el admin cambia un vuelo a `CANCELLED` o `DELAYED`, se envía un correo de notificación (plantilla `flight-status-change`) a **cada orden `CONFIRMED`** de ese vuelo, a su correo de contacto, con los pasajeros listados. No se notifica a órdenes sin pagar ni a las de otros vuelos, y volver a `ACTIVE` o un cambio inválido no envía nada. Un correo por orden, aunque tenga varios pasajeros. | Integración (adapter de notificación con doble en memoria) |
+| 4.6 | Cuando el admin cambia un vuelo a `CANCELLED` o `DELAYED`, se envía un correo de notificación (plantilla `flight-status-change`) a **cada orden `CONFIRMED`** de ese vuelo, a su correo de contacto, con los pasajeros listados. El **asunto** dice el motivo: «Cancelación de tu vuelo MDE → BOG — CÓDIGO» o «Retraso de tu vuelo MDE → BOG — CÓDIGO», y el texto es corto y diplomático: lamenta el inconveniente y pide **estar pendiente del correo**, por donde se informarán las novedades del vuelo. No se notifica a órdenes sin pagar ni a las de otros vuelos, y volver a `ACTIVE` o un cambio inválido no envía nada. Un correo por orden, aunque tenga varios pasajeros. | Integración (adapter de notificación con doble en memoria) |
 | 4.7 | Los avisos se encolan en la misma transacción que el cambio de estado; si el proveedor de correo falla, el cambio de estado se mantiene y el aviso se reintenta sin duplicarse. | Integración |
+
+### Panel de administración: resumen del día y lista de vuelos
+
+| # | Criterio | Tipo de prueba |
+|---|---|---|
+| 4.8 | `GET /dashboard/overview?date=AAAA-MM-DD` (por defecto, hoy en hora de Colombia; permiso `dashboard:read`) devuelve los indicadores y series de los vuelos que salen ese día: vuelos (total, nacionales, internacionales y por estado), ocupación (total, por tipo de ruta y por clase), salidas por hora, tickets vendidos, ingresos (reservas `CONFIRMED`) y vuelos con novedades (cancelados o retrasados). | Unitaria + integración |
+| 4.9 | `GET /dashboard/flights` devuelve **todos** los vuelos (nacionales e internacionales) paginados (`page`, `pageSize` ≤ 100) con `total`, ordenados por salida, y se filtra por `from` (origen IATA), `to` (destino IATA) y `date`. Sin fecha lista los que aún no salieron. Un filtro inválido responde `400` (`INVALID_AIRPORT`, `INVALID_PAGE`, `INVALID_SEARCH_DATE`). | Integración |
+| 4.10 | El dashboard muestra tarjetas de indicadores y tres gráficas (vuelos por hora, ocupación y vuelos por estado), y debajo la tabla de vuelos del día con paginación y filtros de origen y destino con **autocompletar** por código IATA o ciudad (los mismos aeropuertos, nacionales e internacionales, que el buscador de la web). | Componente |
+| 4.11 | La sección **Vuelos** lista todos los vuelos con filtros de origen, destino y fecha y paginación; la ven `ADMIN` y `ADMIN_VIEWER` (`dashboard:read`), y solo `ADMIN` (`flights:manage`) ve el botón de cambiar estado. | Componente |
 
 ## HU5 — Precios dinámicos y ofertas
 
