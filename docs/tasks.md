@@ -120,12 +120,25 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [x] Reglas documentadas en HU5 (`docs/user-stories-acceptance-criteria.md`).
 
 ## Pendientes
-- [x] **Cookie de refresh en Railway** (resuelto con el proxy de mismo origen: `COOKIE_SAME_SITE=lax`; ver `docs/deploy-railway.md`): con `COOKIE_SAME_SITE=strict` solo funciona si el frontend y la API
-      comparten sitio. Si van en dominios distintos hay que usar `COOKIE_SAME_SITE=none` (con cookie `Secure`, que exige HTTPS)
-      y **crear la variable en Railway al desplegar** (acordarse de crearla en el servicio de la API).
+- [ ] **Cookie de refresh — variable pendiente en Railway (no olvidar antes de desplegar).** Con el proxy de mismo origen
+      (`frontend/server.mjs` reescribe `Path=/auth` a `Path=/api/auth`) ya no hace falta `COOKIE_SAME_SITE=none`, pero la
+      variable **`COOKIE_SAME_SITE=lax`** (junto con `TRUST_PROXY=1`, `NODE_ENV=production` y `CORS_ORIGINS=https://<dominio>`)
+      debe existir en el servicio `backend` de Railway; sin ella el valor por defecto es `strict` y la sesión del dashboard puede
+      perderse al refrescar. Si algún día la API queda en otro dominio, habría que usar `none` (cookie `Secure`, HTTPS).
+      Ver `docs/deploy-railway.md`.
 - [x] **Imágenes de ciudades:** viven en `frontend/public/img/destinations/` y la BD guarda solo el nombre del
       archivo (`cities.imageName`, ej. `medellin.jpg`); el frontend arma la ruta `/img/destinations/<nombre>`.
-- [ ] **Convertir las imágenes a WebP** (recordárselo al usuario antes del despliegue). Al convertir, cambiar la extensión en `cities.imageName`.
+- [ ] **Convertir las imágenes a WebP** (recordárselo al usuario antes del despliegue). Hoy las 12 fotos de `frontend/public/img/destinations/`
+      son `.jpg`. Al convertir hay que cambiar a la vez la extensión en el seed (`backend/src/cli/seed/`, `cities.imageName`:
+      `.jpg` → `.webp`) y volver a ejecutar `node dist/cli/seed.js --no-users` (el `upsert` actualiza las ciudades existentes).
+- [ ] **Desglose del equipaje en la reserva.** Estado real: el desglose por pasajero y tipo ya se muestra (el texto
+      «Incluido en tiquetes» ya no aparece en la web); queda pendiente revisar con el equipo si el resumen debe mostrar además el
+      costo unitario de cada maleta.
+- [x] **Fotos de Lisboa, Cali, Panamá, Milán y Ámsterdam:** ya están en `frontend/public/img/destinations/`
+      (`lisboa.jpg`, `cali.jpg`, `panama.jpg`, `milan.jpg`, `amsterdam.jpg`). Siguen faltando las demás ciudades del catálogo
+      (lista en `docs/seed-plan.md`); mientras tanto la web muestra la imagen genérica.
+- [x] **Precio recortado en la tarjeta pequeña de oferta** (p. ej. Washington D.C.): corregido en `overrides.css` de la web;
+      queda como punto a comprobar en pantallas muy estrechas durante la sustentación.
 - [x] **Web pública:** usar `priceEconomyUsd` / `priceBusinessUsd` / `offer` de `GET /flights` y mostrar las
       ofertas de la portada con `GET /flights/offers` (reemplaza los precios estimados actuales).
 - [ ] **Alineación de tarifas** (Light / Classic / Flex y Business) con el precio dinámico, al terminar la v1
@@ -201,10 +214,9 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [ ] **Escala del seed:** 4,4 millones de filas de asientos; si el volumen crece, evaluar crear los asientos bajo demanda o
       particionar la tabla. Vigilar `GET /flights/offers` (hoy ~0,15 s).
 - [ ] **Pruebas del servidor del frontend:** corren con `--test-force-exit` porque queda un handle abierto; diagnosticarlo.
-- [ ] **Imágenes de ciudades:** faltan 17 fotos (lista en `docs/seed-plan.md`) y la conversión a WebP.
+- [ ] **Imágenes de ciudades:** faltan 17 fotos (lista en `docs/seed-plan.md`; Lisboa, Cali, Panamá, Milán y Ámsterdam ya están) y la conversión a WebP.
 
 ## 13. Documentación final
 - [x] `docs/ia.md`, `docs/architecture.md`, `docs/user-stories-acceptance-criteria.md`,
       `docs/seed-plan.md` y `README.md` actualizados con el backend implementado.
-- [ ] Completar `docs/ia.md` (prompts y refactors) y verificar las instrucciones de ejecución del README
-      cuando exista el frontend.
+- [x] `docs/ia.md` (prompts y refactors) completado y instrucciones de ejecución del README verificadas con el frontend.

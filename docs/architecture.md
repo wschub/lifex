@@ -205,6 +205,39 @@ precio base menos `OFFER_DISCOUNT_PERCENTAGE`. Las reglas completas están en HU
 - Variables de entorno (solo se leen en `composition.ts`): `BUSINESS_BASE_MULTIPLIER` (3) y
   `OFFER_DISCOUNT_PERCENTAGE` (15).
 
+### 4.4.4 HU5 — Precios dinámicos y ofertas
+
+Resumen de las reglas que cubren los criterios 5.1–5.9 de HU5
+([`user-stories-acceptance-criteria.md`](user-stories-acceptance-criteria.md)); el detalle de implementación está en 4.4.3.
+
+| Criterio | Regla |
+|---|---|
+| 5.1 | Primer ticket de una clase: precio base +20 %. Business parte de la base ×3 (`BUSINESS_BASE_MULTIPLIER`). |
+| 5.2 | Con promedio de la clase > 0: promedio +5 %. |
+| 5.3 | +0,5 % de la referencia por hora completa dentro de las últimas 72 h; el recargo se congela a 2 h (nacional) y 5 h (internacional) de la salida. |
+| 5.4 | `GET /flights` y `GET /flights/:id` calculan `priceEconomyUsd`, `priceBusinessUsd` y `offer` al consultar. |
+| 5.5 | El precio vigente se ve en el mapa de asientos y se **congela al bloquear** el asiento; la reserva cobra ese precio. |
+| 5.6 | Tras cada pago aprobado se recalculan asientos disponibles, ocupación y promedios por clase; un pago rechazado no cambia nada. |
+| 5.7 | Oferta: vuelo `ACTIVE` a 8–30 días que cumpla algún criterio (ocupación ≤ 60 %, ≥ 100 asientos disponibles, promedios dentro de 30 % de la base). Precio base − `OFFER_DISCOUNT_PERCENTAGE` (15 %), **excluyente** con el precio dinámico. |
+| 5.8 | `GET /flights/offers`: máximo 5 nacionales + 5 internacionales, sin repetir ruta. |
+| 5.9 | El precio de una oferta es el mismo en `GET /flights`, en `GET /flights/offers` y al bloquear el asiento. |
+
+Los asientos disponibles se cuentan como `numMaxSeats − RESERVED` (no por `FREE`), de modo que un bloqueo temporal
+no altera el número mostrado ni los umbrales de oferta.
+
+#### Flota del seed
+
+El seed carga 9 aeronaves reales (ya no el par genérico del borrador inicial):
+
+```mermaid
+flowchart LR
+    SEED[seed.ts] --> A1[Boeing 787-8 ×2<br/>242 asientos · 24 Business<br/>internacional]
+    SEED --> A2[Boeing 787-9 ×2<br/>290 asientos · 28 Business<br/>internacional]
+    SEED --> A3[Boeing 737 MAX 8 ×2<br/>162 asientos · 12 Business<br/>internacional (media distancia)]
+    SEED --> A4[Airbus A320neo ×3<br/>150 asientos · 24 Business<br/>solo nacional]
+    A1 & A2 & A3 & A4 --> F[scheduled_flights<br/>hoy → 2027-01-31<br/>25.540 vuelos]
+```
+
 ### 4.5 Tiempo real: por qué `ws` y no Socket.io
 
 Se eligió la librería `ws` (WebSocket nativo) en vez de Socket.io para no introducir una dependencia con
