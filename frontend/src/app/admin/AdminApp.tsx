@@ -5,6 +5,7 @@ import { createQueryClient } from "@/api/query-client.ts";
 import { TooltipProvider } from "@/components/ui/tooltip.tsx";
 import { AdminGuard } from "./AdminGuard.tsx";
 import { LoginPage } from "./login/LoginPage.tsx";
+import { DashboardPage } from "./dashboard/DashboardPage.tsx";
 import { AdminLayout } from "./layout/AdminLayout.tsx";
 import "./styles/admin.css";
 
@@ -28,7 +29,7 @@ export default function AdminApp() {
                 </AdminGuard>
               }
             >
-              <Route index element={<p>Dashboard (Tarea 14)</p>} />
+              <Route index element={<DashboardPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Routes>
