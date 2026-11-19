@@ -131,6 +131,23 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
 - [ ] **Alineación de tarifas** (Light / Classic / Flex y Business) con el precio dinámico, al terminar la v1
       del frontend. El equipaje y demás servicios son costos adicionales sobre el precio de la tarifa.
 - [ ] Endpoint de ofertas: ya implementado en el backend (`GET /flights/offers`); falta consumirlo en el front.
+- [ ] **Habilitar tickets con ida y vuelta.** Hoy la web y la reserva trabajan con un solo vuelo (solo ida; el
+      selector "Ida y vuelta" de la portada no está activo). Implica: búsqueda con fecha de regreso, elegir dos
+      vuelos (ida y regreso), asientos de los dos tramos, precio de cada tramo con las reglas de HU5, una sola
+      reserva con dos vuelos y un boleto por pasajero y tramo, y correos que los muestren. Requiere diseño previo
+      del modelo (una orden con dos vuelos) y de las pantallas (las pestañas por tramo ya están en el prototipo).
+- [ ] **Plantillas de correo nuevas** (ejemplo en `FRONTEND-WEB/Modal-template-mail/template-notificacion.html`,
+      con el logo `lifex-email-logo-white.png` de esa carpeta). Reemplazan el diseño actual de
+      `ticket-confirmation` y `flight-status-change` (mismo renderer `renderEmail()`). Variables del ejemplo:
+      `SUBJECT`, `PREHEADER`, `FIRST_NAME`, `MESSAGE_PRIMARY`, `MESSAGE_SECONDARY`, `DETAIL_1_LABEL/VALUE`,
+      `DETAIL_2_LABEL/VALUE`, `INFO_LABEL/VALUE`, `NOTE`, `CTA_LABEL`, `CTA_URL`. Decidir cómo mapean los datos del
+      boleto y del aviso de vuelo a esos campos, copiar el logo a `frontend/public/mail/` y armar su URL con
+      `APP_URL` (hoy el ejemplo trae `https://TU-DOMINIO/email/...`).
+- [ ] **Modal de sesión** (ejemplo en `FRONTEND-WEB/Modal-template-mail/modal-sesion.html`, es/en). Dos variantes:
+      **sesión inactiva** (el usuario deja la web quieta y la sesión expira) y **tiempo excedido** (vence el tiempo
+      para hacer la compra: `expiresAt` de la reserva y/o el bloqueo del asiento `MAX_SEAT_LOCK_TIME`). Botones
+      "Continuar" y "Ayuda". Debe aparecer en la web pública (checkout) con el mismo diseño, liberar el asiento y
+      llevar de vuelta a la selección; probar los casos de borde de la Tarea 11 (bloqueo vencido en `/payment`).
 
 ## 13. Documentación final
 - [x] `docs/ia.md`, `docs/architecture.md`, `docs/user-stories-acceptance-criteria.md`,
