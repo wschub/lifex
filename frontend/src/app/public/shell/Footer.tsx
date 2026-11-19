@@ -78,7 +78,6 @@ export function SiteFooter({ compact = false }: { compact?: boolean }) {
         </div>
         <div className="foot-note">
           <span>{t("foot.copy")}</span>
-          <span>{t("sample")}</span>
         </div>
       </div>
     </footer>

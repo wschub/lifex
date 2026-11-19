@@ -151,9 +151,6 @@ function ConfirmationContent() {
               {t("home")}
             </Link>
           </div>
-          <p className="sample-note" style={{ textAlign: "center", marginTop: 22 }}>
-            {t("sample")}
-          </p>
         </div>
       </main>
     </Shell>

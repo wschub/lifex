@@ -97,8 +97,7 @@ export const common: Bundle = {
     "foot.whatsapp": "Chatea por WhatsApp",
     "foot.credits": "Créditos de fotos",
     "foot.tag": "The best experience, always.",
-    "foot.copy": "© 2026 lifex. Prototipo con datos de ejemplo.",
-    sample: "Datos de ejemplo: rutas, horarios y precios no son reales.",
+    "foot.copy": "© 2026 lifex.",
     skip: "Saltar al contenido",
   },
   en: {
@@ -182,8 +181,7 @@ export const common: Bundle = {
     "foot.whatsapp": "Chat on WhatsApp",
     "foot.credits": "Photo credits",
     "foot.tag": "The best experience, always.",
-    "foot.copy": "© 2026 lifex. Prototype with sample data.",
-    sample: "Sample data: routes, schedules and prices are not real.",
+    "foot.copy": "© 2026 lifex.",
     skip: "Skip to content",
   },
 };
