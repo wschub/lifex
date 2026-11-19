@@ -22,7 +22,7 @@ la regla de negocio a la ruta HTTP.
 | Seguridad     | Argon2id, JWT (HS256) con `jose`, `helmet`, `cors`, `express-rate-limit` |
 | Logs          | `pino` con id de petición y datos sensibles ocultos                      |
 | Pruebas       | Vitest, Supertest y Testcontainers                                       |
-| Calidad       | ESLint, Prettier, husky                                                  |
+| Calidad       | ESLint, Prettier (husky en la raíz del monorepo)                                                  |
 
 ## Requisitos
 

@@ -1,0 +1,13 @@
+{
+  "name": "lifex",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monorepo de Lifex: backend, frontend (web + dashboard), shared y docs. Solo aloja los git hooks (husky).",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  }
+}

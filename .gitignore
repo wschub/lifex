@@ -3,3 +3,4 @@ notes*.txt
 .DS_Store
 .claude/
 FRONTEND-WEB/
+node_modules
