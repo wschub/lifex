@@ -1,4 +1,14 @@
-import { Globe, LayoutDashboard, LogOut, Plane } from "lucide-react";
+import {
+  Globe,
+  LayoutDashboard,
+  LogOut,
+  Luggage,
+  Plane,
+  PlaneTakeoff,
+  Receipt,
+  Users,
+} from "lucide-react";
+import { PERMISSION } from "@lifex/shared";
 import { Link, useLocation, useNavigate } from "react-router";
 import { logout } from "@/api/auth.ts";
 import {
@@ -7,19 +17,30 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar.tsx";
-import { useStaffSession } from "@/stores/staff-session.ts";
+import { usePermission, useStaffSession } from "@/stores/staff-session.ts";
 import { SidebarBrand } from "./SidebarBrand.tsx";
+
+/** Secciones que solo ve el administrador. */
+const ADMIN_ITEMS = [
+  { to: "/flota", label: "Flota", Icon: PlaneTakeoff },
+  { to: "/categorias", label: "Categorías y equipajes", Icon: Luggage },
+  { to: "/clientes", label: "Clientes", Icon: Users },
+  { to: "/compras", label: "Compras", Icon: Receipt },
+] as const;
 
 export function AppSidebar() {
   const me = useStaffSession((state) => state.me);
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const onFlights = pathname.replace(/\/$/, "") === "/vuelos";
+  const here = pathname.replace(/\/$/, "") || "/";
+  const onFlights = here === "/vuelos";
+  const isAdmin = usePermission(PERMISSION.flightsManage);
 
   async function signOut() {
     await logout().catch(() => undefined);
@@ -37,7 +58,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={!onFlights} tooltip="Dashboard">
+                <SidebarMenuButton asChild isActive={here === "/"} tooltip="Dashboard">
                   <Link to="/">
                     <LayoutDashboard />
                     <span>Dashboard</span>
@@ -64,6 +85,25 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {isAdmin ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administración</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {ADMIN_ITEMS.map(({ to, label, Icon }) => (
+                  <SidebarMenuItem key={to}>
+                    <SidebarMenuButton asChild isActive={here === to} tooltip={label}>
+                      <Link to={to}>
+                        <Icon />
+                        <span>{label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
       </SidebarContent>
       <SidebarFooter>
         <div className="flex flex-col gap-0.5 px-2 text-sm group-data-[collapsible=icon]:hidden">

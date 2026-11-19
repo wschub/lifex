@@ -168,3 +168,54 @@ export const passengerRow = (id: string, over: Record<string, unknown> = {}) => 
   checkedInAt: null,
   ...over,
 });
+
+export const aircraftRow = (id: number, over: Record<string, unknown> = {}) => ({
+  id,
+  internalIdentifier: `INT-00${id}`,
+  reference: "Boeing 787-9",
+  description: "Long-haul widebody.",
+  descriptionEs: "Avión de fuselaje ancho para largo alcance.",
+  typeRange: "INTERNATIONAL",
+  rangeNauticalMiles: 7828,
+  rangeKm: 14498,
+  totalSeats: 290,
+  businessSeats: 28,
+  economySeats: 262,
+  seatColumns: "ABCDEFGHJ",
+  status: "AVAILABLE",
+  upcomingFlights: 412,
+  ...over,
+});
+
+export const customerRow = (email: string, over: Record<string, unknown> = {}) => ({
+  email,
+  name: "Ana Gómez",
+  phone: "+573001112233",
+  purchases: 3,
+  totalUsd: 1234.5,
+  lastPurchaseAt: "2026-11-20T15:30:00.000Z",
+  ...over,
+});
+
+export const purchaseRow = (id: string, over: Record<string, unknown> = {}) => ({
+  id,
+  reservationNumber: "CRBRVR",
+  createdAt: "2026-11-20T15:30:00.000Z",
+  status: "CONFIRMED",
+  customerName: "Ana Gómez",
+  customerEmail: "ana@example.com",
+  customerPhone: "+573001112233",
+  passengers: 2,
+  totalUsd: 250.75,
+  flight: {
+    id: "11111111-1111-4111-8111-111111111111",
+    routeType: "DOMESTIC",
+    from: "MDE",
+    to: "BOG",
+    fromCity: "Medellín",
+    toCity: "Bogotá",
+    departureDate: "2026-12-10T14:00:00.000Z",
+  },
+  payment: { status: "APPROVED", cardBrand: "VISA", cardLast4: "4242" },
+  ...over,
+});

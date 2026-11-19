@@ -6,7 +6,12 @@ import { TooltipProvider } from "@/components/ui/tooltip.tsx";
 import { AdminGuard } from "./AdminGuard.tsx";
 import { LoginPage } from "./login/LoginPage.tsx";
 import { DashboardPage } from "./dashboard/DashboardPage.tsx";
+import { CategoriesPage } from "./backoffice/CategoriesPage.tsx";
+import { CustomersPage } from "./backoffice/CustomersPage.tsx";
+import { FleetPage } from "./backoffice/FleetPage.tsx";
+import { PurchasesPage } from "./backoffice/PurchasesPage.tsx";
 import { FlightsPage } from "./flights/FlightsPage.tsx";
+import { RequireAdmin } from "./RequireAdmin.tsx";
 import { AdminLayout } from "./layout/AdminLayout.tsx";
 import "./styles/admin.css";
 
@@ -32,6 +37,39 @@ export default function AdminApp() {
             >
               <Route index element={<DashboardPage />} />
               <Route path="vuelos" element={<FlightsPage />} />
+              {/* Solo administrador */}
+              <Route
+                path="flota"
+                element={
+                  <RequireAdmin>
+                    <FleetPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="categorias"
+                element={
+                  <RequireAdmin>
+                    <CategoriesPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="clientes"
+                element={
+                  <RequireAdmin>
+                    <CustomersPage />
+                  </RequireAdmin>
+                }
+              />
+              <Route
+                path="compras"
+                element={
+                  <RequireAdmin>
+                    <PurchasesPage />
+                  </RequireAdmin>
+                }
+              />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

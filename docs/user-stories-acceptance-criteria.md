@@ -81,6 +81,18 @@ vuelo, **para** monitorear la demanda en vivo.
 | 4.13 | `PATCH /dashboard/flights/:id/passengers/:ticketId/check-in` (permiso `flights:manage`) registra o quita el check-in de un ticket de ese vuelo; el visor recibe `403` y el ticket de otro vuelo responde `404`. | Integración |
 | 4.14 | En la sección **Vuelos**, al dar clic en un vuelo se abre una ventana con los mismos conteos en vivo del dashboard (libres, bloqueados, pago pendiente y reservados, por clase) y, debajo, la lista de pasajeros con filtros por texto (nombre, documento, correo, teléfono, reserva, ticket o asiento), clase y check-in. | Componente |
 
+### Panel de administración: secciones solo para el administrador
+
+Estas secciones exigen el permiso `flights:manage` (lo tiene `ADMIN`, no `ADMIN_VIEWER`): sin sesión `401`, con el
+encargado (solo lectura) `403`, y en el panel ni siquiera aparecen en el menú.
+
+| # | Criterio | Tipo de prueba |
+|---|---|---|
+| 4.15 | **Flota** — `GET /dashboard/aircraft` lista cada avión con su modelo, descripción (en español e inglés), tipo (nacional o internacional), capacidad total y por clase (Business y Economy), alcance en millas náuticas y en kilómetros, estado y cuántos vuelos tiene programados por delante. | Integración + componente |
+| 4.16 | **Categorías y equipajes** (solo consulta) — el panel muestra las dos cabinas y las tarifas de equipaje (`GET /catalog/luggage-types`): nombre, orden, recargo sobre el precio del asiento y si es solo Business. | Componente |
+| 4.17 | **Clientes** — `GET /dashboard/customers` agrupa por correo a quienes tienen compras confirmadas (no hay cuentas de cliente): nombre del titular de su última compra, teléfono, número de compras, total gastado y fecha de la última compra; con búsqueda por nombre, correo o teléfono (los símbolos del texto no actúan como comodines) y paginación. Al dar clic en un cliente se ven sus compras. | Integración + componente |
+| 4.18 | **Compras** — `GET /dashboard/purchases` lista las reservas con su cliente, vuelo, número de pasajeros, total y pago, paginadas y ordenadas de la más reciente a la más antigua. Por defecto las confirmadas; filtra por texto (reserva, correo, teléfono, pasajero o documento), estado (`ALL` = todas menos borradores), correo del cliente, fecha de compra (`dateFrom`/`dateTo`, hora de Colombia) y origen y destino del vuelo. Un filtro inválido responde `400` (`INVALID_PURCHASE_STATUS`, `INVALID_SEARCH_DATE`, `INVALID_AIRPORT`, `INVALID_PAGE`). | Integración + componente |
+
 ## HU5 — Precios dinámicos y ofertas
 
 **Como** viajero, **quiero** ver el precio vigente de cada clase y las ofertas del momento, **para** decidir

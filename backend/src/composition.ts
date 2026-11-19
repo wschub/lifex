@@ -70,6 +70,13 @@ import {
   ListFlightPassengers,
   SetPassengerCheckIn,
 } from "./modules/dashboard/application/use-cases/dashboard.use-cases.ts";
+import {
+  ListAircraft,
+  ListCustomers,
+  ListPurchases,
+} from "./modules/dashboard/application/use-cases/backoffice.use-cases.ts";
+import { PrismaBackofficeRepository } from "./modules/dashboard/infrastructure/database/prisma-backoffice.repository.ts";
+import { createBackofficeRouter } from "./modules/dashboard/presentation/routes/backoffice.routes.ts";
 import { PrismaDashboardRepository } from "./modules/dashboard/infrastructure/database/prisma-dashboard.repository.ts";
 import { createDashboardRouter } from "./modules/dashboard/presentation/routes/dashboard.routes.ts";
 import { FLIGHTS_PERMISSIONS } from "./modules/flights/application/permissions.ts";
@@ -346,6 +353,14 @@ export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
     listOrderTickets: new ListOrderTickets({ tickets: ticketRepository }),
     getTicketQr: new GetTicketQr({ tickets: ticketRepository, qr: new QrcodeGenerator() }),
   });
+  const backofficeRepository = new PrismaBackofficeRepository(prisma);
+  const backofficeRouter = createBackofficeRouter({
+    authenticate,
+    authorize,
+    listAircraft: new ListAircraft({ repository: backofficeRepository, now: clock }),
+    listCustomers: new ListCustomers({ repository: backofficeRepository }),
+    listPurchases: new ListPurchases({ repository: backofficeRepository }),
+  });
   const dashboardRouter = createDashboardRouter({
     authenticate,
     authorize,
@@ -442,6 +457,7 @@ export function composeApp(env: Env, overrides: CompositionOverrides = {}) {
       paymentsRouter,
       ticketsRouter,
       dashboardRouter,
+      backofficeRouter,
       // start-stack:routers
     ],
     corsOrigins: env.CORS_ORIGINS,

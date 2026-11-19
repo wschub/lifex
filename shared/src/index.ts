@@ -1,5 +1,6 @@
 export * from "./common.ts";
 export * from "./dtos/auth.ts";
+export * from "./dtos/backoffice.ts";
 export * from "./dtos/booking.ts";
 export * from "./dtos/catalog.ts";
 export * from "./dtos/dashboard.ts";

@@ -12,6 +12,7 @@ export function TablePagination({
   total,
   onPageChange,
   onPageSizeChange,
+  noun = "vuelos",
   disabled = false,
 }: {
   page: number;
@@ -19,6 +20,8 @@ export function TablePagination({
   total: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
+  /** Qué se está paginando, en plural ("vuelos", "clientes", "compras"). */
+  noun?: string;
   disabled?: boolean;
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
@@ -28,7 +31,7 @@ export function TablePagination({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3 text-sm">
       <p className="text-muted-foreground" aria-live="polite">
-        Mostrando {number.format(first)}–{number.format(last)} de {number.format(total)} vuelos
+        Mostrando {number.format(first)}–{number.format(last)} de {number.format(total)} {noun}
       </p>
       <div className="flex flex-wrap items-center gap-4">
         <label className="flex items-center gap-2">

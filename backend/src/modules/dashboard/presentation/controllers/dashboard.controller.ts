@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express";
 import { z } from "zod";
 import { AppError } from "../../../../shared/errors/app-error.ts";
+import { airportCode, positiveInt } from "../query.ts";
 import { parseBody } from "../../../../shared/http/validate.ts";
 import type {
   GetDashboardOverview,
@@ -31,22 +32,6 @@ function dayRange(date: unknown): { from: Date; to: Date } | undefined {
     throw new AppError("validation", { code: "INVALID_SEARCH_DATE" });
   }
   return { from, to: new Date(from.getTime() + 24 * 60 * 60 * 1000) };
-}
-
-/** Código IATA opcional (3 letras): se normaliza a mayúsculas. */
-function airportCode(value: unknown): string | undefined {
-  if (value === undefined || value === "") return undefined;
-  if (typeof value !== "string" || !/^[A-Za-z]{3}$/.test(value)) {
-    throw new AppError("validation", { code: "INVALID_AIRPORT" });
-  }
-  return value.toUpperCase();
-}
-
-function positiveInt(value: unknown, code: string): number | undefined {
-  if (value === undefined || value === "") return undefined;
-  const number = typeof value === "string" && /^\d+$/.test(value) ? Number(value) : NaN;
-  if (!Number.isInteger(number) || number < 1) throw new AppError("validation", { code });
-  return number;
 }
 
 export function createDashboardController(deps: DashboardControllerDeps) {

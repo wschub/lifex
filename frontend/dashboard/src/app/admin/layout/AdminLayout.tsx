@@ -3,7 +3,13 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar.tsx";
 import { AppSidebar } from "./AppSidebar.tsx";
 import { SiteHeader } from "./SiteHeader.tsx";
 
-const TITLES: Record<string, string> = { "/vuelos": "Vuelos" };
+const TITLES: Record<string, string> = {
+  "/vuelos": "Vuelos",
+  "/flota": "Flota de aviones",
+  "/categorias": "Categorías y equipajes",
+  "/clientes": "Clientes",
+  "/compras": "Compras",
+};
 
 export function AdminLayout() {
   const { pathname } = useLocation();

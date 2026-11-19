@@ -181,6 +181,11 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       con filtros de texto, clase y check-in (`GET /dashboard/flights/:id/passengers`). `ADMIN` puede registrar o quitar el
       check-in (`PATCH …/check-in`); hoy no existe un check-in en línea para el pasajero, así que todos parten en «Pendiente».
 
+- [x] **Secciones solo para el administrador** (`flights:manage`; menú «Administración»): **Flota** (aviones con
+      descripción, capacidad por clase y alcance), **Categorías y equipajes** (consulta), **Clientes** (agrupados por correo,
+      con sus compras y total gastado, búsqueda y paginación; clic para ver sus compras) y **Compras** (filtros por texto,
+      estado, fecha, ruta y paginación). Los clientes no tienen cuenta: se derivan de las reservas confirmadas.
+
 ## 12.2 Despliegue y operación (Railway)
 - [ ] **Subir los commits pendientes** (`git push`) y comprobar la primera ejecución de los workflows en la pestaña Actions
       (`backend-ci`, `web-ci`, `dashboard-ci`).

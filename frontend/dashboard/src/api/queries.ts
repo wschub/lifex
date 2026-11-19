@@ -1,6 +1,8 @@
 import {
+  aircraftResponseSchema,
   bookingResponseSchema,
   citiesResponseSchema,
+  customersResponseSchema,
   dashboardFlightsResponseSchema,
   dashboardOverviewResponseSchema,
   dashboardPassengersResponseSchema,
@@ -9,6 +11,7 @@ import {
   flightSearchResponseSchema,
   luggageTypesResponseSchema,
   meResponseSchema,
+  purchasesResponseSchema,
   orderTicketsSchema,
   seatMapSchema,
   type FlightSearchQuery,
@@ -119,6 +122,56 @@ export const dashboardPassengersQuery = (flightId: string, staffToken: string) =
       }),
     // Llegan compras nuevas mientras la ventana está abierta.
     refetchInterval: 30_000,
+  });
+
+/** La flota (solo administrador). */
+export const aircraftQuery = (staffToken: string) =>
+  queryOptions({
+    queryKey: keys.aircraft,
+    queryFn: () => apiFetch("/dashboard/aircraft", aircraftResponseSchema, { staffToken }),
+  });
+
+export interface CustomersParams {
+  search?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** Clientes (quienes compraron, por correo) con paginación y búsqueda (solo administrador). */
+export const customersQuery = (params: CustomersParams, staffToken: string) =>
+  queryOptions({
+    queryKey: keys.customers(params),
+    queryFn: () =>
+      apiFetch("/dashboard/customers", customersResponseSchema, {
+        staffToken,
+        query: { ...params },
+      }),
+    placeholderData: keepPreviousData,
+  });
+
+export interface PurchasesParams {
+  search?: string;
+  /** `ALL` = todas menos los borradores; sin estado, las confirmadas. */
+  status?: string;
+  email?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  origin?: string;
+  destination?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** Compras con paginación y filtros (solo administrador). */
+export const purchasesQuery = (params: PurchasesParams, staffToken: string) =>
+  queryOptions({
+    queryKey: keys.purchases(params),
+    queryFn: () =>
+      apiFetch("/dashboard/purchases", purchasesResponseSchema, {
+        staffToken,
+        query: { ...params },
+      }),
+    placeholderData: keepPreviousData,
   });
 
 export const meQuery = (staffToken: string) =>
