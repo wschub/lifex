@@ -6,7 +6,8 @@ WORKDIR /app
 # Todas las dependencias (también las de desarrollo): hacen falta para compilar y para migrar.
 FROM base AS deps
 COPY package.json package-lock.json ./
-RUN npm ci
+# Husky (git hooks) vive en la raíz del repo; en la imagen no hay .git ni hace falta.
+RUN npm pkg delete scripts.prepare && npm ci
 
 # Compilación: genera el cliente de Prisma y transpila TypeScript a dist/.
 FROM deps AS build
@@ -29,14 +30,21 @@ CMD ["npx", "prisma", "migrate", "deploy"]
 # Solo las dependencias de producción.
 FROM base AS prod-deps
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+# Sin esto, "npm ci --omit=dev" intenta ejecutar `prepare` (husky), que no está instalado: exit 127.
+# `prisma` y `dotenv` son dependencias de producción: `prisma migrate deploy` corre en esta imagen.
+RUN npm pkg delete scripts.prepare && npm ci --omit=dev && npm cache clean --force
 
 # Imagen final: lo mínimo para ejecutar la API, sin privilegios.
 FROM base AS runtime
 ENV NODE_ENV=production
+# El CLI de Prisma (migraciones previas al despliegue) necesita OpenSSL y certificados.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist
-COPY --chown=node:node package.json ./
+COPY --chown=node:node package.json prisma.config.ts ./
+COPY --chown=node:node prisma ./prisma
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
