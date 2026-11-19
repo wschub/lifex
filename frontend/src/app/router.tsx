@@ -12,6 +12,9 @@ export const publicRoutes: RouteObject[] = [
     element: <PublicLayout />,
     children: [
       { path: "/", lazy: page(() => import("./public/pages/Home.tsx"), "Home") },
+      { path: "/results", lazy: page(() => import("./public/pages/Results.tsx"), "Results") },
+      { path: "/fares", lazy: page(() => import("./public/pages/Fares.tsx"), "Fares") },
+      { path: "/summary", lazy: page(() => import("./public/pages/Summary.tsx"), "Summary") },
       { path: "*", element: <Navigate to="/" replace /> },
     ],
   },
