@@ -4,6 +4,7 @@ import { Outlet, useLocation } from "react-router";
 import { configQuery } from "@/api/queries.ts";
 import { ErrorNotice } from "@/components/ErrorNotice.tsx";
 import { useLang } from "@/i18n/i18n.ts";
+import { SessionGuard } from "./session/SessionGuard.tsx";
 import "./styles/lifex.css";
 import "./styles/overrides.css";
 
@@ -40,7 +41,10 @@ export function PublicLayout() {
           </div>
         </main>
       ) : config.data ? (
-        <Outlet />
+        <>
+          <Outlet />
+          <SessionGuard />
+        </>
       ) : null}
     </>
   );

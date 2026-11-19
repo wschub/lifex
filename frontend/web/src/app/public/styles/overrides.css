@@ -98,3 +98,194 @@
   font-size: 15px;
   color: var(--gray);
 }
+
+/*
+ * Modal de sesión: inactividad o tiempo de compra agotado. Basado en el ejemplo de diseño (cabecera roja con
+ * el logo, insignia, resumen de la reserva); los botones usan los .btn del sitio. Centrado en X y en Y.
+ */
+.lx-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(20, 22, 26, 0.55);
+  backdrop-filter: blur(2px);
+}
+.lx-modal {
+  width: min(100%, 520px);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(20, 22, 26, 0.28);
+  animation: lx-rise 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes lx-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lx-modal {
+    animation: none;
+  }
+}
+.lx-head {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--red) 0%, var(--red-deep) 100%);
+  padding: 28px 24px 26px;
+  text-align: center;
+}
+.lx-head::before {
+  content: "";
+  position: absolute;
+  right: -70px;
+  top: -60px;
+  width: 210px;
+  height: 270px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.16);
+}
+.lx-head::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -30px;
+  width: 150px;
+  height: 210px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+.lx-logo {
+  position: relative;
+  z-index: 1;
+  width: 136px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+.lx-body {
+  padding: 28px 32px 8px;
+}
+.lx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 13px var(--font-text);
+  color: var(--red-deep);
+  background: var(--red-tint);
+  padding: 5px 12px 5px 8px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+.lx-badge svg {
+  width: 18px;
+  height: 18px;
+}
+.lx-title {
+  font: 600 25px/1.2 var(--font-display);
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 12px;
+  text-wrap: balance;
+}
+.lx-text {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 16px;
+}
+.lx-text strong {
+  color: var(--ink);
+}
+.lx-res {
+  margin: 20px 0 4px;
+  background: var(--sky);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 16px;
+  align-items: center;
+}
+.lx-res small {
+  font-size: 12px;
+  color: var(--gray);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lx-code {
+  font: 600 22px var(--font-display);
+  letter-spacing: 0.14em;
+  color: var(--ink);
+}
+.lx-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 15px var(--font-display);
+  color: var(--ink);
+  justify-self: end;
+}
+.lx-route svg {
+  width: 16px;
+  height: 16px;
+  color: var(--gray-soft);
+}
+.lx-meta {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--line);
+  margin-top: 10px;
+  padding-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13.5px;
+  color: var(--gray);
+}
+.lx-meta b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.lx-time {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--gray);
+}
+.lx-time b {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.lx-foot {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  padding: 20px 32px 28px;
+}
+@media (max-width: 480px) {
+  .lx-body {
+    padding: 24px 20px 4px;
+  }
+  .lx-foot {
+    padding: 18px 20px 22px;
+    flex-direction: column-reverse;
+  }
+  .lx-foot .btn {
+    width: 100%;
+  }
+  .lx-title {
+    font-size: 22px;
+  }
+  .lx-route {
+    justify-self: start;
+    grid-column: 1 / -1;
+  }
+}

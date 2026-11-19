@@ -151,14 +151,18 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       `DETAIL_2_LABEL/VALUE`, `INFO_LABEL/VALUE`, `NOTE`, `CTA_LABEL`, `CTA_URL`. Decidir cómo mapean los datos del
       boleto y del aviso de vuelo a esos campos, copiar el logo a `frontend/public/mail/` y armar su URL con
       `APP_URL` (hoy el ejemplo trae `https://TU-DOMINIO/email/...`).
-- [ ] **Modal de sesión** (ejemplo en la carpeta local `FRONTEND-WEB/Modal-template-mail/modal-sesion.html`, es/en; el modal se extrae de ahí cuando se vaya a implementar). Dos variantes:
-      **sesión inactiva** (el usuario deja la web quieta y la sesión expira) y **tiempo excedido** (vence el tiempo
-      para hacer la compra: `expiresAt` de la reserva y/o el bloqueo del asiento `MAX_SEAT_LOCK_TIME`). Botones
-      "Continuar" y "Ayuda". Plazo de compra: `MAX_SEAT_LOCK_TIME` (15 min). Inactividad: variable
-      `WEB_IDLE_TIMEOUT_MINUTES` (2 min por ahora, ya existe y llega al navegador en `GET /config` como
-      `idleTimeoutMinutes`); el modal se dispara por inactividad en **cualquier sección** del sitio (un detector
-      global de actividad: mouse, teclado, scroll, toque). Debe aparecer en la web pública (checkout) con el mismo diseño, liberar el asiento y
-      llevar de vuelta a la selección; probar los casos de borde de la Tarea 11 (bloqueo vencido en `/payment`).
+- [x] **Modal de sesión** (`frontend/web/src/app/public/session/`), basado en el ejemplo de diseño local
+      (`FRONTEND-WEB/Modal-template-mail/modal-sesion.html`; el logo blanco salió de ahí a `frontend/public/logo/lifex-reversed.svg`).
+      Dos motivos, en el idioma actual (es/en) y centrado en pantalla:
+      - **Sesión inactiva:** `idleTimeoutMinutes` (`WEB_IDLE_TIMEOUT_MINUTES`, 2 min) sin actividad (ratón, teclado, scroll,
+        toque) en **cualquier sección** del sitio público.
+      - **Tiempo de compra agotado:** `maxSeatLockMinutes` (`MAX_SEAT_LOCK_TIME`, 15 min) desde que se abre la reserva
+        (`purchaseStartedAt`), o antes si la reserva del servidor vence (`booking.expiresAt`).
+      Al dispararse se descarta la compra (se sueltan los asientos bloqueados y se limpia el asistente) y **Cerrar**,
+      **Continuar** o Escape llevan a la portada para empezar de cero. Se pausa en `/confirmation` y mientras se procesa un
+      pago (`paymentKey`). Si no hay compra en curso, el texto de inactividad no habla de una compra cancelada.
+      Decisión: se quitó del ejemplo el texto "tu reserva se conserva" y el botón "Solicitar ayuda", porque la compra se
+      reinicia; los botones usan los `.btn` del sitio.
 
 ## 12.2 Despliegue y operación (Railway)
 - [ ] **Subir los commits pendientes** (`git push`) y comprobar la primera ejecución de los workflows en la pestaña Actions

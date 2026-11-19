@@ -71,6 +71,8 @@ export interface WizardState {
   passengers: PassengerForm[];
   holder: HolderForm | null;
   booking: BookingSession | null;
+  /** Instante (ms) en que se abrió la reserva: desde ahí corre el plazo de compra (MAX_SEAT_LOCK_TIME). */
+  purchaseStartedAt: number | null;
   /** Un asiento por pasajero (misma posición que `passengers`); `null` = sin elegir. */
   seats: (HeldSeat | null)[];
   /** Clave de idempotencia del intento de pago en curso. */
@@ -115,6 +117,7 @@ const initialData = () => ({
   passengers: [] as PassengerForm[],
   holder: null,
   booking: null,
+  purchaseStartedAt: null,
   seats: [] as (HeldSeat | null)[],
   paymentKey: null,
   confirmedBookingId: null,
@@ -138,21 +141,34 @@ export const useWizard = create<WizardState>()(
         set((s) =>
           s.flightId === flightId
             ? {}
-            : { flightId, fareId: null, luggageTypeId: null, seats: [], booking: null },
+            : {
+                flightId,
+                fareId: null,
+                luggageTypeId: null,
+                seats: [],
+                booking: null,
+                purchaseStartedAt: null,
+              },
         ),
       chooseFare: ({ fareId, luggageTypeId, cabin }) =>
         set((s) => (s.fareId === fareId ? { cabin } : { fareId, luggageTypeId, cabin, seats: [] })),
       setCabin: (cabin) => set({ cabin }),
       setPassengers: (passengers) => set({ passengers }),
       setHolder: (holder) => set({ holder }),
-      attachBooking: (booking) => set({ booking }),
+      // El plazo de compra corre desde que se abre la reserva; reemplazarla por otra lo reinicia.
+      attachBooking: (booking) =>
+        set((s) => ({
+          booking,
+          purchaseStartedAt: s.booking?.id === booking.id ? s.purchaseStartedAt : Date.now(),
+        })),
       setSeats: (seats) =>
         set((s) => ({ seats, holdExpired: seats.some(Boolean) ? false : s.holdExpired })),
       expireHolds: (seats) => set({ seats, holdExpired: true }),
       dismissHoldExpired: () => set({ holdExpired: false }),
       setPaymentKey: (paymentKey) => set({ paymentKey }),
       confirm: (confirmedBookingId) => set({ confirmedBookingId }),
-      dropBooking: () => set({ booking: null, seats: [], paymentKey: null }),
+      dropBooking: () =>
+        set({ booking: null, purchaseStartedAt: null, seats: [], paymentKey: null }),
       reset: () => set(initialData()),
     }),
     {
