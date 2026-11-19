@@ -99,18 +99,18 @@ export function ticketConfirmationParams(
 
 const DISRUPTION = {
   CANCELLED: {
-    subject: "cancelado",
-    title: "Tu vuelo fue cancelado",
+    subject: "Cancelación",
+    title: "Cancelación de tu vuelo",
     color: "#c53030",
     message:
-      "Lamentamos informarte que tu vuelo fue cancelado. Nos pondremos en contacto contigo para ofrecerte alternativas o el reembolso de tu reserva.",
+      "Lamentamos informarte que tu vuelo fue cancelado y sentimos mucho los inconvenientes. Te pedimos estar pendiente de tu correo: por ese medio te informaremos las novedades sobre tu reserva.",
   },
   DELAYED: {
-    subject: "retrasado",
-    title: "Tu vuelo fue retrasado",
+    subject: "Retraso",
+    title: "Retraso de tu vuelo",
     color: "#b7791f",
     message:
-      "Tu vuelo presenta un retraso respecto a la hora programada. Te avisaremos apenas tengamos la nueva hora de salida.",
+      "Tu vuelo presenta un retraso respecto a la hora programada. Agradecemos tu comprensión y te pedimos estar pendiente de tu correo: por ese medio te iremos informando las novedades sobre tu vuelo.",
   },
 } as const;
 
@@ -119,7 +119,7 @@ export function disruptionSubject(
   disruption: FlightDisruption,
 ): string {
   const { fromIata, toIata } = confirmation.flight;
-  return `Tu vuelo ${fromIata} → ${toIata} fue ${DISRUPTION[disruption].subject} — ${confirmation.reservationNumber}`;
+  return `${DISRUPTION[disruption].subject} de tu vuelo ${fromIata} → ${toIata} — ${confirmation.reservationNumber}`;
 }
 
 export function flightDisruptionParams(

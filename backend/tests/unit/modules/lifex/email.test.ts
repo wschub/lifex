@@ -114,8 +114,11 @@ describe("plantillas", () => {
       expect(html).not.toContain("{{");
       expect(text).toContain("Ana Gómez (12A), Luis Pérez (12B)");
       expect(html).toContain(
-        disruption === "CANCELLED" ? "Tu vuelo fue cancelado" : "Tu vuelo fue retrasado",
+        disruption === "CANCELLED" ? "Cancelación de tu vuelo" : "Retraso de tu vuelo",
       );
+      // Texto corto y diplomático: pide estar pendiente del correo, donde llegarán las novedades.
+      expect(text).toContain("estar pendiente de tu correo");
+      expect(text).toContain("novedades");
     }
   });
 
@@ -192,12 +195,16 @@ describe("BrevoNotificationAdapter", () => {
     expect(body.textContent).toContain("LXABCDEFGH23");
   });
 
-  it("el aviso de cancelación lleva su propio asunto", async () => {
+  it("el asunto del aviso dice si fue Cancelación o Retraso", async () => {
     await adapter.sendFlightDisruption(confirmation, "CANCELLED");
+    const cancelled = JSON.parse(String(calls.at(-1)!.init.body));
+    await adapter.sendFlightDisruption(confirmation, "DELAYED");
+    const delayed = JSON.parse(String(calls.at(-1)!.init.body));
 
-    const body = JSON.parse(String(calls.at(-1)!.init.body));
-    expect(body.subject).toBe("Tu vuelo MDE → BOG fue cancelado — K7M2QX");
-    expect(body.htmlContent).toContain("Tu vuelo fue cancelado");
+    expect(cancelled.subject).toBe("Cancelación de tu vuelo MDE → BOG — K7M2QX");
+    expect(cancelled.htmlContent).toContain("Cancelación de tu vuelo");
+    expect(delayed.subject).toBe("Retraso de tu vuelo MDE → BOG — K7M2QX");
+    expect(delayed.htmlContent).toContain("Retraso de tu vuelo");
   });
 
   it("si Brevo responde con error, lanza para que el outbox reintente", async () => {
