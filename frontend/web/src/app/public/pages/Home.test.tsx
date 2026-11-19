@@ -84,6 +84,70 @@ function mockOffers(offers: unknown[]) {
   });
 }
 
+describe("Home: autocompletar de origen y destino", () => {
+  // Solo las opciones de la lista abierta (el selector de pasajeros también tiene <option>).
+  const optionNames = () =>
+    within(screen.getByRole("listbox"))
+      .getAllByRole("option")
+      .map((o) => o.textContent);
+
+  it("origen y destino ofrecen todos los aeropuertos, nacionales e internacionales", async () => {
+    renderPage(<Home />);
+    const from = await screen.findByRole("combobox", { name: /origen/i });
+    await waitFor(() => expect(from).toHaveValue("Bogotá (BOG)")); // ya cargó el catálogo
+    await userEvent.click(from);
+    expect(optionNames()).toEqual([
+      "Bogotá (BOG)",
+      "Medellín (MDE)",
+      "Pereira (PEI)",
+      "Londres (LHR)",
+    ]);
+    await userEvent.keyboard("{Escape}");
+
+    // El destino ofrece los mismos menos el origen elegido.
+    await userEvent.click(screen.getByRole("combobox", { name: /destino/i }));
+    expect(optionNames()).toEqual(["Medellín (MDE)", "Pereira (PEI)", "Londres (LHR)"]);
+  });
+
+  it("buscar con origen y destino elegidos por autocompletar navega a los resultados con sus códigos", async () => {
+    const { router } = renderPage(<Home />);
+    const origin = await screen.findByRole("combobox", { name: /origen/i });
+    await waitFor(() => expect(origin).toHaveValue("Bogotá (BOG)"));
+    await userEvent.click(screen.getByRole("combobox", { name: /destino/i }));
+    await userEvent.type(screen.getByRole("combobox", { name: /destino/i }), "lond{Enter}");
+
+    await userEvent.click(screen.getByRole("button", { name: /buscar vuelos/i }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/results"));
+    expect(router.state.location.search).toMatch(/from=BOG&to=LHR&/);
+  });
+
+  it("si se elige como origen el destino ya elegido, el destino se limpia", async () => {
+    renderPage(<Home />);
+    const from = await screen.findByRole("combobox", { name: /origen/i });
+    await waitFor(() => expect(from).toHaveValue("Bogotá (BOG)"));
+    const to = screen.getByRole("combobox", { name: /destino/i });
+    await userEvent.click(to);
+    await userEvent.type(to, "pereira{Enter}");
+    expect(to).toHaveValue("Pereira (PEI)");
+
+    await userEvent.click(from);
+    await userEvent.clear(from); // en el navegador, al enfocar se selecciona el texto y escribir lo reemplaza
+    await userEvent.type(from, "pei{Enter}");
+
+    expect(from).toHaveValue("Pereira (PEI)");
+    expect(to).toHaveValue("");
+  });
+
+  it("sin destino elegido, buscar marca el campo y no navega", async () => {
+    const { router } = renderPage(<Home />);
+    await screen.findByRole("combobox", { name: /origen/i });
+    await userEvent.click(screen.getByRole("button", { name: /buscar vuelos/i }));
+    expect(router.state.location.pathname).toBe("/");
+    expect(screen.getByText("Elige un destino.")).toBeInTheDocument();
+  });
+});
+
 describe("Home", () => {
   it("el encabezado lleva el login al panel admin y cambia con el idioma", async () => {
     renderPage(<Home />);

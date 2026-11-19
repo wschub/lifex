@@ -139,8 +139,9 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       compra** (ida y regreso): el ajuste es mover el vuelo y el asiento del nivel de la orden/pasajero al nivel
       del tramo (ticket), porque hoy la orden referencia un solo vuelo. Las pestañas por tramo ya están en el
       prototipo.
-- [ ] **Origen y destino con autocompletar** (una vez habilitado el tab de ida y vuelta): los dos campos filtran
-      mientras se escribe, por código de aeropuerto (IATA) o por nombre de ciudad, en español e inglés.
+- [x] **Origen y destino con autocompletar** (`AirportCombobox`, patrón combobox de ARIA): los dos campos muestran todos los
+      aeropuertos, nacionales e internacionales (agrupados), y filtran mientras se escribe por código IATA o por ciudad (español
+      o inglés, sin tildes); teclado (flechas, Enter, Tab, Escape) y el destino excluye el origen. Mismo aspecto que el select anterior.
 - [ ] **Solo ida deshabilita la fecha de regreso** (una vez habilitado el tab de ida y vuelta).
 - [x] **Niños en la reserva:** se conservan (`passengerType` sigue admitiendo `ADULT` y `CHILD`); no hay cambio.
 - [ ] **Plantillas de correo nuevas** (ejemplo en la carpeta local `FRONTEND-WEB/Modal-template-mail/template-notificacion.html`, que **no** está en el repo,

@@ -11,6 +11,7 @@ import { useWizard } from "@/stores/booking-wizard.ts";
 import { useCities, type AirportEntry } from "../hooks/useCities.ts";
 import { useLowestPrice } from "../hooks/useLowestPrice.ts";
 import { usePublicConfig } from "../hooks/usePublicConfig.ts";
+import { AirportCombobox } from "../shell/AirportCombobox.tsx";
 import { Icon } from "../shell/Icon.tsx";
 import { Shell } from "../shell/Shell.tsx";
 import { fareOptions, farePriceUsd, MILES_PER_USD, type FareOption } from "../fares.ts";
@@ -121,9 +122,9 @@ export function Home() {
     a: { src: SKY, pos: "50% 50%" },
     b: { src: SKY, pos: "50% 50%" },
   });
-  const toRef = useRef<HTMLSelectElement>(null);
+  const toRef = useRef<HTMLInputElement>(null);
 
-  const origins = useMemo(() => entries.filter((e) => e.countryIsoCode === "CO"), [entries]);
+  // Origen y destino ofrecen todos los aeropuertos (nacionales e internacionales); el destino excluye el origen.
   const destinations = useMemo(() => entries.filter((e) => e.iata !== from), [entries, from]);
   const chips = useMemo(() => ordered(entries, DEST_ORDER, from, 6), [entries, from]);
   const offersQ = useQuery(offersQuery());
@@ -159,8 +160,14 @@ export function Home() {
 
   const onFrom = (value: string) => {
     setFrom(value);
-    if (cur === value) setCur(null);
-    else setTo(cur ?? "");
+    // El destino no puede ser igual al origen: si coincide, se limpia (y la imagen vuelve al cielo).
+    if (value === to) {
+      setTo("");
+      if (cur === value) {
+        setCur(null);
+        windowTo(SKY);
+      }
+    }
   };
   const onTo = (value: string) => {
     if (value) {
@@ -237,35 +244,27 @@ export function Home() {
               <div className="search-row">
                 <div className="field">
                   <label htmlFor="from">{t("f.from")}</label>
-                  <select
+                  <AirportCombobox
                     id="from"
                     name="from"
                     value={from}
-                    onChange={(e) => onFrom(e.target.value)}
-                  >
-                    {origins.map((c) => (
-                      <option key={c.iata} value={c.iata}>
-                        {lang === "es" ? c.nameEs : c.name} ({c.iata})
-                      </option>
-                    ))}
-                  </select>
+                    options={entries}
+                    placeholder={t("ac.hint")}
+                    onChange={onFrom}
+                  />
                 </div>
                 <div className={`field${invalid ? " invalid" : ""}`}>
                   <label htmlFor="to">{t("f.to")}</label>
-                  <select
+                  <AirportCombobox
                     id="to"
                     name="to"
-                    ref={toRef}
+                    inputRef={toRef}
                     value={to}
-                    onChange={(e) => onTo(e.target.value)}
-                  >
-                    <option value="">{t("to.ph")}</option>
-                    {destinations.map((c) => (
-                      <option key={c.iata} value={c.iata}>
-                        {lang === "es" ? c.nameEs : c.name} ({c.iata})
-                      </option>
-                    ))}
-                  </select>
+                    options={destinations}
+                    placeholder={t("to.ph")}
+                    allowEmpty
+                    onChange={onTo}
+                  />
                   <span className="err-msg">{t("err.to")}</span>
                 </div>
                 <div className="field">
