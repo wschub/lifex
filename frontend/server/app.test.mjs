@@ -4,7 +4,7 @@ import { createServer, request } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
-import { createFrontendServer, stripApiPrefix } from "./app.mjs";
+import { createFrontendServer, prefixCookiePath, stripApiPrefix } from "./app.mjs";
 
 let dist;
 let backend;
@@ -136,7 +136,7 @@ describe("proxy de /api", () => {
     });
     assert.equal(res.status, 200);
     assert.deepEqual(JSON.parse(res.text), { path: "/flights?from=BOG&to=MDE" });
-    assert.match(String(res.headers["set-cookie"]), /refresh=abc; HttpOnly/);
+    assert.match(String(res.headers["set-cookie"]), /refresh=abc; HttpOnly; Path=\/api\/auth/);
     const forwarded = seen.at(-1);
     assert.equal(forwarded.headers.origin, "https://lifex.example.com");
     assert.equal(forwarded.headers.cookie, "a=b");
@@ -166,6 +166,16 @@ describe("proxy de /api", () => {
     const nonePort = await listen(none);
     assert.equal((await call("/api/x", { port: nonePort })).status, 503);
     none.close();
+  });
+
+  it("prefixCookiePath mueve la cookie bajo /api sin tocar el resto de atributos", () => {
+    assert.equal(
+      prefixCookiePath(
+        "refresh_token=x; Path=/auth; Expires=Thu, 26 Nov 2026 12:13:14 GMT; HttpOnly; Secure; SameSite=Lax",
+      ),
+      "refresh_token=x; Path=/api/auth; Expires=Thu, 26 Nov 2026 12:13:14 GMT; HttpOnly; Secure; SameSite=Lax",
+    );
+    assert.equal(prefixCookiePath("a=b; HttpOnly"), "a=b; HttpOnly");
   });
 
   it("stripApiPrefix solo toca rutas bajo /api", () => {

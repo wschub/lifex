@@ -39,6 +39,11 @@ export function stripApiPrefix(url) {
   return (match[1] ?? "/") + (match[2] ?? "");
 }
 
+/** `Path=/auth` → `Path=/api/auth` (el navegador ve la API bajo el prefijo /api). */
+export function prefixCookiePath(cookie) {
+  return cookie.replace(/(;\s*Path=)(\/[^;]*)/i, `$1${API_PREFIX}$2`);
+}
+
 function forwardedHeaders(req, target, { keepUpgrade = false } = {}) {
   const headers = { ...req.headers };
   if (!keepUpgrade) for (const name of HOP_BY_HOP) delete headers[name];
@@ -131,7 +136,11 @@ export function createFrontendServer({ dist, backendUrl }) {
         timeout: 30_000,
       },
       (response) => {
-        res.writeHead(response.statusCode ?? 502, response.headers);
+        const headers = { ...response.headers };
+        // La API se ve bajo /api: la cookie de refresh (Path=/auth) debe enviarse a /api/auth/*.
+        if (headers["set-cookie"])
+          headers["set-cookie"] = headers["set-cookie"].map(prefixCookiePath);
+        res.writeHead(response.statusCode ?? 502, headers);
         response.pipe(res);
       },
     );
