@@ -1,0 +1,15 @@
+{
+  "name": "@lifex/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Despliegue conjunto: la web pública en / y el dashboard (login + panel) en /dashboard.",
+  "scripts": {
+    "install:all": "npm --prefix web install && npm --prefix dashboard install && npm install",
+    "dev:web": "npm --prefix web run dev",
+    "dev:dashboard": "npm --prefix dashboard run dev",
+    "verify": "npm --prefix web run verify && npm --prefix dashboard run verify",
+    "build": "npm --prefix web run build && npm --prefix dashboard run build && node scripts/assemble.mjs",
+    "start": "node server.mjs"
+  }
+}

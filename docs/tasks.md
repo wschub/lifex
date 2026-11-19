@@ -95,17 +95,19 @@ arquitectura y 625 pruebas). Pendiente: frontend y cierre de documentación.
       `BookingConfirmed`, `FlightStatusChanged`, mensajes de control, temas y protocolo del cliente).
 - [x] Pruebas de contrato en `backend/tests/integration/lifex/contracts.test.ts`: las respuestas reales de la
       API (Postgres real) y los mensajes reales del WebSocket se validan contra estos esquemas.
-- [ ] El frontend lo consumirá con un alias (`@lifex/shared` → `../shared/src/index.ts`).
+- [x] El frontend lo consume con un alias (`@lifex/shared` → `../shared/src/index.ts`).
 
-## 12. Frontend (`lifex/frontend/`) — pendiente
-- [ ] Vite + React + TypeScript + shadcn/ui + Zustand (estado de UI) + TanStack Query (estado de servidor,
+## 12. Frontend (`lifex/frontend/`)
+- [x] Vite + React + TypeScript + shadcn/ui (solo dashboard) + Zustand (estado de UI) + TanStack Query (estado de servidor,
       incluida la sincronización con eventos WS vía `queryClient.setQueryData`) + TanStack Table.
-- [ ] Dos grupos de rutas con carga perezosa: `app/public/` (búsqueda, mapa de asientos, checkout, boleto) y
-      `app/admin/` (login staff, dashboard), compartiendo cliente HTTP, tipos (`shared/`) y componentes.
-- [ ] Guard de rutas de `app/admin/` basado en los permisos devueltos por `GET /auth/me`.
-- [ ] Cliente WS con reconexión + pedido de snapshot al reconectar.
-- [ ] Selector de idioma (es/en) que también activa la conversión USD→COP con `IATA_TRM`.
-- [ ] Logo definitivo en la app y en las dos plantillas de correo.
+- [x] Estructura de carpetas (decidida por el usuario): `frontend/web` (proyecto Vite de la web pública, URL `/`),
+      `frontend/dashboard` (proyecto Vite de login + panel, URL `/dashboard`) y `frontend/public` (activos
+      compartidos). Ambos comparten los contratos de `shared/` por alias; se despliegan juntos con
+      `npm run build` + `npm start` en `frontend/` (`server.mjs`).
+- [x] Guard de rutas del dashboard basado en los permisos devueltos por `GET /auth/me`.
+- [x] Cliente WS con reconexión + pedido de snapshot al reconectar.
+- [x] Selector de idioma (es/en) en la web (el dashboard es solo en español) que también activa la conversión USD→COP con `IATA_TRM`.
+- [x] Logo definitivo en la app y en las dos plantillas de correo (PNG vertical con eslogan, `APP_URL`).
 
 ## 12.1 Precios dinámicos, ofertas y flota (HU5)
 - [x] Servicio de dominio `dynamic-price.ts` (primer ticket +20 %, promedio +5 %, +0,5 % por hora en las

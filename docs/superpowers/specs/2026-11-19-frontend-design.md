@@ -1,6 +1,12 @@
 # Diseño del frontend de Lifex
 
-Fecha: 2026-11-19. Estado: pendiente de aprobación.
+Fecha: 2026-11-19. Estado: aprobado y implementado.
+
+> **Actualización de estructura (2026-11-19).** El frontend quedó como **dos proyectos Vite separados** dentro de
+> `frontend/`: `web/` (web pública, URL `/`), `dashboard/` (login + panel, URL `/dashboard`) y `public/` (activos
+> compartidos). Donde este documento dice "rutas `/admin`" o "`app/admin`", léase `/dashboard` y el proyecto
+> `frontend/dashboard`: el login es `/dashboard/login` y el panel `/dashboard`. Se despliegan juntos con
+> `npm run build` y `npm start` en `frontend/` (ver README).
 
 ## 1. Intención
 

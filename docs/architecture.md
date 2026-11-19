@@ -14,7 +14,7 @@ proyecto.
 flowchart TB
     subgraph Cliente
         PUB[App pública<br/>búsqueda, mapa de asientos, checkout]
-        ADM[Dashboard admin<br/>React + shadcn]
+        ADM[Dashboard admin (/dashboard)<br/>React + shadcn]
     end
 
     subgraph Backend["Backend — Express (hexagonal)"]

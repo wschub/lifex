@@ -36,7 +36,12 @@ tareas de implementación, en [`docs/tasks.md`](docs/tasks.md); el plan de datos
 lifex/
 ├── backend/              # API — Express, arquitectura hexagonal por módulos
 │   └── src/shared/notifications/templates/   # plantillas de correo (HTML + texto plano)
-├── frontend/             # React — web pública + dashboard admin
+├── frontend/
+│   ├── web/              # Vite + React — web pública (se publica en "/")
+│   ├── dashboard/        # Vite + React + shadcn — login y panel administrativo (se publica en "/dashboard")
+│   ├── public/           # activos compartidos: fuentes, fotos de destinos, logos y PNG de correo
+│   ├── scripts/          # assemble.mjs: junta los dos builds en frontend/dist
+│   └── server.mjs        # servidor estático de producción (web en "/", dashboard en "/dashboard")
 ├── shared/               # @lifex/shared — esquemas Zod de DTOs y catálogo de eventos de WebSocket
 ├── docs/
 │   ├── architecture.md
@@ -84,10 +89,25 @@ Tarjetas de prueba: `4242 4242 4242 4242` (aprobada), `4000 0000 0000 0002` (rec
 
 ### Frontend
 
+Son dos proyectos Vite independientes; las fotos, fuentes y logos viven en `frontend/public/` y los usan los dos.
+
 ```bash
 cd frontend
-npm install
-npm run dev
+npm run install:all     # instala web, dashboard y la raíz
+npm run dev:web         # http://localhost:5173        (web pública)
+npm run dev:dashboard   # http://localhost:5174/dashboard/  (login + panel)
+```
+
+Variables de cada proyecto en su `.env.example` (`VITE_API_URL`; la web usa `VITE_DASHBOARD_URL` para el enlace de
+"Iniciar sesión" y el dashboard usa `VITE_WEB_URL` para "Ver sitio"). El backend debe permitir ambos orígenes en
+`CORS_ORIGINS` (`http://localhost:5173,http://localhost:5174`).
+
+Para desplegar ambas URL con un solo servicio:
+
+```bash
+cd frontend
+npm run build           # web/dist + dashboard/dist → frontend/dist (web en "/", dashboard en "/dashboard")
+npm start               # node server.mjs (usa PORT)
 ```
 
 ### Pruebas
